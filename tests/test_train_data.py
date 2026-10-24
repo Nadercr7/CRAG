@@ -84,3 +84,16 @@ def test_filter_candidates_drops_likely_false_negatives():
     negatives = [p.text for p in pairs if p.label == 0]
     assert "C1" not in negatives  # teacher scores it above the positive
     assert negatives[:2] == ["C2", "C3"] and len(negatives) == 3
+
+
+def test_beir_candidates_keep_highest_graded_positives():
+    ds = BeirDataset(
+        "toy",
+        "train",
+        corpus={d: {"title": d.upper(), "text": "t"} for d in ("a", "b", "c", "d", "e")},
+        queries={"q": "query"},
+        qrels={"q": {"a": 1, "b": 2, "c": 2, "d": 1}},
+    )
+    items = beir_candidates(ds, lambda q, k: [("e", 1.0), ("a", 0.5)], max_positives=2)
+    assert items[0]["positives"] == ["B t", "C t"]
+    assert items[0]["candidates"] == ["E t"]  # judged docs never become candidates

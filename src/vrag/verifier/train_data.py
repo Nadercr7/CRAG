@@ -106,15 +106,23 @@ def hotpot_training_pairs(rows: Iterable[dict], n_questions: int, seed: int) -> 
 Search = Callable[[str, int], list[tuple[str, float]]]
 
 
-def beir_candidates(dataset: BeirDataset, search: Search, depth: int = 50) -> list[dict]:
+def beir_candidates(
+    dataset: BeirDataset, search: Search, depth: int = 50, max_positives: int = 3
+) -> list[dict]:
     """Per training query: positive texts and retrieved non-positive candidates, best first.
 
+    Positives are the ``max_positives`` highest-graded judged documents (NFCorpus has ~43
+    graded positives per query, mostly partial matches, which would swamp the mix).
     Candidates are not yet negatives: some are unlabelled relevant documents. The teacher
     filter in ``filter_candidates`` decides which ones are safe to use.
     """
     out = []
     for qid, query in dataset.queries.items():
-        positives = [d for d, rel in dataset.qrels[qid].items() if rel > 0 and d in dataset.corpus]
+        graded = sorted(
+            ((rel, d) for d, rel in dataset.qrels[qid].items() if rel > 0 and d in dataset.corpus),
+            key=lambda x: (-x[0], x[1]),
+        )
+        positives = [d for _, d in graded[:max_positives]]
         if not positives:
             continue
         hits = search(query, depth + len(positives))

@@ -53,19 +53,7 @@ def hotpot_train_rows() -> list[dict]:
     return rows
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--hotpot-questions", type=int, default=20_000)
-    ap.add_argument("--beir", nargs="+", default=["scifact", "nfcorpus", "fiqa"])
-    ap.add_argument("--depth", type=int, default=30)
-    ap.add_argument("--seed", type=int, default=13)
-    args = ap.parse_args()
-
-    cfg = get_config()
-    out = cfg.paths.data_dir / "processed" / "train"
-    out.mkdir(parents=True, exist_ok=True)
-    manifest: dict = {"seed": args.seed, "depth": args.depth}
-
+def build_hotpot(args, cfg, out: Path, manifest: dict) -> None:
     pairs = hotpot_training_pairs(hotpot_train_rows(), args.hotpot_questions, args.seed)
     write_jsonl(out / "hotpot_train.jsonl", (p.to_dict() for p in pairs))
     manifest["hotpot_train"] = Counter(f"{p.source}/{p.level}/{p.label}" for p in pairs)
@@ -91,6 +79,8 @@ def main() -> None:
     manifest["hotpot_dev"] = Counter(f"{p.source}/{p.level}/{p.label}" for p in dev_pairs)
     print("hotpot dev", len(dev_pairs))
 
+
+def build_beir(args, cfg, out: Path, manifest: dict) -> None:
     items: list[dict] = []
     for name in args.beir:
         ds = load_beir(name, "train", cfg.paths.data_dir / "raw")
@@ -99,7 +89,9 @@ def main() -> None:
             BM25Index.load(index_dir / "bm25"),
             DenseIndex.load(index_dir / f"dense-{slug(cfg.retrieval.embedder)}"),
         )
-        found = beir_candidates(ds, lambda q, k, h=hybrid: h.search(q, k), args.depth)
+        found = beir_candidates(
+            ds, lambda q, k, h=hybrid: h.search(q, k), args.depth, args.max_positives
+        )
         items += found
         manifest[f"beir_{name}"] = {
             "queries": len(found),
@@ -108,7 +100,28 @@ def main() -> None:
         print(name, len(found))
     write_jsonl(out / "beir_candidates.jsonl", items)
 
-    (out / "manifest.json").write_text(json.dumps(manifest, indent=2))
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--hotpot-questions", type=int, default=20_000)
+    ap.add_argument("--beir", nargs="+", default=["scifact", "nfcorpus", "fiqa"])
+    ap.add_argument("--depth", type=int, default=30)
+    ap.add_argument("--max-positives", type=int, default=3)
+    ap.add_argument("--seed", type=int, default=13)
+    ap.add_argument("--beir-only", action="store_true", help="rebuild beir_candidates only")
+    args = ap.parse_args()
+
+    cfg = get_config()
+    out = cfg.paths.data_dir / "processed" / "train"
+    out.mkdir(parents=True, exist_ok=True)
+    manifest_path = out / "manifest.json"
+    manifest: dict = json.loads(manifest_path.read_text()) if args.beir_only else {}
+    manifest.update({"seed": args.seed, "depth": args.depth, "max_positives": args.max_positives})
+
+    if not args.beir_only:
+        build_hotpot(args, cfg, out, manifest)
+    build_beir(args, cfg, out, manifest)
+    manifest_path.write_text(json.dumps(manifest, indent=2))
 
 
 if __name__ == "__main__":
