@@ -1,0 +1,26 @@
+{
+  "dataset": "nfcorpus",
+  "split": "test",
+  "method": "hybrid+ms-marco-minilm-l6-v2",
+  "model": "cross-encoder/ms-marco-MiniLM-L6-v2",
+  "metrics": {
+    "ndcg@10": 0.3578555621613942,
+    "recall@20": 0.2034248270870765,
+    "recall@100": 0.26455354605959813,
+    "mrr": 0.5891324529156977
+  },
+  "config": {
+    "rerank_depth": 50,
+    "max_length": 512,
+    "batch_size": 64,
+    "device": "cuda",
+    "first_stage": "hybrid",
+    "embedder": "BAAI/bge-small-en-v1.5"
+  },
+  "timing": {
+    "num_queries": 323,
+    "num_pairs": 16150,
+    "rerank_total_s": 91.80080836100001,
+    "rerank_ms_per_query": 284.21302898142415
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "dataset": "fiqa",
+  "split": "test",
+  "method": "hybrid+ms-marco-minilm-l6-v2",
+  "model": "cross-encoder/ms-marco-MiniLM-L6-v2",
+  "metrics": {
+    "ndcg@10": 0.37103925475801486,
+    "recall@20": 0.526358762122651,
+    "recall@100": 0.6355347541690134,
+    "mrr": 0.4489644951293484
+  },
+  "config": {
+    "rerank_depth": 50,
+    "max_length": 512,
+    "batch_size": 64,
+    "device": "cuda",
+    "first_stage": "hybrid",
+    "embedder": "BAAI/bge-small-en-v1.5"
+  },
+  "timing": {
+    "num_queries": 648,
+    "num_pairs": 32400,
+    "rerank_total_s": 178.54181814999993,
+    "rerank_ms_per_query": 275.5274971450616
+  }
+}
