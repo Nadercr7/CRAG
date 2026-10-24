@@ -1,0 +1,27 @@
+# Verified RAG default configuration. Paths are relative to the repo root.
+
+[paths]
+data_dir = "data"
+cache_db = "data/cache/llm.sqlite"
+results_dir = "results"
+
+[llm]
+base_url = "https://api.groq.com/openai/v1"
+api_key_env = "GROQ_API_KEY"
+answer_model = "openai/gpt-oss-120b"
+rewrite_model = "openai/gpt-oss-20b"
+teacher_model = "openai/gpt-oss-120b"
+judge_model = "qwen/qwen3.8-27b"
+timeout_s = 60
+max_retries = 5
+
+# Groq free tier, per model. requests_per_day and tokens_per_minute are read from
+# the x-ratelimit-* headers (2026-10-24); the daily request quota refills
+# continuously (one request every 86.4 s). requests_per_minute and
+# tokens_per_day are not in the headers: the values below are the published
+# free-tier figures as reported by secondary sources, kept as a safe ceiling.
+[llm.limits]
+requests_per_day = 1000
+requests_per_minute = 30
+tokens_per_minute = 8000
+tokens_per_day = 200000

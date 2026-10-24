@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vrag"
+version = "0.1.0"
+description = "Verified RAG: a small cross-encoder verifier that checks, corrects, trims and abstains."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = [
+    "numpy>=2.3",
+    "bm25s>=0.3.15",
+    "PyStemmer>=3.1",
+    "sentence-transformers>=6.2",
+    "torch>=2.9",
+    "transformers>=5.0",
+    "huggingface-hub>=1.0",
+    "openai>=3.0",
+    "pydantic>=2.12",
+    "fastapi>=0.160",
+    "uvicorn>=0.50",
+]
+
+[project.optional-dependencies]
+train = ["datasets>=5.0", "accelerate>=1.12"]
+eval = ["datasets>=5.0", "pytrec-eval-terrier>=0.5.11"]
+dev = ["pytest>=9.0", "ruff>=0.17"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vrag"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
