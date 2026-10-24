@@ -75,7 +75,8 @@ Every request returns a **trace**: scores, decision, rewritten query, kept and d
 | Baseline rerankers | `cross-encoder/ms-marco-MiniLM-L6-v2`, `BAAI/bge-reranker-base` | Off-the-shelf arms |
 | Our verifier | Init from `cross-encoder/ms-marco-MiniLM-L6-v2`; MiniLM-L12 / ModernBERT-base also trained on Kaggle, picked by dev quality vs CPU latency | Apache-2.0 |
 | Sufficiency student | Second small cross-encoder over (query, refined context) | Teacher labels from gpt-oss-120b, Joren prompt (App. C.1) |
-| LLM | Groq `openai/gpt-oss-120b` (answers, teacher), `openai/gpt-oss-20b` (rewrite) | Judge only where the deterministic metrics can't decide; the judge comes from a different family (`qwen/qwen3.8-27b`) |
+| LLM (eval) | Open ~8B instruct model on Kaggle via vLLM (same generator for every arm) | Chosen for budget: see §4 |
+| LLM (Groq) | `openai/gpt-oss-120b` (demo answers, sufficiency teacher), `openai/gpt-oss-20b` (rewrite, slice substitutes) | Judge only where the deterministic metrics can't decide; the judge comes from a different family (`qwen/qwen3.8-27b`) |
 
 **PopQA** is a stretch goal. It is what CRAG used, but it needs a Wikipedia retrieval corpus.
 
@@ -118,11 +119,19 @@ Metrics:
 
 **Statistics:** paired bootstrap (10k resamples) with 95% CIs. Verifier trained with 3 seeds. Judge agreement is checked against ~100 hand-checked items.
 
-**Groq budget:** 1000 requests/day, 8000 tokens/min.
+**LLM budget.** Groq's free tier allows, per model: 1000 requests/day, 30 requests/min (paced: about 5 back-to-back requests trigger a 429), 8000 tokens/min, and **200,000 tokens/day**. The daily token cap was confirmed from a 429 on 2026-10-24 ("tokens per day (TPD): Limit 200000"). It is the binding limit: about 200 answer calls a day per model, so the ~5.4k answer calls of the QA evaluation would take about 4 weeks.
 
-- Every call is cached in sqlite, so reruns cost nothing.
-- QA eval ≈ 300 questions × 3 slices × ~5 LLM-using arms ≈ 4.5k answer calls. Teacher labels ≈ 1-1.5k calls.
-- The limit is **per model**. The first call on gpt-oss-20b showed 999 remaining even after earlier calls on the other two models. Answers and teacher labels share gpt-oss-120b, so that is the binding quota: about 5-6 days running in the background while other work continues. Moving the teacher labels to qwen3.8-27b would cut it to about 4-5 days.
+Decision (2026-10-24): the bulk QA evaluation runs on **Kaggle with an open model** (Qwen3-8B class, vLLM, 2× T4).
+- Every arm is answered by the same generator, so the comparison stays fair.
+- Thousands of answers take minutes instead of weeks.
+
+Groq keeps the work that needs a strong model in small volume:
+- sufficiency teacher labels (~1-1.5k calls, gpt-oss-120b)
+- query rewrites in the live demo
+- the live demo's answers
+- an LLM-judge check on a subset
+
+Every Groq call is cached in sqlite, so reruns cost nothing.
 
 ## 5. Repo layout
 
@@ -163,13 +172,13 @@ Each phase ends with a check before the next one starts. "Model" says who does t
 | 8 | Docs | README, technical report (`results/report.md`), architecture diagram | Humanizer pass; every number cross-checked against results json | Sonnet + humanizer; me (final check) |
 | 9 | Review | code review, cleanup, final run from clean clone | `/code-review` findings fixed; fresh-clone reproduce works | me |
 
-Phases 4 and 6 consume Groq quota, so they start early and run in the background. Phases 5 and 7 continue in parallel.
+Phase 4 consumes Groq quota (teacher labels), so it starts early and runs in the background. Phases 3 and 6 run on Kaggle GPU. Phases 5 and 7 continue in parallel.
 
 ## 7. Risks
 
 | Risk | Mitigation |
 |---|---|
-| Groq quota slows eval | Caching, start labeling early, smaller sample if needed (report CIs honestly) |
+| Groq quota slows eval | Bulk generation moved to Kaggle (vLLM); Groq only for teacher labels and the demo; caching everywhere |
 | CPU latency of the verifier with 20 chunks + sentences | Measure in phase 2; MiniLM-L6; ONNX backend as a fallback |
 | Kaggle quota/queue | Training runs are small (minutes to ~1 h each); CPU training of MiniLM-L6 remains a fallback |
 | Verifier doesn't beat the off-the-shelf reranker on BEIR | Still a valid result. The project's value is in the decision/abstain behaviour, which a plain reranker doesn't provide. Report honestly. |
