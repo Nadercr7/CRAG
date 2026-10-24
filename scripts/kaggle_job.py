@@ -39,6 +39,9 @@ DATA_FILES = (
     "beir_dev_samples.jsonl",
     "hotpot_train_skip-passage.jsonl",
     "hotpot_train_skip.jsonl",
+    "hotpot_train_v4.jsonl",
+    "hotpot_train_v4-skip.jsonl",
+    "msmarco_pairs_v4.jsonl",
 )
 RERANK_DATASETS = ("scifact", "nfcorpus", "fiqa")
 
@@ -177,6 +180,7 @@ def main() -> None:
     t.add_argument("--trust-remote-code", action="store_true")
     t.add_argument("--task", choices=["verifier", "sufficiency"], default="verifier")
     t.add_argument("--hotpot-file", default="hotpot_train.jsonl")
+    t.add_argument("--msmarco-file", default="msmarco_pairs.jsonl")
     r = sub.add_parser("run")
     r.add_argument("name")
     r.add_argument("--cmd", action="append", required=True, help="shell command, repo root")
@@ -223,6 +227,7 @@ def main() -> None:
             "trust_remote_code": args.trust_remote_code,
             "task": args.task,
             "hotpot_file": args.hotpot_file,
+            "msmarco_file": args.msmarco_file,
         }
         push_kernel(
             f"vrag-train-{args.name}",

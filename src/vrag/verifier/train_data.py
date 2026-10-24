@@ -7,7 +7,11 @@ reproduction found in its T5 evaluator):
 - HotpotQA train. Positives are the gold paragraphs. Negatives are the dataset's own
   distractors (retrieved for lexical overlap, so they are hard), **stripped gold** (a gold
   paragraph with its supporting sentences removed: same title and entities, no answer),
-  and **easy negatives** (paragraphs and sentences of other questions). Sentence-level
+  and **easy negatives** (paragraphs and sentences of other questions). The balance
+  matters: when hard negatives dominate (all of them chosen for word overlap with the
+  question), the model learns "more overlap, less relevant" and on BEIR promotes
+  off-topic documents over judged ones (NFCorpus MRR 0.68 -> 0.28) while looking better
+  at separating the hardest candidates. Sentence-level
   pairs come from the supporting-fact labels, which gives the refinement step free,
   human-annotated targets.
 
@@ -171,17 +175,20 @@ def hotpot_training_pairs(
     seed: int,
     easy: bool = True,
     second_hop: str = "positive",
+    n_distractors: int = 4,
+    n_easy_passages: int = 2,
+    n_easy_sentences: int = 2,
 ) -> list[Pair]:
     rows = sorted(rows, key=lambda r: r["id"])
     rng = random.Random(seed)
     sample = rng.sample(rows, min(n_questions, len(rows)))
     pairs: list[Pair] = []
     for n, row in enumerate(sample):
-        pairs += hotpot_pairs(row, rng, second_hop=second_hop)
+        pairs += hotpot_pairs(row, rng, n_distractors=n_distractors, second_hop=second_hop)
         if easy:
             # Neighbours in the shuffled sample are unrelated questions.
-            neighbours = sample[max(0, n - 3) : n] + sample[n + 1 : n + 4]
-            pairs += easy_negatives(row, neighbours, rng)
+            neighbours = sample[max(0, n - 4) : n] + sample[n + 1 : n + 5]
+            pairs += easy_negatives(row, neighbours, rng, n_easy_passages, n_easy_sentences)
     return pairs
 
 
@@ -257,3 +264,15 @@ def filter_candidates(
     return [Pair(q, t, 1, src, "passage", qid) for t in item["positives"]] + [
         Pair(q, t, 0, src, "passage", qid) for t in negatives
     ]
+
+
+def msmarco_with_random_negatives(rows: Sequence[dict], seed: int) -> list[dict]:
+    """MS MARCO pairs plus, per query, one positive passage of another query as a negative."""
+    rng = random.Random(seed)
+    positives = [r for r in rows if r["label"] == 1]
+    out = list(rows)
+    for r in positives:
+        other = rng.choice(positives)
+        if other["query"] != r["query"]:
+            out.append({**r, "text": other["text"], "label": 0, "source": "msmarco-random"})
+    return out
