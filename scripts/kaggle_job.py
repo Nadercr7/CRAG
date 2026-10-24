@@ -33,6 +33,8 @@ DATA_FILES = (
     "beir_candidates.jsonl",
     "beir_pairs.jsonl",
     "msmarco_pairs.jsonl",
+    "sufficiency_train.jsonl",
+    "sufficiency_dev.jsonl",
 )
 RERANK_DATASETS = ("scifact", "nfcorpus", "fiqa")
 
@@ -63,7 +65,8 @@ def upload_dataset() -> None:
     src = get_config().paths.data_dir / "processed" / "train"
     stage = work_dir("_dataset")
     for f in DATA_FILES:
-        shutil.copy2(src / f, stage / f)
+        if (src / f).exists():
+            shutil.copy2(src / f, stage / f)
     # Rerank candidates (scripts/run_rerank_eval.py --export-only), flattened with a prefix.
     rerank = get_config().paths.data_dir / "processed" / "rerank"
     for name in RERANK_DATASETS:
@@ -138,6 +141,7 @@ def main() -> None:
     t.add_argument("--eval-steps", type=int, default=1000)
     t.add_argument("--exclude-sources", nargs="*", default=[])
     t.add_argument("--trust-remote-code", action="store_true")
+    t.add_argument("--task", choices=["verifier", "sufficiency"], default="verifier")
     r = sub.add_parser("run")
     r.add_argument("name")
     r.add_argument("--cmd", action="append", required=True, help="shell command, repo root")
@@ -171,6 +175,7 @@ def main() -> None:
             "eval_steps": args.eval_steps,
             "exclude_sources": args.exclude_sources,
             "trust_remote_code": args.trust_remote_code,
+            "task": args.task,
         }
         push_kernel(
             f"vrag-train-{args.name}",

@@ -1,12 +1,14 @@
-"""Kaggle job: fine-tune the verifier cross-encoder (phase 3).
+"""Kaggle job: fine-tune a cross-encoder: the verifier (phase 3) or the sufficiency model (4).
 
 The launcher (scripts/kaggle_job.py) fills in CONFIG. Inputs, all in the training-data
 dataset: hotpot_train.jsonl, hotpot_dev.jsonl, beir_pairs.jsonl, msmarco_pairs.jsonl.
+For task "sufficiency": sufficiency_train.jsonl, sufficiency_dev.jsonl.
 Outputs in /kaggle/working: model/, train_report.json.
 """
 
 import glob
 import json
+import os
 import random
 import subprocess
 import sys
@@ -15,6 +17,9 @@ from pathlib import Path
 
 CONFIG = json.loads(__CONFIG__)  # noqa: F821 (the launcher fills in a JSON string literal)
 
+# One GPU: with two visible, the HF Trainer wraps the model in DataParallel, which
+# sentence-transformers' losses do not support (they read model.device).
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0")
 INPUT = CONFIG.get("input_dir", "/kaggle/input")
 OUTPUT = Path(CONFIG.get("output_dir", "/kaggle/working"))
 if not CONFIG.get("skip_install"):
@@ -30,6 +35,7 @@ from sentence_transformers.cross_encoder import (  # noqa: E402
     CrossEncoderTrainingArguments,
 )
 from sentence_transformers.cross_encoder.evaluation import (  # noqa: E402
+    CrossEncoderClassificationEvaluator,
     CrossEncoderRerankingEvaluator,
 )
 from sentence_transformers.cross_encoder.losses import BinaryCrossEntropyLoss  # noqa: E402
@@ -57,13 +63,21 @@ start = time.time()
 random.seed(CONFIG["seed"])
 torch.manual_seed(CONFIG["seed"])
 
-train = read("hotpot_train.jsonl") + read("beir_pairs.jsonl") + read("msmarco_pairs.jsonl")
+TASK = CONFIG.get("task", "verifier")
+if TASK == "sufficiency":
+    train = [
+        {"query": e["question"], "text": e["context"], "label": e["label"], "source": e["kind"]}
+        for e in read("sufficiency_train.jsonl")
+    ]
+    dev = read("sufficiency_dev.jsonl")
+else:
+    train = read("hotpot_train.jsonl") + read("beir_pairs.jsonl") + read("msmarco_pairs.jsonl")
+    dev = read("hotpot_dev.jsonl")
 if CONFIG.get("exclude_sources"):
     train = [p for p in train if p["source"] not in CONFIG["exclude_sources"]]
 if CONFIG.get("max_pairs") and len(train) > CONFIG["max_pairs"]:
     train = random.sample(train, CONFIG["max_pairs"])
 random.shuffle(train)
-dev = read("hotpot_dev.jsonl")
 
 train_ds = Dataset.from_dict(
     {
@@ -79,12 +93,23 @@ model = CrossEncoder(
     max_length=CONFIG["max_length"],
     trust_remote_code=CONFIG.get("trust_remote_code", False),
 )
-evaluator = SequentialEvaluator(
-    [
-        CrossEncoderRerankingEvaluator(rerank_samples(dev, "passage"), name="hotpot-dev-passage"),
-        CrossEncoderRerankingEvaluator(rerank_samples(dev, "sentence"), name="hotpot-dev-sentence"),
-    ]
-)
+if TASK == "sufficiency":
+    evaluator = CrossEncoderClassificationEvaluator(
+        [[e["question"], e["context"]] for e in dev],
+        [e["label"] for e in dev],
+        name="sufficiency-dev",
+    )
+else:
+    evaluator = SequentialEvaluator(
+        [
+            CrossEncoderRerankingEvaluator(
+                rerank_samples(dev, "passage"), name="hotpot-dev-passage"
+            ),
+            CrossEncoderRerankingEvaluator(
+                rerank_samples(dev, "sentence"), name="hotpot-dev-sentence"
+            ),
+        ]
+    )
 before = evaluator(model)
 
 args = CrossEncoderTrainingArguments(
