@@ -37,15 +37,11 @@ def kaggle(*args: str) -> str:
 
 
 def head_commit() -> str:
+    """HEAD, which must already be on GitHub because the job clones it from there."""
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True)
-    pushed = subprocess.run(
-        ["git", "branch", "-r", "--contains", commit.strip()],
-        cwd=REPO_ROOT,
-        capture_output=True,
-        text=True,
-    ).stdout
-    if not pushed.strip():
-        sys.exit("HEAD is not on any remote branch: push before launching a Kaggle job")
+    remote = subprocess.check_output(["git", "ls-remote", "origin"], cwd=REPO_ROOT, text=True)
+    if commit.strip() not in remote:
+        sys.exit("HEAD is not the tip of any remote branch: push before launching a Kaggle job")
     return commit.strip()
 
 
@@ -116,7 +112,7 @@ def wait(slug: str, poll_s: int = 60) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    sub = ap.add_subparsers(dest="cmd", required=True)
+    sub = ap.add_subparsers(dest="command", required=True)
     sub.add_parser("dataset")
     sub.add_parser("prep")
     t = sub.add_parser("train")
@@ -141,16 +137,16 @@ def main() -> None:
     args = ap.parse_args()
 
     kaggle_dir = REPO_ROOT / "kaggle"
-    if args.cmd == "dataset":
+    if args.command == "dataset":
         upload_dataset()
-    elif args.cmd == "prep":
+    elif args.command == "prep":
         push_kernel(
             PREP_KERNEL,
             kaggle_dir / "prep_verifier" / "prep.py",
             {"__COMMIT__": head_commit()},
             [],
         )
-    elif args.cmd == "train":
+    elif args.command == "train":
         config = {
             "name": args.name,
             "commit": head_commit(),
@@ -171,7 +167,7 @@ def main() -> None:
             {"__CONFIG__": json.dumps(config)},
             [f"{USER}/{PREP_KERNEL}"],
         )
-    elif args.cmd == "run":
+    elif args.command == "run":
         job = {"commit": head_commit(), "commands": args.cmd, "outputs": sorted(set(args.out))}
         push_kernel(
             f"vrag-run-{args.name}",
