@@ -101,7 +101,10 @@ def push_kernel(slug: str, script: Path, replacements: dict[str, str], kernel_so
         "competition_sources": [],
     }
     (stage / "kernel-metadata.json").write_text(json.dumps(meta, indent=2))
-    print(kaggle("kernels", "push", "-p", str(stage)))
+    out = kaggle("kernels", "push", "-p", str(stage))
+    print(out)
+    if "error" in out.lower():  # the CLI exits 0 on push errors such as the GPU session cap
+        sys.exit(1)
 
 
 def wait(slug: str, poll_s: int = 60) -> None:
