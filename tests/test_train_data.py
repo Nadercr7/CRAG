@@ -3,6 +3,7 @@ import random
 from vrag.data.beir import BeirDataset
 from vrag.verifier.train_data import (
     beir_candidates,
+    false_negative_floor,
     filter_candidates,
     hotpot_pairs,
     sentence_text,
@@ -78,12 +79,18 @@ def test_filter_candidates_drops_likely_false_negatives():
         "positives": ["P"],
         "candidates": ["C1", "C2", "C3", "C4", "C5"],
     }
+    # The teacher trusts the positive (0.7): anything scoring >= 0.7 is a likely positive.
     pairs = filter_candidates(
-        item, [2.0], [5.0, 1.0, 0.5, 0.1, -1.0], random.Random(0), n_hard=2, n_random=1
+        item, [0.7], [0.95, 0.8, 0.5, 0.1, 0.0], random.Random(0), n_hard=2, n_random=1
     )
     negatives = [p.text for p in pairs if p.label == 0]
-    assert "C1" not in negatives  # teacher scores it above the positive
-    assert negatives[:2] == ["C2", "C3"] and len(negatives) == 3
+    assert negatives[:2] == ["C3", "C4"] and negatives[2] == "C5"
+
+
+def test_false_negative_floor():
+    assert false_negative_floor([0.7, 0.2]) == 0.7
+    assert false_negative_floor([0.99]) == 0.9  # capped at the confident threshold
+    assert false_negative_floor([0.1, 0.0]) == 0.9  # teacher disagrees with qrels: only 0.9
 
 
 def test_beir_candidates_keep_highest_graded_positives():

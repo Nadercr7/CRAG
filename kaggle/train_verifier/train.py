@@ -1,8 +1,8 @@
 """Kaggle job: fine-tune the verifier cross-encoder (phase 3).
 
-The launcher (scripts/kaggle_job.py) fills in CONFIG. Inputs: the training-data dataset
-(hotpot_train.jsonl, hotpot_dev.jsonl) and the prep kernel's output (beir_pairs.jsonl,
-msmarco_pairs.jsonl). Outputs in /kaggle/working: model/, train_report.json.
+The launcher (scripts/kaggle_job.py) fills in CONFIG. Inputs, all in the training-data
+dataset: hotpot_train.jsonl, hotpot_dev.jsonl, beir_pairs.jsonl, msmarco_pairs.jsonl.
+Outputs in /kaggle/working: model/, train_report.json.
 """
 
 import glob

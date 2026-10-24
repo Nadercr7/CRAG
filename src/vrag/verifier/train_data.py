@@ -139,6 +139,21 @@ def beir_candidates(
     return out
 
 
+def false_negative_floor(
+    pos_scores: Sequence[float], confident: float = 0.9, trusted_positive: float = 0.5
+) -> float:
+    """Teacher probability at or above which a candidate is treated as an unlabelled positive.
+
+    A candidate is dropped when the teacher is confident it is relevant (``confident``), or
+    when it scores at least as high as the best judged positive *and* the teacher itself
+    finds that positive relevant (``trusted_positive``). Comparing against the weakest
+    positive instead drops most candidates where the teacher disagrees with the qrels
+    (on NFCorpus it would discard 81% of them).
+    """
+    best = max(pos_scores)
+    return min(confident, best) if best >= trusted_positive else confident
+
+
 def filter_candidates(
     item: dict,
     pos_scores: Sequence[float],
@@ -146,15 +161,13 @@ def filter_candidates(
     rng: random.Random,
     n_hard: int = 3,
     n_random: int = 3,
-    margin: float = 0.0,
 ) -> list[Pair]:
-    """Turn one ``beir_candidates`` item into pairs, given teacher scores.
+    """Turn one ``beir_candidates`` item into pairs, given teacher probabilities.
 
-    A candidate the teacher scores at or above the weakest positive (minus ``margin``) is
-    probably an unlabelled positive and is dropped. Of the rest, the ``n_hard`` best-ranked
-    are kept, plus ``n_random`` drawn from the remainder.
+    Candidates at or above ``false_negative_floor`` are dropped as likely positives. Of the
+    rest, the ``n_hard`` best-ranked are kept, plus ``n_random`` drawn from the remainder.
     """
-    floor = min(pos_scores) - margin
+    floor = false_negative_floor(pos_scores)
     kept = [t for t, s in zip(item["candidates"], cand_scores, strict=True) if s < floor]
     hard, rest = kept[:n_hard], kept[n_hard:]
     negatives = hard + rng.sample(rest, min(n_random, len(rest)))

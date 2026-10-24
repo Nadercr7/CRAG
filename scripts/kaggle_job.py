@@ -25,7 +25,15 @@ from vrag.config import REPO_ROOT, get_config
 USER = "naderelakany"
 DATASET = "vrag-train-data"
 PREP_KERNEL = "vrag-prep"
-DATA_FILES = ("hotpot_train.jsonl", "hotpot_dev.jsonl", "beir_candidates.jsonl")
+# beir_pairs.jsonl comes from scripts/apply_teacher_filter.py over the prep job's teacher
+# scores; msmarco_pairs.jsonl is copied from the prep job's output.
+DATA_FILES = (
+    "hotpot_train.jsonl",
+    "hotpot_dev.jsonl",
+    "beir_candidates.jsonl",
+    "beir_pairs.jsonl",
+    "msmarco_pairs.jsonl",
+)
 RERANK_DATASETS = ("scifact", "nfcorpus", "fiqa")
 
 
@@ -165,7 +173,7 @@ def main() -> None:
             f"vrag-train-{args.name}",
             kaggle_dir / "train_verifier" / "train.py",
             {"__CONFIG__": json.dumps(json.dumps(config))},
-            [f"{USER}/{PREP_KERNEL}"],
+            [],
         )
     elif args.command == "run":
         job = {"commit": head_commit(), "commands": args.cmd, "outputs": sorted(set(args.out))}
