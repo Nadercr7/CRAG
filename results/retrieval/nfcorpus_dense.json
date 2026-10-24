@@ -1,0 +1,27 @@
+{
+  "dataset": "nfcorpus",
+  "split": "test",
+  "method": "dense",
+  "metrics": {
+    "ndcg@10": 0.3437846673688363,
+    "recall@20": 0.20038051690707379,
+    "recall@100": 0.31112609100000277,
+    "mrr": 0.5365518710937811
+  },
+  "config": {
+    "embedder": "BAAI/bge-small-en-v1.5",
+    "query_prefix": "Represent this sentence for searching relevant passages: ",
+    "max_seq_length": 512,
+    "first_stage_k": 100,
+    "rrf_k": 60,
+    "eval_depth": 100
+  },
+  "timing": {
+    "num_docs": 3633,
+    "num_queries": 323,
+    "search_total_s": 0.8046513479998794,
+    "search_ms_per_query": 2.491180643962475,
+    "index_build_s": null,
+    "embed_docs_s": 244.75200204700013
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "dataset": "scifact",
+  "split": "test",
+  "method": "bm25",
+  "metrics": {
+    "ndcg@10": 0.6863002612489066,
+    "recall@20": 0.8569444444444444,
+    "recall@100": 0.9126666666666667,
+    "mrr": 0.6528078991809226
+  },
+  "config": {
+    "embedder": "BAAI/bge-small-en-v1.5",
+    "query_prefix": "Represent this sentence for searching relevant passages: ",
+    "max_seq_length": 512,
+    "first_stage_k": 100,
+    "rrf_k": 60,
+    "eval_depth": 100
+  },
+  "timing": {
+    "num_docs": 5183,
+    "num_queries": 300,
+    "search_total_s": 0.07510152899976674,
+    "search_ms_per_query": 0.25033842999922246,
+    "index_build_s": 0.994821242999933,
+    "embed_docs_s": null
+  }
+}

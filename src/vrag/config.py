@@ -42,9 +42,34 @@ class LLMConfig(BaseModel):
     limits: RateLimits = Field(default_factory=RateLimits)
 
 
+class DataConfig(BaseModel):
+    beir_datasets: list[str] = ["scifact", "nfcorpus", "fiqa"]
+    beir_split: str = "test"
+    hotpot_seed: int = 13
+    hotpot_test_size: int = 300
+    hotpot_dev_size: int = 200
+    slice_seed: int = 13
+
+
+class RetrievalConfig(BaseModel):
+    embedder: str = "BAAI/bge-small-en-v1.5"
+    # None picks the model's documented default (see retrieval.dense.default_query_prefix).
+    query_prefix: str | None = None
+    max_seq_length: int = 512
+    batch_size: int = 32
+    first_stage_k: int = 100
+    rrf_k: int = 60
+    top_k: int = 20
+    eval_depth: int = 100
+    recall_ks: list[int] = [20, 100]
+    ndcg_k: int = 10
+
+
 class Config(BaseModel):
     paths: Paths = Field(default_factory=Paths)
     llm: LLMConfig = Field(default_factory=LLMConfig)
+    data: DataConfig = Field(default_factory=DataConfig)
+    retrieval: RetrievalConfig = Field(default_factory=RetrievalConfig)
 
 
 def load_dotenv(path: Path = REPO_ROOT / ".env") -> None:
