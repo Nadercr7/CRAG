@@ -26,6 +26,7 @@ class Paths(BaseModel):
 class RateLimits(BaseModel):
     requests_per_day: int = 1000
     requests_per_minute: int = 30
+    request_burst: int = 3
     tokens_per_minute: int = 8000
     tokens_per_day: int | None = None
 
@@ -61,6 +62,8 @@ class RetrievalConfig(BaseModel):
     rrf_k: int = 60
     top_k: int = 20
     eval_depth: int = 100
+    rerank_depth: int = 50
+    rerank_batch_size: int = 16
     recall_ks: list[int] = [20, 100]
     ndcg_k: int = 10
 

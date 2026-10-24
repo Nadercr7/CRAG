@@ -23,6 +23,7 @@ max_retries = 5
 [llm.limits]
 requests_per_day = 1000
 requests_per_minute = 30
+request_burst = 3
 tokens_per_minute = 8000
 tokens_per_day = 200000
 
@@ -44,5 +45,7 @@ first_stage_k = 100   # per-retriever depth fed to RRF
 rrf_k = 60
 top_k = 20            # fused list handed to the verifier
 eval_depth = 100
+rerank_depth = 50     # hybrid candidates scored by a reranker
+rerank_batch_size = 16
 recall_ks = [20, 100]
 ndcg_k = 10

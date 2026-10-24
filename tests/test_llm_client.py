@@ -144,3 +144,17 @@ def test_retry_after_prefers_header():
 def test_parse_json_errors():
     with pytest.raises(ValueError):
         parse_json("no json here")
+
+
+def test_json_validate_failed_retries_without_json_mode(make_client):
+    request = httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions")
+    err = openai.BadRequestError(
+        "Error code: 400 - json_validate_failed",
+        response=httpx.Response(400, request=request),
+        body=None,
+    )
+    client, api, _ = make_client([err, ok_response('{"a": 2}')])
+    assert client.complete_json(MSG, "m") == {"a": 2}
+    assert "response_format" not in api.calls[1]
+    assert client.complete_json(MSG, "m") == {"a": 2}  # cached under the JSON-mode request
+    assert len(api.calls) == 2

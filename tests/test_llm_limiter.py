@@ -28,6 +28,7 @@ def make(clock, **kw):
         requests_per_day=kw.get("rpd", 1000),
         tokens_per_minute=kw.get("tpm", 6000),
         tokens_per_day=kw.get("tpd"),
+        request_burst=kw.get("burst", 30),
     )
     return RateLimiter(limits, clock=clock, sleep=clock.sleep)
 
@@ -83,3 +84,10 @@ def test_sync_headers_only_lowers(clock):
     assert lim.acquire("m", 600) == pytest.approx(6.0)
     lim.sync_headers("m", {"x-ratelimit-remaining-tokens": "999999", "junk": "x"})
     assert lim.acquire("m", 600) == pytest.approx(6.0)
+
+
+def test_requests_are_paced_after_burst(clock):
+    lim = make(clock, rpm=30, burst=3)  # one request every 2 s after a burst of 3
+    for _ in range(3):
+        assert lim.acquire("m", 1) == 0
+    assert lim.acquire("m", 1) == pytest.approx(2.0)

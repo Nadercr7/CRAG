@@ -150,7 +150,15 @@ class LLMClient:
         if use_cache and (hit := self.cache.get(payload)) is not None:
             return Completion(**hit, cached=True)
 
-        result = self._call(payload)
+        try:
+            result = self._call(payload)
+        except openai.BadRequestError as e:
+            # Groq validates JSON mode server-side and sometimes rejects a reply outright
+            # (json_validate_failed). Ask again without JSON mode; parse_json copes with it.
+            if not json_mode or "json_validate_failed" not in str(e):
+                raise
+            log.warning("%s: json_validate_failed, retrying without JSON mode", model)
+            result = self._call({k: v for k, v in payload.items() if k != "response_format"})
         if use_cache and result.text and result.finish_reason != "length":
             self.cache.put(
                 payload,

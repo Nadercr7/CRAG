@@ -58,8 +58,11 @@ class RateLimiter:
     def _buckets(self, model: str) -> dict[str, Bucket]:
         if model not in self._models:
             lim = self.limits
+            # Groq rejects bursts well before the per-minute total is reached (5 back-to-back
+            # requests, then 429 with retry-after: 2), so requests are paced, not batched.
+            burst = min(lim.request_burst, lim.requests_per_minute)
             buckets = {
-                "rpm": Bucket(lim.requests_per_minute, 60),
+                "rpm": Bucket(burst, 60 * burst / lim.requests_per_minute),
                 "rpd": Bucket(lim.requests_per_day, 86_400),
                 "tpm": Bucket(lim.tokens_per_minute, 60),
             }
