@@ -73,7 +73,7 @@ Every request returns a **trace**: scores, decision, rewritten query, kept and d
 | Verifier training | MS MARCO subset (~50k queries) + HotpotQA train + BEIR train splits where they exist | Hard negatives mined from our own hybrid retriever, then counterfactual negatives. No test queries are ever used for training. |
 | Embedder | `BAAI/bge-small-en-v1.5` (vs `thenlper/gte-small`, pick on dev) | 33M, MIT |
 | Baseline rerankers | `cross-encoder/ms-marco-MiniLM-L6-v2`, `BAAI/bge-reranker-base` | Off-the-shelf arms |
-| Our verifier | Init from `cross-encoder/ms-marco-MiniLM-L6-v2` (L12 if CPU latency allows) | Apache-2.0 |
+| Our verifier | Init from `cross-encoder/ms-marco-MiniLM-L6-v2`; MiniLM-L12 / ModernBERT-base also trained on Kaggle, picked by dev quality vs CPU latency | Apache-2.0 |
 | Sufficiency student | Second small cross-encoder over (query, refined context) | Teacher labels from gpt-oss-120b, Joren prompt (App. C.1) |
 | LLM | Groq `openai/gpt-oss-120b` (answers, teacher), `openai/gpt-oss-20b` (rewrite) | Judge only where the deterministic metrics can't decide; the judge comes from a different family (`qwen/qwen3.8-27b`) |
 
@@ -170,12 +170,15 @@ Phases 4 and 6 consume Groq quota, so they start early and run in the background
 | Risk | Mitigation |
 |---|---|
 | Groq quota slows eval | Caching, start labeling early, smaller sample if needed (report CIs honestly) |
-| CPU latency of the verifier with 20 chunks + sentences | Measure in phase 2; MiniLM-L6; ONNX backend as a fallback; or train on the user's RTX 5060 |
+| CPU latency of the verifier with 20 chunks + sentences | Measure in phase 2; MiniLM-L6; ONNX backend as a fallback |
+| Kaggle quota/queue | Training runs are small (minutes to ~1 h each); CPU training of MiniLM-L6 remains a fallback |
 | Verifier doesn't beat the off-the-shelf reranker on BEIR | Still a valid result. The project's value is in the decision/abstain behaviour, which a plain reranker doesn't provide. Report honestly. |
 | Teacher labels noisy | Hand-check 100, report agreement, use the deterministic answer-containment signal as a second label source |
-| Container is ephemeral | Push to GitHub after every phase (needs a repo: see open questions) |
+| Container is ephemeral | Push to GitHub after every phase |
 
-## 8. Open questions for the user
+## 8. Decisions made
 
-1. **GitHub repo.** The container is wiped when the session ends, so the work needs to be pushed somewhere. Which repo (new or existing)?
-2. **Verifier training location.** CPU here should be enough for MiniLM. Do you want an optional script for your RTX 5060 for a bigger model (L12 / ModernBERT)?
+- **Repo:** https://github.com/Nadercr7/CRAG. Pushed after every phase.
+- **GPU:** verifier and sufficiency training run on **Kaggle GPU** (T4/P100, ~30 h/week). Notebooks are pushed and pulled via the Kaggle API from this session. CPU stays the target for *inference*.
+  - With a GPU, the verifier candidates widen to MiniLM-L6 → MiniLM-L12 → ModernBERT-base (`gte-reranker-modernbert-base` init).
+  - The pick depends on the dev quality vs CPU latency trade-off measured in phase 2.
