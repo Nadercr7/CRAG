@@ -132,17 +132,19 @@ def misleading_slice(
 def build_slices(
     data: HotpotData,
     seed: int,
-    substitutes: dict[str, list[str]] | None = None,
+    substitutes: dict[str, list[str] | str] | None = None,
     allow_fallback: bool = False,
 ) -> dict[str, dict[str, Slice]]:
     """``{question_id: {kind: Slice}}``; the misleading entry is absent when not buildable."""
     answers = [q.answer for q in data.questions]
-    substitutes = substitutes or {}
+    # Older substitute files store one string per question; a bare string would be
+    # iterated character by character.
+    proposals = {k: [v] if isinstance(v, str) else list(v) for k, v in (substitutes or {}).items()}
     result: dict[str, dict[str, Slice]] = {}
     for q in data.questions:
         slices = {"supportive": supportive_slice(q), "missing": missing_slice(q)}
         misleading = misleading_slice(
-            q, data, answers, seed, substitutes.get(q.id, ()), allow_fallback
+            q, data, answers, seed, proposals.get(q.id, ()), allow_fallback
         )
         if misleading:
             slices["misleading"] = misleading

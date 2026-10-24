@@ -74,6 +74,8 @@ def main() -> None:
     )
     subs_path = cfg.paths.data_dir / "processed" / "hotpot_substitutes.json"
     subs = json.loads(subs_path.read_text()) if subs_path.exists() else {}
+    # The saved file maps ids to one string; build_slices expects a list of proposals.
+    subs = {k: [v] if isinstance(v, str) else v for k, v in subs.items()}
     slices = build_slices(data, d.slice_seed, subs)
 
     rag = VerifiedRAG(

@@ -19,7 +19,8 @@ Evidence found so far:
 
 Write {n} short, keyword-rich query or queries that would retrieve what is still missing. \
 If answering needs several facts (multi-hop), aim a query at the fact or entity the evidence \
-does not cover yet. Do not answer the question and do not repeat it word for word.
+does not cover yet. Use only names and terms from the question or the evidence: do not \
+guess an entity or the answer from memory, and do not repeat the question word for word.
 
 Return JSON: {{"queries": ["..."]}}"""
 
