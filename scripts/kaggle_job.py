@@ -3,6 +3,7 @@
     python scripts/kaggle_job.py dataset                       # create/update the data
     python scripts/kaggle_job.py prep                          # teacher filter + MS MARCO
     python scripts/kaggle_job.py train minilm-l6-s13 --base cross-encoder/ms-marco-MiniLM-L6-v2
+    python scripts/kaggle_job.py run rerank-offshelf --cmd "..." --out results   # any repo script
     python scripts/kaggle_job.py wait <kernel-slug>            # poll, then download output
 
 Kernels run the code at a pushed git commit (installed from GitHub), so push first.
@@ -25,6 +26,7 @@ USER = "naderelakany"
 DATASET = "vrag-train-data"
 PREP_KERNEL = "vrag-prep"
 DATA_FILES = ("hotpot_train.jsonl", "hotpot_dev.jsonl", "beir_candidates.jsonl")
+RERANK_DATASETS = ("scifact", "nfcorpus", "fiqa")
 
 
 def kaggle(*args: str) -> str:
@@ -58,6 +60,11 @@ def upload_dataset() -> None:
     stage = work_dir("_dataset")
     for f in DATA_FILES:
         shutil.copy2(src / f, stage / f)
+    # Rerank candidates (scripts/run_rerank_eval.py --export-only), flattened with a prefix.
+    rerank = get_config().paths.data_dir / "processed" / "rerank"
+    for name in RERANK_DATASETS:
+        if (rerank / f"{name}.json").exists():
+            shutil.copy2(rerank / f"{name}.json", stage / f"rerank_{name}.json")
     meta = {"title": DATASET, "id": f"{USER}/{DATASET}", "licenses": [{"name": "CC-BY-SA-4.0"}]}
     (stage / "dataset-metadata.json").write_text(json.dumps(meta, indent=2))
     exists = subprocess.run(
@@ -124,6 +131,11 @@ def main() -> None:
     t.add_argument("--eval-steps", type=int, default=1000)
     t.add_argument("--exclude-sources", nargs="*", default=[])
     t.add_argument("--trust-remote-code", action="store_true")
+    r = sub.add_parser("run")
+    r.add_argument("name")
+    r.add_argument("--cmd", action="append", required=True, help="shell command, repo root")
+    r.add_argument("--out", action="append", default=["results"], help="repo path to keep")
+    r.add_argument("--after", nargs="*", default=[], help="kernel slugs whose output to mount")
     w = sub.add_parser("wait")
     w.add_argument("slug")
     args = ap.parse_args()
@@ -158,6 +170,14 @@ def main() -> None:
             kaggle_dir / "train_verifier" / "train.py",
             {"__CONFIG__": json.dumps(config)},
             [f"{USER}/{PREP_KERNEL}"],
+        )
+    elif args.cmd == "run":
+        job = {"commit": head_commit(), "commands": args.cmd, "outputs": sorted(set(args.out))}
+        push_kernel(
+            f"vrag-run-{args.name}",
+            kaggle_dir / "run" / "run.py",
+            {"__JOB__": json.dumps(job)},
+            [f"{USER}/{s}" for s in args.after],
         )
     else:
         wait(args.slug)

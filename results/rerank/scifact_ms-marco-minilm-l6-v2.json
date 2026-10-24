@@ -1,0 +1,25 @@
+{
+  "dataset": "scifact",
+  "split": "test",
+  "method": "hybrid+ms-marco-minilm-l6-v2",
+  "model": "cross-encoder/ms-marco-MiniLM-L6-v2",
+  "metrics": {
+    "ndcg@10": 0.6964510722119271,
+    "recall@20": 0.8725555555555555,
+    "recall@100": 0.9443333333333334,
+    "mrr": 0.6689662257471722
+  },
+  "config": {
+    "rerank_depth": 50,
+    "max_length": 512,
+    "batch_size": 16,
+    "first_stage": "hybrid",
+    "embedder": "BAAI/bge-small-en-v1.5"
+  },
+  "timing": {
+    "num_queries": 300,
+    "num_pairs": 15000,
+    "rerank_total_s": 1633.2251414150005,
+    "rerank_ms_per_query": 5444.083804716668
+  }
+}
