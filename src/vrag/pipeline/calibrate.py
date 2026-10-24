@@ -1,4 +1,7 @@
-"""Platt scaling: p = sigmoid(a * logit + b), fitted on dev logits with damped Newton steps."""
+"""Platt scaling: p = sigmoid(a * logit + b), fitted on dev logits with damped Newton steps.
+
+Also the two calibration metrics reported with it: Brier score and expected calibration error.
+"""
 
 from __future__ import annotations
 
@@ -85,3 +88,34 @@ class PlattCalibrator:
     def load(cls, path: Path | str) -> PlattCalibrator:
         data = json.loads(Path(path).read_text())
         return cls(float(data["a"]), float(data["b"]))
+
+
+def brier_score(probs: Sequence[float] | np.ndarray, labels: Sequence[int] | np.ndarray) -> float:
+    """Mean squared error between predicted probabilities and 0/1 labels."""
+    p = np.asarray(probs, dtype=np.float64)
+    y = np.asarray(labels, dtype=np.float64)
+    if p.shape != y.shape or p.ndim != 1 or len(p) == 0:
+        raise ValueError("probs and labels must be equal-length, non-empty 1-D arrays")
+    return float(np.mean((p - y) ** 2))
+
+
+def expected_calibration_error(
+    probs: Sequence[float] | np.ndarray, labels: Sequence[int] | np.ndarray, n_bins: int = 10
+) -> float:
+    """ECE with ``n_bins`` equal-width bins on [0, 1]: sum of |accuracy - confidence| * share.
+
+    A bin is ``[lo, hi)``, except the last one, which also holds 1.0.
+    """
+    p = np.asarray(probs, dtype=np.float64)
+    y = np.asarray(labels, dtype=np.float64)
+    if p.shape != y.shape or p.ndim != 1 or len(p) == 0:
+        raise ValueError("probs and labels must be equal-length, non-empty 1-D arrays")
+    if n_bins < 1:
+        raise ValueError("n_bins must be at least 1")
+    bins = np.minimum((p * n_bins).astype(int), n_bins - 1)
+    ece = 0.0
+    for b in range(n_bins):
+        mask = bins == b
+        if mask.any():
+            ece += mask.mean() * abs(y[mask].mean() - p[mask].mean())
+    return float(ece)

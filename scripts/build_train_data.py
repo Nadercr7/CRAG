@@ -5,6 +5,9 @@
                       selection; the 300 test questions are never touched)
 - beir_candidates.jsonl: BEIR train queries with positives and hybrid-retrieved candidates,
                       to be teacher-filtered into negatives on the GPU
+- beir_dev_samples.jsonl: NFCorpus and FiQA dev queries with hybrid candidates, used as
+                      reranking evaluators during training (an early warning for the
+                      out-of-domain drop that HotpotQA dev cannot show)
 - manifest.json: counts and settings
 """
 
@@ -101,6 +104,24 @@ def build_beir(args, cfg, out: Path, manifest: dict) -> None:
     write_jsonl(out / "beir_candidates.jsonl", items)
 
 
+def build_beir_dev(args, cfg, out: Path, manifest: dict, max_queries: int = 300) -> None:
+    items: list[dict] = []
+    for name in ("nfcorpus", "fiqa"):  # SciFact has no dev split
+        ds = load_beir(name, "dev", cfg.paths.data_dir / "raw")
+        keep = sorted(ds.queries)[:max_queries]
+        ds.queries = {q: ds.queries[q] for q in keep}
+        index_dir = cfg.paths.data_dir / "indexes" / name
+        hybrid = HybridRetriever(
+            BM25Index.load(index_dir / "bm25"),
+            DenseIndex.load(index_dir / f"dense-{slug(cfg.retrieval.embedder)}"),
+        )
+        found = beir_candidates(ds, lambda q, k, h=hybrid: h.search(q, k), args.depth)
+        items += found
+        manifest[f"beir_dev_{name}"] = len(found)
+        print(name, "dev", len(found))
+    write_jsonl(out / "beir_dev_samples.jsonl", items)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--hotpot-questions", type=int, default=20_000)
@@ -109,18 +130,24 @@ def main() -> None:
     ap.add_argument("--max-positives", type=int, default=3)
     ap.add_argument("--seed", type=int, default=13)
     ap.add_argument("--beir-only", action="store_true", help="rebuild beir_candidates only")
+    ap.add_argument("--hotpot-only", action="store_true", help="rebuild the HotpotQA files only")
+    ap.add_argument("--beir-dev-only", action="store_true", help="rebuild beir_dev_samples only")
     args = ap.parse_args()
 
     cfg = get_config()
     out = cfg.paths.data_dir / "processed" / "train"
     out.mkdir(parents=True, exist_ok=True)
     manifest_path = out / "manifest.json"
-    manifest: dict = json.loads(manifest_path.read_text()) if args.beir_only else {}
+    partial = args.beir_only or args.hotpot_only or args.beir_dev_only
+    manifest: dict = json.loads(manifest_path.read_text()) if partial else {}
     manifest.update({"seed": args.seed, "depth": args.depth, "max_positives": args.max_positives})
 
-    if not args.beir_only:
+    if not (args.beir_only or args.beir_dev_only):
         build_hotpot(args, cfg, out, manifest)
-    build_beir(args, cfg, out, manifest)
+    if not (args.hotpot_only or args.beir_dev_only):
+        build_beir(args, cfg, out, manifest)
+    if not (args.beir_only or args.hotpot_only):
+        build_beir_dev(args, cfg, out, manifest)
     manifest_path.write_text(json.dumps(manifest, indent=2))
 
 

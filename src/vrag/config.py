@@ -86,12 +86,27 @@ class PipelineConfig(BaseModel):
     answer_max_tokens: int = 256
 
 
+class VerifierConfig(BaseModel):
+    """Where the tuned verifier lives. Unset in default.toml; ``configs/tuned.toml`` fills it."""
+
+    model: Path | None = None
+    calibration_passage: Path | None = None
+    calibration_sentence: Path | None = None
+
+    def resolve(self, root: Path) -> VerifierConfig:
+        """Return a copy with every relative path anchored at ``root``."""
+        return VerifierConfig(
+            **{k: v if v is None or v.is_absolute() else root / v for k, v in self}
+        )
+
+
 class Config(BaseModel):
     paths: Paths = Field(default_factory=Paths)
     llm: LLMConfig = Field(default_factory=LLMConfig)
     data: DataConfig = Field(default_factory=DataConfig)
     retrieval: RetrievalConfig = Field(default_factory=RetrievalConfig)
     pipeline: PipelineConfig = Field(default_factory=PipelineConfig)
+    verifier: VerifierConfig = Field(default_factory=VerifierConfig)
 
 
 def load_dotenv(path: Path = REPO_ROOT / ".env") -> None:
@@ -106,15 +121,32 @@ def load_dotenv(path: Path = REPO_ROOT / ".env") -> None:
         os.environ.setdefault(key.strip(), value.strip().strip("'\""))
 
 
-def load_config(path: Path | str | None = None) -> Config:
+def merge(base: dict, overlay: dict) -> dict:
+    """``base`` with ``overlay`` merged over it, section by section (neither is modified)."""
+    out = dict(base)
+    for key, value in overlay.items():
+        if isinstance(value, dict) and isinstance(out.get(key), dict):
+            out[key] = merge(out[key], value)
+        else:
+            out[key] = value
+    return out
+
+
+def load_config(path: Path | str | None = None, overlay: Path | str | None = None) -> Config:
+    """Load ``path`` (default: default.toml); keys of the ``overlay`` TOML win over it."""
     path = Path(path) if path else DEFAULT_CONFIG
     with path.open("rb") as f:
-        cfg = Config.model_validate(tomllib.load(f))
+        data = tomllib.load(f)
+    if overlay:
+        with Path(overlay).open("rb") as f:
+            data = merge(data, tomllib.load(f))
+    cfg = Config.model_validate(data)
     cfg.paths = cfg.paths.resolve(REPO_ROOT)
+    cfg.verifier = cfg.verifier.resolve(REPO_ROOT)
     return cfg
 
 
 @lru_cache(maxsize=1)
 def get_config() -> Config:
     load_dotenv()
-    return load_config(os.environ.get("VRAG_CONFIG"))
+    return load_config(os.environ.get("VRAG_CONFIG"), os.environ.get("VRAG_CONFIG_OVERLAY"))

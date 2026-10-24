@@ -19,6 +19,24 @@
    "b": -2.2298888303528868
   },
   "sentence": {
+   "n": 2050,
+   "positives": 344,
+   "before": {
+    "brier": 0.17465941142291486,
+    "ece": 0.1898167122471674
+   },
+   "after": {
+    "brier": 0.09292622195475403,
+    "ece": 0.012389989357393801
+   },
+   "after_cv": {
+    "brier": 0.09374752216924849,
+    "ece": 0.013581466701441596
+   },
+   "a": 0.5969457440632081,
+   "b": -1.8341607128253843
+  },
+  "sentence_all": {
    "n": 33857,
    "positives": 465,
    "before": {
@@ -42,7 +60,7 @@
   "tau_lo": 0.15,
   "tau_single": 0.1,
   "notes": [],
-  "tau_keep": 0.05
+  "tau_keep": 0.1
  },
  "decision_grid": {
   "pairs": [
@@ -1653,124 +1671,397 @@
   {
    "tau_keep": 0.05,
    "uncapped": {
-    "recall": 0.615546218487395,
-    "recall_in_selected": 0.8517441860465116,
-    "avg_kept": 2.54,
-    "all_facts_kept": 0.4
+    "recall": 0.9505813953488372,
+    "avg_kept": 3.585,
+    "all_facts_kept": 0.47,
+    "all_selected_facts_kept": 0.93
    },
    "capped": {
-    "recall": 0.615546218487395,
-    "recall_in_selected": 0.8517441860465116,
-    "avg_kept": 2.54,
-    "all_facts_kept": 0.4
+    "recall": 0.9505813953488372,
+    "avg_kept": 3.52,
+    "all_facts_kept": 0.47,
+    "all_selected_facts_kept": 0.93
    }
   },
   {
    "tau_keep": 0.1,
    "uncapped": {
-    "recall": 0.5567226890756303,
-    "recall_in_selected": 0.7703488372093024,
-    "avg_kept": 2.075,
-    "all_facts_kept": 0.355
+    "recall": 0.9156976744186046,
+    "avg_kept": 2.98,
+    "all_facts_kept": 0.45,
+    "all_selected_facts_kept": 0.88
    },
    "capped": {
-    "recall": 0.5567226890756303,
-    "recall_in_selected": 0.7703488372093024,
-    "avg_kept": 2.075,
-    "all_facts_kept": 0.355
+    "recall": 0.9156976744186046,
+    "avg_kept": 2.97,
+    "all_facts_kept": 0.45,
+    "all_selected_facts_kept": 0.88
    }
   },
   {
    "tau_keep": 0.2,
    "uncapped": {
-    "recall": 0.4579831932773109,
-    "recall_in_selected": 0.6337209302325582,
-    "avg_kept": 1.57,
-    "all_facts_kept": 0.265
+    "recall": 0.813953488372093,
+    "avg_kept": 2.305,
+    "all_facts_kept": 0.385,
+    "all_selected_facts_kept": 0.74
    },
    "capped": {
-    "recall": 0.4579831932773109,
-    "recall_in_selected": 0.6337209302325582,
-    "avg_kept": 1.57,
-    "all_facts_kept": 0.265
+    "recall": 0.813953488372093,
+    "avg_kept": 2.305,
+    "all_facts_kept": 0.385,
+    "all_selected_facts_kept": 0.74
    }
   },
   {
    "tau_keep": 0.3,
    "uncapped": {
-    "recall": 0.36134453781512604,
-    "recall_in_selected": 0.5,
-    "avg_kept": 1.145,
-    "all_facts_kept": 0.165
+    "recall": 0.7296511627906976,
+    "avg_kept": 1.9,
+    "all_facts_kept": 0.315,
+    "all_selected_facts_kept": 0.635
    },
    "capped": {
-    "recall": 0.36134453781512604,
-    "recall_in_selected": 0.5,
-    "avg_kept": 1.145,
-    "all_facts_kept": 0.165
+    "recall": 0.7296511627906976,
+    "avg_kept": 1.9,
+    "all_facts_kept": 0.315,
+    "all_selected_facts_kept": 0.635
    }
   },
   {
    "tau_keep": 0.4,
    "uncapped": {
-    "recall": 0.26260504201680673,
-    "recall_in_selected": 0.3633720930232558,
-    "avg_kept": 0.795,
-    "all_facts_kept": 0.115
+    "recall": 0.6017441860465116,
+    "avg_kept": 1.445,
+    "all_facts_kept": 0.245,
+    "all_selected_facts_kept": 0.51
    },
    "capped": {
-    "recall": 0.26260504201680673,
-    "recall_in_selected": 0.3633720930232558,
-    "avg_kept": 0.795,
-    "all_facts_kept": 0.115
+    "recall": 0.6017441860465116,
+    "avg_kept": 1.445,
+    "all_facts_kept": 0.245,
+    "all_selected_facts_kept": 0.51
    }
   },
   {
    "tau_keep": 0.5,
    "uncapped": {
-    "recall": 0.19327731092436976,
-    "recall_in_selected": 0.26744186046511625,
-    "avg_kept": 0.54,
-    "all_facts_kept": 0.075
+    "recall": 0.436046511627907,
+    "avg_kept": 0.99,
+    "all_facts_kept": 0.13,
+    "all_selected_facts_kept": 0.35
    },
    "capped": {
-    "recall": 0.19327731092436976,
-    "recall_in_selected": 0.26744186046511625,
-    "avg_kept": 0.54,
-    "all_facts_kept": 0.075
+    "recall": 0.436046511627907,
+    "avg_kept": 0.99,
+    "all_facts_kept": 0.13,
+    "all_selected_facts_kept": 0.35
    }
   },
   {
    "tau_keep": 0.6,
    "uncapped": {
-    "recall": 0.12815126050420167,
-    "recall_in_selected": 0.17732558139534885,
-    "avg_kept": 0.355,
-    "all_facts_kept": 0.045
+    "recall": 0.2819767441860465,
+    "avg_kept": 0.575,
+    "all_facts_kept": 0.08,
+    "all_selected_facts_kept": 0.25
    },
    "capped": {
-    "recall": 0.12815126050420167,
-    "recall_in_selected": 0.17732558139534885,
-    "avg_kept": 0.355,
-    "all_facts_kept": 0.045
+    "recall": 0.2819767441860465,
+    "avg_kept": 0.575,
+    "all_facts_kept": 0.08,
+    "all_selected_facts_kept": 0.25
    }
   },
   {
    "tau_keep": 0.7,
    "uncapped": {
-    "recall": 0.06722689075630252,
-    "recall_in_selected": 0.09302325581395349,
-    "avg_kept": 0.175,
-    "all_facts_kept": 0.01
+    "recall": 0.14534883720930233,
+    "avg_kept": 0.285,
+    "all_facts_kept": 0.04,
+    "all_selected_facts_kept": 0.165
    },
    "capped": {
-    "recall": 0.06722689075630252,
-    "recall_in_selected": 0.09302325581395349,
-    "avg_kept": 0.175,
-    "all_facts_kept": 0.01
+    "recall": 0.14534883720930233,
+    "avg_kept": 0.285,
+    "all_facts_kept": 0.04,
+    "all_selected_facts_kept": 0.165
    }
   }
  ],
- "keep_ceiling": 0.7226890756302521,
- "sanity": []
+ "fact_ceilings": {
+  "retrieved": 0.976890756302521,
+  "top5_unfiltered": 0.8886554621848739,
+  "selected": 0.7226890756302521,
+  "all_facts_selected": 0.525
+ },
+ "sanity": [
+  {
+   "qid": "5a89d36e554299515336132a",
+   "question": "Who directed the film based on the rock opera 5:15 appeared in?",
+   "slice": "supportive",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 5,
+   "gold_paragraphs_in_context": 0,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 0,
+   "n_facts": 4,
+   "notes": [],
+   "queries": [
+    "Who directed the film based on the rock opera 5:15 appeared in?",
+    "5:15 rock opera film directed by"
+   ]
+  },
+  {
+   "qid": "5a89d36e554299515336132a",
+   "question": "Who directed the film based on the rock opera 5:15 appeared in?",
+   "slice": "missing",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 5,
+   "gold_paragraphs_in_context": 0,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 0,
+   "n_facts": 4,
+   "notes": [],
+   "queries": [
+    "Who directed the film based on the rock opera 5:15 appeared in?",
+    "5:15 rock opera film directed by"
+   ]
+  },
+  {
+   "qid": "5a89d36e554299515336132a",
+   "question": "Who directed the film based on the rock opera 5:15 appeared in?",
+   "slice": "misleading",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 5,
+   "gold_paragraphs_in_context": 0,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 0,
+   "n_facts": 4,
+   "notes": [],
+   "queries": [
+    "Who directed the film based on the rock opera 5:15 appeared in?",
+    "5:15 rock opera film directed by"
+   ]
+  },
+  {
+   "qid": "5a7cefcf55429909bec768af",
+   "question": "Mis'ry's Comin' Aroun is by an American librettist that won how many Tony Awards? ",
+   "slice": "supportive",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 3,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 3,
+   "n_facts": 3,
+   "notes": [],
+   "queries": [
+    "Mis'ry's Comin' Aroun is by an American librettist that won how many Tony Awards? ",
+    "Oscar Hammerstein II Tony Awards count"
+   ]
+  },
+  {
+   "qid": "5a7cefcf55429909bec768af",
+   "question": "Mis'ry's Comin' Aroun is by an American librettist that won how many Tony Awards? ",
+   "slice": "missing",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "incorrect",
+   "kept_lines": 0,
+   "gold_paragraphs_in_context": 0,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 0,
+   "n_facts": 3,
+   "notes": [],
+   "queries": [
+    "Mis'ry's Comin' Aroun is by an American librettist that won how many Tony Awards? ",
+    "Mis'ry's Comin' Aroun American librettist Tony Awards"
+   ]
+  },
+  {
+   "qid": "5a7cefcf55429909bec768af",
+   "question": "Mis'ry's Comin' Aroun is by an American librettist that won how many Tony Awards? ",
+   "slice": "misleading",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 3,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 3,
+   "n_facts": 3,
+   "notes": [],
+   "queries": [
+    "Mis'ry's Comin' Aroun is by an American librettist that won how many Tony Awards? ",
+    "Oscar Hammerstein II Tony Awards count"
+   ]
+  },
+  {
+   "qid": "5ae791a55542994a481bbdaa",
+   "question": "Which of the university at which Jack M. Guttentag  is a professor emeritus of finance was established in 1881 through a donation?",
+   "slice": "supportive",
+   "rewrite": true,
+   "decision": "correct",
+   "final_decision": "correct",
+   "kept_lines": 5,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 2,
+   "n_facts": 2,
+   "notes": [],
+   "queries": [
+    "Which of the university at which Jack M. Guttentag  is a professor emeritus of finance was established in 1881 through a donation?"
+   ]
+  },
+  {
+   "qid": "5ae791a55542994a481bbdaa",
+   "question": "Which of the university at which Jack M. Guttentag  is a professor emeritus of finance was established in 1881 through a donation?",
+   "slice": "missing",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 2,
+   "gold_paragraphs_in_context": 0,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 0,
+   "n_facts": 2,
+   "notes": [],
+   "queries": [
+    "Which of the university at which Jack M. Guttentag  is a professor emeritus of finance was established in 1881 through a donation?",
+    "Jack M. Guttentag professor emeritus finance university established 1881 donation"
+   ]
+  },
+  {
+   "qid": "5ae791a55542994a481bbdaa",
+   "question": "Which of the university at which Jack M. Guttentag  is a professor emeritus of finance was established in 1881 through a donation?",
+   "slice": "misleading",
+   "rewrite": true,
+   "decision": "correct",
+   "final_decision": "correct",
+   "kept_lines": 5,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 2,
+   "n_facts": 2,
+   "notes": [],
+   "queries": [
+    "Which of the university at which Jack M. Guttentag  is a professor emeritus of finance was established in 1881 through a donation?"
+   ]
+  },
+  {
+   "qid": "5ae748d1554299572ea547b0",
+   "question": "Marcus Wayne Garland spent nine seasons with an American professional baseball team that is based in Baltimore, Maryland, and was one of the AMerican League's original eight charter franchises when the league was established in what year?",
+   "slice": "supportive",
+   "rewrite": true,
+   "decision": "correct",
+   "final_decision": "correct",
+   "kept_lines": 3,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 3,
+   "n_facts": 3,
+   "notes": [],
+   "queries": [
+    "Marcus Wayne Garland spent nine seasons with an American professional baseball team that is based in Baltimore, Maryland, and was one of the AMerican League's original eight charter franchises when the league was established in what year?"
+   ]
+  },
+  {
+   "qid": "5ae748d1554299572ea547b0",
+   "question": "Marcus Wayne Garland spent nine seasons with an American professional baseball team that is based in Baltimore, Maryland, and was one of the AMerican League's original eight charter franchises when the league was established in what year?",
+   "slice": "missing",
+   "rewrite": true,
+   "decision": "incorrect",
+   "final_decision": "incorrect",
+   "kept_lines": 0,
+   "gold_paragraphs_in_context": 0,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 0,
+   "n_facts": 3,
+   "notes": [],
+   "queries": [
+    "Marcus Wayne Garland spent nine seasons with an American professional baseball team that is based in Baltimore, Maryland, and was one of the AMerican League's original eight charter franchises when the league was established in what year?",
+    "American League original eight charter franchises year"
+   ]
+  },
+  {
+   "qid": "5ae748d1554299572ea547b0",
+   "question": "Marcus Wayne Garland spent nine seasons with an American professional baseball team that is based in Baltimore, Maryland, and was one of the AMerican League's original eight charter franchises when the league was established in what year?",
+   "slice": "misleading",
+   "rewrite": true,
+   "decision": "correct",
+   "final_decision": "correct",
+   "kept_lines": 3,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 3,
+   "n_facts": 3,
+   "notes": [],
+   "queries": [
+    "Marcus Wayne Garland spent nine seasons with an American professional baseball team that is based in Baltimore, Maryland, and was one of the AMerican League's original eight charter franchises when the league was established in what year?"
+   ]
+  },
+  {
+   "qid": "5a7a46605542994f819ef1ad",
+   "question": "What year did Roy Rogers and his third wife star in a film directed by Frank McDonald?",
+   "slice": "supportive",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 4,
+   "gold_paragraphs_in_context": 1,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 1,
+   "n_facts": 2,
+   "notes": [],
+   "queries": [
+    "What year did Roy Rogers and his third wife star in a film directed by Frank McDonald?",
+    "Roy Rogers Dale Evans Frank McDonald film year"
+   ]
+  },
+  {
+   "qid": "5a7a46605542994f819ef1ad",
+   "question": "What year did Roy Rogers and his third wife star in a film directed by Frank McDonald?",
+   "slice": "missing",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 2,
+   "gold_paragraphs_in_context": 0,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 0,
+   "n_facts": 2,
+   "notes": [],
+   "queries": [
+    "What year did Roy Rogers and his third wife star in a film directed by Frank McDonald?",
+    "Roy Rogers third wife film Frank McDonald",
+    "Frank McDonald Roy Rogers third wife movie"
+   ]
+  },
+  {
+   "qid": "5a7a46605542994f819ef1ad",
+   "question": "What year did Roy Rogers and his third wife star in a film directed by Frank McDonald?",
+   "slice": "misleading",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 4,
+   "gold_paragraphs_in_context": 1,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 1,
+   "n_facts": 2,
+   "notes": [],
+   "queries": [
+    "What year did Roy Rogers and his third wife star in a film directed by Frank McDonald?",
+    "Roy Rogers Dale Evans Frank McDonald film year"
+   ]
+  }
+ ]
 }

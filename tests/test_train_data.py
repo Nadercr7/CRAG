@@ -104,3 +104,15 @@ def test_beir_candidates_keep_highest_graded_positives():
     items = beir_candidates(ds, lambda q, k: [("e", 1.0), ("a", 0.5)], max_positives=2)
     assert items[0]["positives"] == ["B t", "C t"]
     assert items[0]["candidates"] == ["E t"]  # judged docs never become candidates
+
+
+def test_easy_negatives_come_from_other_questions():
+    from vrag.verifier.train_data import easy_negatives
+
+    other = hotpot_row()
+    other["id"], other["question"] = "q2", "Who painted the ceiling?"
+    other["context"] = {"title": ["Chapel"], "sentences": [[" Michelangelo painted it."]]}
+    pairs = easy_negatives(hotpot_row(), [other] * 4, random.Random(0))
+    assert [p.level for p in pairs] == ["passage", "passage", "sentence", "sentence"]
+    assert all(p.label == 0 and p.source == "hotpot-random" for p in pairs)
+    assert all(p.query == hotpot_row()["question"] and "Michelangelo" in p.text for p in pairs)

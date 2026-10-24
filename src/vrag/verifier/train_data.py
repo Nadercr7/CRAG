@@ -5,10 +5,17 @@ rather than "does this text mention the same entities" (the failure an independe
 reproduction found in its T5 evaluator):
 
 - HotpotQA train. Positives are the gold paragraphs. Negatives are the dataset's own
-  distractors (retrieved for lexical overlap, so they are hard) and **stripped gold**:
-  a gold paragraph with its supporting sentences removed. Same title and entities, no
-  answer. Sentence-level pairs come from the supporting-fact labels, which gives the
-  refinement step free, human-annotated targets.
+  distractors (retrieved for lexical overlap, so they are hard), **stripped gold** (a gold
+  paragraph with its supporting sentences removed: same title and entities, no answer),
+  and **easy negatives** (paragraphs and sentences of other questions). Sentence-level
+  pairs come from the supporting-fact labels, which gives the refinement step free,
+  human-annotated targets.
+
+  Without the easy negatives the model unlearns lexical relevance altogether: supporting
+  sentences often share no words with the question while stripped gold shares nearly all
+  of them, so overlap stops meaning anything. The first L6 run scored a nonsense query
+  ("zebra") against medical abstracts at +0.6 (the base checkpoint: -9.6) and fell from
+  69.6 to 52.7 nDCG@10 on SciFact.
 - BEIR train splits (scifact, nfcorpus, fiqa). Positives from qrels; negatives are
   candidates mined from our own hybrid retriever. False negatives are filtered later by a
   teacher cross-encoder on the GPU (``filter_candidates``), RocketQA style.
@@ -96,11 +103,38 @@ def hotpot_pairs(
     return pairs
 
 
-def hotpot_training_pairs(rows: Iterable[dict], n_questions: int, seed: int) -> list[Pair]:
+def easy_negatives(
+    row: dict, others: Sequence[dict], rng: random.Random, n_passages: int = 2, n_sentences: int = 2
+) -> list[Pair]:
+    """Paragraphs and sentences drawn from other questions: unrelated, labelled 0."""
+    q, qid = row["question"], row["id"]
+    pairs: list[Pair] = []
+    for other in rng.sample(list(others), min(n_passages + n_sentences, len(others))):
+        k = rng.randrange(len(other["context"]["title"]))
+        title, sents = other["context"]["title"][k], list(other["context"]["sentences"][k])
+        if len(pairs) < n_passages:
+            text = doc_text({"title": title, "text": "".join(sents).strip()})
+            pairs.append(Pair(q, text, 0, "hotpot-random", "passage", qid))
+        elif any(s.strip() for s in sents):
+            sent = rng.choice([s for s in sents if s.strip()])
+            pairs.append(Pair(q, sentence_text(title, sent), 0, "hotpot-random", "sentence", qid))
+    return pairs
+
+
+def hotpot_training_pairs(
+    rows: Iterable[dict], n_questions: int, seed: int, easy: bool = True
+) -> list[Pair]:
     rows = sorted(rows, key=lambda r: r["id"])
     rng = random.Random(seed)
     sample = rng.sample(rows, min(n_questions, len(rows)))
-    return [p for row in sample for p in hotpot_pairs(row, rng)]
+    pairs: list[Pair] = []
+    for n, row in enumerate(sample):
+        pairs += hotpot_pairs(row, rng)
+        if easy:
+            # Neighbours in the shuffled sample are unrelated questions.
+            neighbours = sample[max(0, n - 3) : n] + sample[n + 1 : n + 4]
+            pairs += easy_negatives(row, neighbours, rng)
+    return pairs
 
 
 Search = Callable[[str, int], list[tuple[str, float]]]

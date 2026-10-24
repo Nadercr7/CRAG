@@ -100,16 +100,24 @@ if TASK == "sufficiency":
         name="sufficiency-dev",
     )
 else:
-    evaluator = SequentialEvaluator(
-        [
-            CrossEncoderRerankingEvaluator(
-                rerank_samples(dev, "passage"), name="hotpot-dev-passage"
-            ),
-            CrossEncoderRerankingEvaluator(
-                rerank_samples(dev, "sentence"), name="hotpot-dev-sentence"
-            ),
-        ]
+    evaluators = [
+        CrossEncoderRerankingEvaluator(rerank_samples(dev, "passage"), name="hotpot-dev-passage"),
+        CrossEncoderRerankingEvaluator(rerank_samples(dev, "sentence"), name="hotpot-dev-sentence"),
+    ]
+    # BEIR dev queries with hybrid candidates: the out-of-domain early warning.
+    beir_dev = (
+        read("beir_dev_samples.jsonl")
+        if glob.glob(f"{INPUT}/**/beir_dev_samples.jsonl", recursive=True)
+        else []
     )
+    for source in sorted({item["source"] for item in beir_dev}):
+        samples = [
+            {"query": i["query"], "positive": i["positives"], "negative": i["candidates"]}
+            for i in beir_dev
+            if i["source"] == source and i["candidates"]
+        ]
+        evaluators.append(CrossEncoderRerankingEvaluator(samples, name=f"{source}-dev"))
+    evaluator = SequentialEvaluator(evaluators)
 before = evaluator(model)
 
 args = CrossEncoderTrainingArguments(

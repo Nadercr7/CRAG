@@ -35,6 +35,7 @@ DATA_FILES = (
     "msmarco_pairs.jsonl",
     "sufficiency_train.jsonl",
     "sufficiency_dev.jsonl",
+    "beir_dev_samples.jsonl",
 )
 RERANK_DATASETS = ("scifact", "nfcorpus", "fiqa")
 
