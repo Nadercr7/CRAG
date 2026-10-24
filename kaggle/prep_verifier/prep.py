@@ -43,7 +43,7 @@ report: dict = {"teacher": TEACHER, "seed": SEED}
 start = time.time()
 
 path = glob.glob("/kaggle/input/**/beir_candidates.jsonl", recursive=True)[0]
-items = [json.loads(line) for line in Path(path).read_text().splitlines()]
+items = [json.loads(line) for line in Path(path).read_text().split("\n") if line]
 
 teacher = CrossEncoder(TEACHER, device="cuda", max_length=384)
 teacher.model.half()

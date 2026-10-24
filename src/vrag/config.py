@@ -68,11 +68,30 @@ class RetrievalConfig(BaseModel):
     ndcg_k: int = 10
 
 
+class PipelineConfig(BaseModel):
+    """Defaults of the verified pipeline. Thresholds are placeholders until tuned on dev."""
+
+    retrieve_k: int = 20  # fused list handed to the verifier
+    top_k_context: int = 5  # chunks kept per query before refinement
+    tau_hi: float = 0.7  # max chunk prob >= tau_hi: "correct"
+    tau_lo: float = 0.2  # max chunk prob < tau_lo: "incorrect"; also the chunk filter
+    tau_single: float = 0.5  # the one threshold of the single-threshold arm
+    tau_keep: float = 0.3  # sentence kept when its prob >= tau_keep
+    max_sentences: int = 8  # cap on kept sentences across all chunks
+    max_context_lines: int = 8  # hard cap on numbered lines sent to the generator
+    tau_abstain: float = 0.5  # abstain when sufficiency prob < tau_abstain
+    rewrite_queries: int = 2  # queries a rewrite may produce
+    rewrite_evidence: int = 3  # top kept sentences shown to the rewriter
+    rewrite_max_tokens: int = 512
+    answer_max_tokens: int = 256
+
+
 class Config(BaseModel):
     paths: Paths = Field(default_factory=Paths)
     llm: LLMConfig = Field(default_factory=LLMConfig)
     data: DataConfig = Field(default_factory=DataConfig)
     retrieval: RetrievalConfig = Field(default_factory=RetrievalConfig)
+    pipeline: PipelineConfig = Field(default_factory=PipelineConfig)
 
 
 def load_dotenv(path: Path = REPO_ROOT / ".env") -> None:

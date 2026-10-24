@@ -15,9 +15,12 @@ from pathlib import Path
 
 CONFIG = json.loads(__CONFIG__)  # noqa: F821 (the launcher fills in a JSON string literal)
 
-subprocess.run(
-    [sys.executable, "-m", "pip", "install", "-q", "sentence-transformers==6.2.0"], check=True
-)
+INPUT = CONFIG.get("input_dir", "/kaggle/input")
+OUTPUT = Path(CONFIG.get("output_dir", "/kaggle/working"))
+if not CONFIG.get("skip_install"):
+    subprocess.run(
+        [sys.executable, "-m", "pip", "install", "-q", "sentence-transformers==6.2.0"], check=True
+    )
 
 import torch  # noqa: E402
 from datasets import Dataset  # noqa: E402
@@ -28,14 +31,15 @@ from sentence_transformers.cross_encoder import (  # noqa: E402
 )
 from sentence_transformers.cross_encoder.evaluation import (  # noqa: E402
     CrossEncoderRerankingEvaluator,
-    SequentialEvaluator,
 )
 from sentence_transformers.cross_encoder.losses import BinaryCrossEntropyLoss  # noqa: E402
+from sentence_transformers.evaluation import SequentialEvaluator  # noqa: E402
 
 
 def read(name: str) -> list[dict]:
-    path = glob.glob(f"/kaggle/input/**/{name}", recursive=True)[0]
-    return [json.loads(line) for line in Path(path).read_text().splitlines()]
+    path = glob.glob(f"{INPUT}/**/{name}", recursive=True)[0]
+    # split on "\n" only: str.splitlines also breaks on U+2028 etc. inside JSON strings
+    return [json.loads(line) for line in Path(path).read_text().split("\n") if line]
 
 
 def rerank_samples(pairs: list[dict], level: str) -> list[dict]:
@@ -84,19 +88,20 @@ evaluator = SequentialEvaluator(
 before = evaluator(model)
 
 args = CrossEncoderTrainingArguments(
-    output_dir="/kaggle/tmp/checkpoints",
+    output_dir=str(OUTPUT / "checkpoints"),
     num_train_epochs=CONFIG["epochs"],
     per_device_train_batch_size=CONFIG["batch_size"],
     learning_rate=CONFIG["lr"],
     warmup_ratio=0.1,
     weight_decay=0.01,
-    fp16=True,
+    fp16=CONFIG.get("fp16", True),
     eval_strategy="steps",
     eval_steps=CONFIG["eval_steps"],
     save_strategy="no",
     logging_steps=100,
     seed=CONFIG["seed"],
-    dataloader_num_workers=2,
+    dataloader_num_workers=CONFIG.get("workers", 2),
+    max_steps=CONFIG.get("max_steps", -1),
     report_to="none",
 )
 trainer = CrossEncoderTrainer(
@@ -108,7 +113,7 @@ trainer = CrossEncoderTrainer(
 )
 trainer.train()
 after = evaluator(model)
-model.save_pretrained("/kaggle/working/model")
+model.save_pretrained(str(OUTPUT / "model"))
 
 report = {
     "config": CONFIG,
@@ -122,5 +127,5 @@ report = {
     "minutes": round((time.time() - start) / 60, 1),
     "gpus": [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())],
 }
-Path("/kaggle/working/train_report.json").write_text(json.dumps(report, indent=2))
+(OUTPUT / "train_report.json").write_text(json.dumps(report, indent=2))
 print(json.dumps({k: report[k] for k in ("dev_before", "dev_after", "minutes")}, indent=2))
