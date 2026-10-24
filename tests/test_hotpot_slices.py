@@ -86,7 +86,7 @@ def test_supportive_and_missing(data):
 def test_misleading_replaces_every_occurrence(data):
     answers = [q.answer for q in data.questions]
     q = by_id(data, "q001")  # number kind; only other number answer is 1888
-    m = misleading_slice(q, data, answers, seed=1)
+    m = misleading_slice(q, data, answers, seed=1, allow_fallback=True)
     assert m.substitute == "1888" and m.original_answer == "1994"
     (text,) = m.replace_text.values()
     assert text == "It was built in 1888 and 1888 again. Second sentence."
@@ -95,8 +95,12 @@ def test_misleading_replaces_every_occurrence(data):
 
 def test_misleading_not_built_when_not_eligible(data):
     answers = [q.answer for q in data.questions]
-    assert misleading_slice(by_id(data, "q003"), data, answers, 1) is None  # yes/no
-    assert misleading_slice(by_id(data, "q004"), data, answers, 1) is None  # not in gold text
+    assert (
+        misleading_slice(by_id(data, "q003"), data, answers, 1, allow_fallback=True) is None
+    )  # yes/no
+    assert (
+        misleading_slice(by_id(data, "q004"), data, answers, 1, allow_fallback=True) is None
+    )  # not in gold text
     assert answer_kind("1994") == "number" and answer_kind("Paris") == "other"
 
 
@@ -104,27 +108,32 @@ def test_misleading_substitute_rules(data):
     answers = [q.answer for q in data.questions]
     q = by_id(data, "q000")  # "Paris": New Paris contains it, so it can never be used
     for seed in range(30):
-        m = misleading_slice(q, data, answers, seed)
+        m = misleading_slice(q, data, answers, seed, allow_fallback=True)
         assert m.substitute in {"Berlin", "Rome"}
         assert "Paris" not in next(iter(m.replace_text.values()))
     q = by_id(data, "q005")  # "New Paris": Paris is contained in it, so "Paris" is excluded
     for seed in range(30):
-        assert misleading_slice(q, data, answers, seed).substitute in {"Berlin", "Rome"}
+        assert misleading_slice(q, data, answers, seed, allow_fallback=True).substitute in {
+            "Berlin",
+            "Rome",
+        }
 
 
 def test_misleading_deterministic_by_seed(data):
     answers = [q.answer for q in data.questions]
     q = by_id(data, "q000")
-    picks = {misleading_slice(q, data, answers, s).substitute for s in range(40)}
+    picks = {
+        misleading_slice(q, data, answers, s, allow_fallback=True).substitute for s in range(40)
+    }
     assert picks == {"Berlin", "Rome"}
     assert (
-        misleading_slice(q, data, answers, 5).substitute
-        == misleading_slice(q, data, answers, 5).substitute
+        misleading_slice(q, data, answers, 5, allow_fallback=True).substitute
+        == misleading_slice(q, data, answers, 5, allow_fallback=True).substitute
     )
 
 
 def test_build_slices(data):
-    slices = build_slices(data, seed=3)
+    slices = build_slices(data, seed=3, allow_fallback=True)
     assert set(slices) == {q.id for q in data.questions}
     assert set(slices["q003"]) == {"supportive", "missing"}
     assert set(slices["q000"]) == {"supportive", "missing", "misleading"}
@@ -175,11 +184,15 @@ def test_proposed_substitute_used_when_valid_else_fallback():
     data = HotpotData([q], {"p1": para})
     answers = ["Alceste", "Orfeo", "Gluck"]
 
-    good = misleading_slice(q, data, answers, seed=1, proposed="Armide")
+    good = misleading_slice(q, data, answers, seed=1, proposed=["Armide"])
     assert good.substitute == "Armide"
     assert good.replace_text["p1"] == "Gluck wrote Armide in 1767."
 
     # Invalid proposals (contains the answer / already in the gold text) fall back.
+    assert misleading_slice(q, data, answers, seed=1, proposed=["Gluck", "Armide"]).substitute == (
+        "Armide"
+    )
     for bad in ("Alceste II", "Gluck"):
-        fallback = misleading_slice(q, data, answers, seed=1, proposed=bad)
+        assert misleading_slice(q, data, answers, seed=1, proposed=[bad]) is None
+        fallback = misleading_slice(q, data, answers, seed=1, proposed=[bad], allow_fallback=True)
         assert fallback.substitute == "Orfeo"

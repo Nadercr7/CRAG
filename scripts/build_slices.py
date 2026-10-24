@@ -19,7 +19,7 @@ def main() -> None:
     data = load_hotpot(
         d.hotpot_test_size, d.hotpot_dev_size, d.hotpot_seed, cfg.paths.data_dir / "raw"
     )
-    subs = propose_substitutes(data.questions, LLMClient(), cfg.llm.rewrite_model)
+    subs = propose_substitutes(data, LLMClient(), cfg.llm.rewrite_model)
     out = cfg.paths.data_dir / "processed" / "hotpot_substitutes.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(subs, indent=1, ensure_ascii=False))
@@ -28,13 +28,7 @@ def main() -> None:
     for split in ("test", "dev"):
         qs = data.split(split)
         kinds = Counter(k for q in qs for k in slices[q.id])
-        llm_used = sum(
-            1
-            for q in qs
-            if "misleading" in slices[q.id]
-            and slices[q.id]["misleading"].substitute == subs.get(q.id)
-        )
-        print(f"{split}: {len(qs)} questions, slices {dict(kinds)}, LLM substitutes {llm_used}")
+        print(f"{split}: {len(qs)} questions, slices {dict(kinds)}")
     for q in data.split("test")[:8]:
         m = slices[q.id].get("misleading")
         print(f"  {q.answer!r:35} -> {m.substitute if m else None!r}")
