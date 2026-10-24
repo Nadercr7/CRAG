@@ -25,6 +25,7 @@ from vrag.config import REPO_ROOT, get_config
 USER = "naderelakany"
 DATASET = "vrag-train-data"
 PREP_KERNEL = "vrag-prep"
+PROMPTS_DATASET = "vrag-prompts"
 # beir_pairs.jsonl comes from scripts/apply_teacher_filter.py over the prep job's teacher
 # scores; msmarco_pairs.jsonl is copied from the prep job's output.
 DATA_FILES = (
@@ -84,7 +85,37 @@ def upload_dataset() -> None:
         print(kaggle("datasets", "create", "-p", str(stage), "-q"))
 
 
-def push_kernel(slug: str, script: Path, replacements: dict[str, str], kernel_sources: list[str]):
+def upload_prompts(files: list[Path]) -> None:
+    """Create or version the prompts dataset (generation inputs, kept apart from training data)."""
+    stage = work_dir("_prompts")
+    for old in stage.glob("*.jsonl"):
+        old.unlink()
+    for f in files:
+        shutil.copy2(f, stage / f.name)
+    meta = {
+        "title": PROMPTS_DATASET,
+        "id": f"{USER}/{PROMPTS_DATASET}",
+        "licenses": [{"name": "CC-BY-SA-4.0"}],
+    }
+    (stage / "dataset-metadata.json").write_text(json.dumps(meta, indent=2))
+    exists = subprocess.run(
+        ["kaggle", "datasets", "status", f"{USER}/{PROMPTS_DATASET}"],
+        capture_output=True,
+        text=True,
+    )
+    if exists.returncode == 0 and "ready" in exists.stdout.lower():
+        print(kaggle("datasets", "version", "-p", str(stage), "-m", "update", "-q"))
+    else:
+        print(kaggle("datasets", "create", "-p", str(stage), "-q"))
+
+
+def push_kernel(
+    slug: str,
+    script: Path,
+    replacements: dict[str, str],
+    kernel_sources: list[str],
+    datasets: list[str] | None = None,
+):
     stage = work_dir(slug) / "kernel"
     stage.mkdir(exist_ok=True)
     code = script.read_text()
@@ -100,7 +131,7 @@ def push_kernel(slug: str, script: Path, replacements: dict[str, str], kernel_so
         "is_private": True,
         "enable_gpu": True,
         "enable_internet": True,
-        "dataset_sources": [f"{USER}/{DATASET}"],
+        "dataset_sources": [f"{USER}/{d}" for d in (datasets or [DATASET])],
         "kernel_sources": kernel_sources,
         "competition_sources": [],
     }
@@ -148,6 +179,17 @@ def main() -> None:
     r.add_argument("--cmd", action="append", required=True, help="shell command, repo root")
     r.add_argument("--out", action="append", default=["results"], help="repo path to keep")
     r.add_argument("--after", nargs="*", default=[], help="kernel slugs whose output to mount")
+    pr = sub.add_parser("prompts", help="upload prompt JSONL files for generation")
+    pr.add_argument("files", nargs="+", type=Path)
+    g = sub.add_parser("generate")
+    g.add_argument("name")
+    g.add_argument("--prompts", required=True, help="file name inside the prompts dataset")
+    g.add_argument("--model", default="Qwen/Qwen3-4B-Instruct-2507")
+    g.add_argument("--max-tokens", type=int, default=256)
+    g.add_argument("--max-model-len", type=int, default=4096)
+    g.add_argument("--temperature", type=float, default=0.0)
+    g.add_argument("--seed", type=int, default=0)
+    g.add_argument("--vllm", default="0.32.0")
     w = sub.add_parser("wait")
     w.add_argument("slug")
     args = ap.parse_args()
@@ -191,6 +233,25 @@ def main() -> None:
             kaggle_dir / "run" / "run.py",
             {"__JOB__": json.dumps(json.dumps(job))},
             [f"{USER}/{s}" for s in args.after],
+        )
+    elif args.command == "prompts":
+        upload_prompts(args.files)
+    elif args.command == "generate":
+        job = {
+            "model": args.model,
+            "prompts": args.prompts,
+            "max_tokens": args.max_tokens,
+            "max_model_len": args.max_model_len,
+            "temperature": args.temperature,
+            "seed": args.seed,
+            "vllm": args.vllm,
+        }
+        push_kernel(
+            f"vrag-gen-{args.name}",
+            kaggle_dir / "generate" / "generate.py",
+            {"__JOB__": json.dumps(json.dumps(job))},
+            [],
+            datasets=[PROMPTS_DATASET],
         )
     else:
         wait(args.slug)

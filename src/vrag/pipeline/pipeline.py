@@ -451,7 +451,8 @@ def export_prompts(
 def load_outputs(path: Path | str) -> dict[str, str]:
     """Read ``{"id", "output"}`` JSONL written by the batch generator."""
     out: dict[str, str] = {}
-    for line in Path(path).read_text().splitlines():
+    # Split on "\n" only: str.splitlines also breaks on U+2028 inside JSON strings.
+    for line in Path(path).read_text().split("\n"):
         if line.strip():
             row = json.loads(line)
             out[row["id"]] = row["output"]
