@@ -17,6 +17,9 @@ OUT = Path("/kaggle/working")
 
 start = time.time()
 subprocess.run([sys.executable, "-m", "pip", "install", "-q", f"vllm=={JOB['vllm']}"], check=True)
+# vLLM brings its own torch; Kaggle's preinstalled torchaudio then targets the wrong CUDA
+# and transformers imports it on the way to vLLM's config code, so remove it.
+subprocess.run([sys.executable, "-m", "pip", "uninstall", "-y", "-q", "torchaudio"], check=False)
 
 import torch  # noqa: E402
 from vllm import LLM, SamplingParams  # noqa: E402
