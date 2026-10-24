@@ -164,7 +164,7 @@ def main() -> None:
         push_kernel(
             f"vrag-train-{args.name}",
             kaggle_dir / "train_verifier" / "train.py",
-            {"__CONFIG__": json.dumps(config)},
+            {"__CONFIG__": json.dumps(json.dumps(config))},
             [f"{USER}/{PREP_KERNEL}"],
         )
     elif args.command == "run":
@@ -172,7 +172,7 @@ def main() -> None:
         push_kernel(
             f"vrag-run-{args.name}",
             kaggle_dir / "run" / "run.py",
-            {"__JOB__": json.dumps(job)},
+            {"__JOB__": json.dumps(json.dumps(job))},
             [f"{USER}/{s}" for s in args.after],
         )
     else:

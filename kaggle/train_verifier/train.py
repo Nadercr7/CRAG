@@ -13,7 +13,7 @@ import sys
 import time
 from pathlib import Path
 
-CONFIG = json.loads("""__CONFIG__""")
+CONFIG = json.loads(__CONFIG__)  # noqa: F821 (the launcher fills in a JSON string literal)
 
 subprocess.run(
     [sys.executable, "-m", "pip", "install", "-q", "sentence-transformers==6.2.0"], check=True

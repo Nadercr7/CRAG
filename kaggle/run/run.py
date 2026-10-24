@@ -13,7 +13,7 @@ import sys
 import time
 from pathlib import Path
 
-JOB = json.loads("""__JOB__""")
+JOB = json.loads(__JOB__)  # noqa: F821 (the launcher fills in a JSON string literal)
 REPO = Path("/kaggle/tmp/crag")
 OUT = Path("/kaggle/working")
 
