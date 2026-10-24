@@ -1,0 +1,26 @@
+{
+  "dataset": "nfcorpus",
+  "split": "test",
+  "method": "hybrid+verifier-minilm-l6-v2-nobeir",
+  "model": "verifier-minilm-l6-v2-nobeir",
+  "metrics": {
+    "ndcg@10": 0.1497744168775731,
+    "recall@20": 0.11696540188487359,
+    "recall@100": 0.26455354605959813,
+    "mrr": 0.28257644470763693
+  },
+  "config": {
+    "rerank_depth": 50,
+    "max_length": 512,
+    "batch_size": 64,
+    "device": "cuda",
+    "first_stage": "hybrid",
+    "embedder": "BAAI/bge-small-en-v1.5"
+  },
+  "timing": {
+    "num_queries": 323,
+    "num_pairs": 16150,
+    "rerank_total_s": 103.48855460000004,
+    "rerank_ms_per_query": 320.39800185758526
+  }
+}
