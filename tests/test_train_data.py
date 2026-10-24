@@ -116,3 +116,22 @@ def test_easy_negatives_come_from_other_questions():
     assert [p.level for p in pairs] == ["passage", "passage", "sentence", "sentence"]
     assert all(p.label == 0 and p.source == "hotpot-random" for p in pairs)
     assert all(p.query == hotpot_row()["question"] and "Michelangelo" in p.text for p in pairs)
+
+
+def test_direct_titles_and_second_hop_modes():
+    from vrag.verifier.train_data import direct_titles
+
+    row = hotpot_row()
+    row["type"] = "bridge"
+    row["question"] = "Which city hosts the gallery founded by Ada?"  # never names "Museum"
+    assert direct_titles(row) == {"Ada"}
+    row["type"] = "comparison"
+    assert direct_titles(row) == {"Ada", "Museum"}
+    row["type"] = "bridge"
+
+    skip_passage = hotpot_pairs(row, random.Random(0), second_hop="skip-passage")
+    assert not any(p.level == "passage" and p.text.startswith("Museum") for p in skip_passage)
+    assert any(p.level == "sentence" and p.text.startswith("Museum:") for p in skip_passage)
+
+    skip = hotpot_pairs(row, random.Random(0), second_hop="skip")
+    assert not any(p.text.startswith("Museum") for p in skip if p.source == "hotpot")

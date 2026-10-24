@@ -37,6 +37,8 @@ DATA_FILES = (
     "sufficiency_train.jsonl",
     "sufficiency_dev.jsonl",
     "beir_dev_samples.jsonl",
+    "hotpot_train_skip-passage.jsonl",
+    "hotpot_train_skip.jsonl",
 )
 RERANK_DATASETS = ("scifact", "nfcorpus", "fiqa")
 
@@ -174,6 +176,7 @@ def main() -> None:
     t.add_argument("--exclude-sources", nargs="*", default=[])
     t.add_argument("--trust-remote-code", action="store_true")
     t.add_argument("--task", choices=["verifier", "sufficiency"], default="verifier")
+    t.add_argument("--hotpot-file", default="hotpot_train.jsonl")
     r = sub.add_parser("run")
     r.add_argument("name")
     r.add_argument("--cmd", action="append", required=True, help="shell command, repo root")
@@ -219,6 +222,7 @@ def main() -> None:
             "exclude_sources": args.exclude_sources,
             "trust_remote_code": args.trust_remote_code,
             "task": args.task,
+            "hotpot_file": args.hotpot_file,
         }
         push_kernel(
             f"vrag-train-{args.name}",

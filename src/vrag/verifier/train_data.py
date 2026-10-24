@@ -61,13 +61,52 @@ def _contains_answer(text: str, answer: str) -> bool:
     return re.search(rf"(?<!\w){re.escape(answer)}(?!\w)", text, re.IGNORECASE) is not None
 
 
+_WORD = re.compile(r"\w+")
+
+
+def _words(text: str) -> set[str]:
+    return {w for w in _WORD.findall(text.lower()) if len(w) > 2}
+
+
+def direct_titles(row: dict) -> set[str]:
+    """Gold paragraphs that bear directly on the question (the first hop).
+
+    Comparison questions name both entities, so both gold paragraphs are direct. For bridge
+    questions the second-hop paragraph is about an entity the question never mentions, and
+    often shares no words with it. A gold paragraph is direct when its title (without a
+    parenthetical) appears in the question; if none does, the one with the most word
+    overlap is.
+    """
+    gold = list(dict.fromkeys(row["supporting_facts"]["title"]))
+    if row.get("type") == "comparison":
+        return set(gold)
+    question = row["question"].lower()
+    named = {t for t in gold if re.sub(r"\s*\(.*\)", "", t).strip().lower() in question}
+    if named:
+        return named
+    paragraphs = dict(zip(row["context"]["title"], row["context"]["sentences"], strict=True))
+    q = _words(row["question"])
+    return {max(gold, key=lambda t: len(q & _words(t + " " + "".join(paragraphs.get(t, [])))))}
+
+
 def hotpot_pairs(
     row: dict,
     rng: random.Random,
     n_distractors: int = 4,
     n_sentence_distractors: int = 2,
+    second_hop: str = "positive",
 ) -> list[Pair]:
-    """Passage and sentence pairs for one HotpotQA (distractor) row."""
+    """Passage and sentence pairs for one HotpotQA (distractor) row.
+
+    ``second_hop`` controls the bridge paragraph the question never names: "positive" (the
+    original recipe), "skip-passage" (no passage pairs for it; its sentences still count),
+    or "skip" (no pairs at all). Labelling it relevant to the question teaches the model
+    that word overlap means nothing: it shares no words with the question, while the
+    dataset's distractors were picked for overlap. Every recipe that kept it lost most of
+    its BEIR quality; the pipeline reaches the second hop by query rewriting instead.
+    """
+    if second_hop not in ("positive", "skip-passage", "skip"):
+        raise ValueError(f"unknown second_hop {second_hop!r}")
     q, qid, answer = row["question"], row["id"], row["answer"]
     titles: list[str] = list(row["context"]["title"])
     paragraphs: list[list[str]] = [list(s) for s in row["context"]["sentences"]]
@@ -84,12 +123,17 @@ def hotpot_pairs(
     gold = [(t, s) for t, s in zip(titles, paragraphs, strict=True) if t in support]
     others = [(t, s) for t, s in zip(titles, paragraphs, strict=True) if t not in support]
 
+    direct = direct_titles(row) if second_hop != "positive" else set(support)
     for title, sents in gold:
-        pairs.append(Pair(q, passage(title, sents), 1, "hotpot", "passage", qid))
-        rest = [s for i, s in enumerate(sents) if i not in support[title]]
-        rest_text = "".join(rest).strip()
-        if rest and rest_text and not _contains_answer(rest_text, answer):
-            pairs.append(Pair(q, passage(title, rest), 0, "hotpot-stripped", "passage", qid))
+        is_direct = title in direct
+        if second_hop == "skip" and not is_direct:
+            continue
+        if is_direct:
+            pairs.append(Pair(q, passage(title, sents), 1, "hotpot", "passage", qid))
+            rest = [s for i, s in enumerate(sents) if i not in support[title]]
+            rest_text = "".join(rest).strip()
+            if rest and rest_text and not _contains_answer(rest_text, answer):
+                pairs.append(Pair(q, passage(title, rest), 0, "hotpot-stripped", "passage", qid))
         for i, sent in enumerate(sents):
             if sent.strip():
                 label = int(i in support[title])
@@ -122,14 +166,18 @@ def easy_negatives(
 
 
 def hotpot_training_pairs(
-    rows: Iterable[dict], n_questions: int, seed: int, easy: bool = True
+    rows: Iterable[dict],
+    n_questions: int,
+    seed: int,
+    easy: bool = True,
+    second_hop: str = "positive",
 ) -> list[Pair]:
     rows = sorted(rows, key=lambda r: r["id"])
     rng = random.Random(seed)
     sample = rng.sample(rows, min(n_questions, len(rows)))
     pairs: list[Pair] = []
     for n, row in enumerate(sample):
-        pairs += hotpot_pairs(row, rng)
+        pairs += hotpot_pairs(row, rng, second_hop=second_hop)
         if easy:
             # Neighbours in the shuffled sample are unrelated questions.
             neighbours = sample[max(0, n - 3) : n] + sample[n + 1 : n + 4]

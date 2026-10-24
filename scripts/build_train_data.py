@@ -29,7 +29,7 @@ from vrag.retrieval.hybrid import HybridRetriever
 from vrag.verifier.train_data import beir_candidates, hotpot_pairs, hotpot_training_pairs
 
 HOTPOT_TRAIN_FILES = [f"distractor/train-0000{i}-of-00002.parquet" for i in range(2)]
-COLUMNS = ["id", "question", "answer", "context", "supporting_facts"]
+COLUMNS = ["id", "question", "answer", "type", "context", "supporting_facts"]
 
 
 def slug(name: str) -> str:
@@ -57,9 +57,18 @@ def hotpot_train_rows() -> list[dict]:
 
 
 def build_hotpot(args, cfg, out: Path, manifest: dict) -> None:
-    pairs = hotpot_training_pairs(hotpot_train_rows(), args.hotpot_questions, args.seed)
-    write_jsonl(out / "hotpot_train.jsonl", (p.to_dict() for p in pairs))
-    manifest["hotpot_train"] = Counter(f"{p.source}/{p.level}/{p.label}" for p in pairs)
+    pairs = hotpot_training_pairs(
+        hotpot_train_rows(), args.hotpot_questions, args.seed, second_hop=args.second_hop
+    )
+    name = (
+        "hotpot_train.jsonl"
+        if args.second_hop == "positive"
+        else f"hotpot_train_{args.second_hop}.jsonl"
+    )
+    write_jsonl(out / name, (p.to_dict() for p in pairs))
+    manifest[name.removesuffix(".jsonl")] = Counter(
+        f"{p.source}/{p.level}/{p.label}" for p in pairs
+    )
     print("hotpot train", len(pairs))
 
     # Dev pairs come from the pipeline's dev questions (validation split), never from test.
@@ -128,6 +137,9 @@ def main() -> None:
     ap.add_argument("--beir", nargs="+", default=["scifact", "nfcorpus", "fiqa"])
     ap.add_argument("--depth", type=int, default=30)
     ap.add_argument("--max-positives", type=int, default=3)
+    ap.add_argument(
+        "--second-hop", choices=["positive", "skip-passage", "skip"], default="positive"
+    )
     ap.add_argument("--seed", type=int, default=13)
     ap.add_argument("--beir-only", action="store_true", help="rebuild beir_candidates only")
     ap.add_argument("--hotpot-only", action="store_true", help="rebuild the HotpotQA files only")

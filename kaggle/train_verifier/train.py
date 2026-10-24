@@ -71,7 +71,8 @@ if TASK == "sufficiency":
     ]
     dev = read("sufficiency_dev.jsonl")
 else:
-    train = read("hotpot_train.jsonl") + read("beir_pairs.jsonl") + read("msmarco_pairs.jsonl")
+    hotpot = CONFIG.get("hotpot_file", "hotpot_train.jsonl")
+    train = read(hotpot) + read("beir_pairs.jsonl") + read("msmarco_pairs.jsonl")
     dev = read("hotpot_dev.jsonl")
 if CONFIG.get("exclude_sources"):
     train = [p for p in train if p["source"] not in CONFIG["exclude_sources"]]
