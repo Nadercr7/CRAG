@@ -57,6 +57,7 @@ top_k_context = 5      # chunks kept per query before refinement
 tau_hi = 0.7           # max chunk prob >= tau_hi -> "correct"
 tau_lo = 0.2           # max chunk prob < tau_lo -> "incorrect"; also the chunk filter
 tau_single = 0.5       # single threshold of arm G
+# tau_chunk = 0.05     # chunk filter; unset: reuse tau_lo (tau_single in arm G)
 tau_keep = 0.3         # keep a sentence when its prob >= tau_keep
 max_sentences = 8      # cap on kept sentences across chunks
 max_context_lines = 8  # hard cap on numbered lines sent to the generator

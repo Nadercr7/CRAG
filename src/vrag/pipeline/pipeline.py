@@ -59,6 +59,7 @@ class ArmConfig:
     tau_hi: float = _D.tau_hi
     tau_lo: float = _D.tau_lo
     tau_single: float = _D.tau_single
+    tau_chunk: float | None = _D.tau_chunk
     tau_keep: float = _D.tau_keep
     tau_abstain: float = _D.tau_abstain
     max_sentences: int = _D.max_sentences
@@ -77,7 +78,14 @@ class ArmConfig:
 
     @property
     def chunk_threshold(self) -> float:
-        """Chunks below this probability never reach the context."""
+        """Chunks below this probability never reach the context.
+
+        ``tau_chunk`` when set; otherwise the decision's low threshold. Keeping the two apart
+        matters for multi-hop questions, whose second-hop paragraph often scores below
+        ``tau_lo`` even though the question as a whole has evidence.
+        """
+        if self.tau_chunk is not None:
+            return self.tau_chunk
         return self.tau_lo if self.two_thresholds else self.tau_single
 
     def decide(self, probs: Sequence[float]) -> str:

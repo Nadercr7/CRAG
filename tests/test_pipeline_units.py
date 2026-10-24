@@ -276,3 +276,11 @@ def test_trace_json_round_trip():
     again = Trace.from_dict(json.loads(json.dumps(t.to_dict())))
     assert again == t
     assert again.key == "x1|F|missing"
+
+
+def test_chunk_threshold_separate_from_decision():
+    from vrag.pipeline.pipeline import make_arm
+
+    assert make_arm("F", tau_lo=0.15, tau_chunk=None).chunk_threshold == 0.15
+    assert make_arm("F", tau_lo=0.15, tau_chunk=0.03).chunk_threshold == 0.03
+    assert make_arm("G", tau_single=0.1, tau_chunk=None).chunk_threshold == 0.1

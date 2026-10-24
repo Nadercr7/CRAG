@@ -76,6 +76,7 @@ class PipelineConfig(BaseModel):
     tau_hi: float = 0.7  # max chunk prob >= tau_hi: "correct"
     tau_lo: float = 0.2  # max chunk prob < tau_lo: "incorrect"; also the chunk filter
     tau_single: float = 0.5  # the one threshold of the single-threshold arm
+    tau_chunk: float | None = None  # chunk filter; None: reuse tau_lo (tau_single in arm G)
     tau_keep: float = 0.3  # sentence kept when its prob >= tau_keep
     max_sentences: int = 8  # cap on kept sentences across all chunks
     max_context_lines: int = 8  # hard cap on numbered lines sent to the generator
