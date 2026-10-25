@@ -1,0 +1,26 @@
+{
+  "dataset": "fiqa",
+  "split": "test",
+  "method": "hybrid+verifier-minilm-l6-v4",
+  "model": "verifier-minilm-l6-v4",
+  "metrics": {
+    "ndcg@10": 0.2177919516290316,
+    "recall@20": 0.4617767135128246,
+    "recall@100": 0.6355347541690134,
+    "mrr": 0.271191809578833
+  },
+  "config": {
+    "rerank_depth": 50,
+    "max_length": 512,
+    "batch_size": 64,
+    "device": "cuda",
+    "first_stage": "hybrid",
+    "embedder": "BAAI/bge-small-en-v1.5"
+  },
+  "timing": {
+    "num_queries": 648,
+    "num_pairs": 32400,
+    "rerank_total_s": 202.82346892500004,
+    "rerank_ms_per_query": 312.9991804398149
+  }
+}

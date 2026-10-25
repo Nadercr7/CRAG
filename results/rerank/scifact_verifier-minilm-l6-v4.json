@@ -1,0 +1,26 @@
+{
+  "dataset": "scifact",
+  "split": "test",
+  "method": "hybrid+verifier-minilm-l6-v4",
+  "model": "verifier-minilm-l6-v4",
+  "metrics": {
+    "ndcg@10": 0.5329996536183055,
+    "recall@20": 0.86,
+    "recall@100": 0.9443333333333334,
+    "mrr": 0.4806558339102676
+  },
+  "config": {
+    "rerank_depth": 50,
+    "max_length": 512,
+    "batch_size": 64,
+    "device": "cuda",
+    "first_stage": "hybrid",
+    "embedder": "BAAI/bge-small-en-v1.5"
+  },
+  "timing": {
+    "num_queries": 300,
+    "num_pairs": 15000,
+    "rerank_total_s": 85.74050440099995,
+    "rerank_ms_per_query": 285.8016813366665
+  }
+}
