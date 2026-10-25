@@ -62,11 +62,12 @@ function mount(el, opts) {
     el2.innerHTML = html;
     let rt = el2;
     if (clipId) { rt = document.createElementNS(NS, "g"); rt.setAttribute("clip-path", `url(#${uid}${clipId})`); rt.appendChild(el2); }
-    const e = { el: el2, root: rt, key: 0, id: "dyn", home: "scene" };
+    const e = { el: el2, root: rt, key: 0, id: "dyn", home: "scene", clipId };
     ents.push(e);
     dirty = true;
     return e;
   }
+  const clipOn = (e, on) => { if (!e.clipId) return; const a = on ? `url(#${uid}${e.clipId})` : null; if (a) { if (e.root.getAttribute("clip-path") !== a) e.root.setAttribute("clip-path", a); } else e.root.removeAttribute("clip-path"); };
   const show = (e, on) => { const v = on ? "" : "none"; if (e.root.style.display !== v) e.root.style.display = v; };
   const place = (e, x, y, z, bias = 0) => {
     e.x = x; e.y = y; e.z = z;
@@ -114,7 +115,7 @@ function mount(el, opts) {
   function buildScenario() {
     clearDyn();
     M = derive(D, ST0.scenario);
-    M.dropped = M.first.map((t2, i) => (t2.selected ? -1 : i)).filter((i) => i >= 0);
+    M.dropSlips = M.first.map((t2, i) => (t2.selected ? -1 : i)).filter((i) => i >= 0);
     M.queue = M.first.map((t2, i) => (t2.selected ? i : -1)).filter((i) => i >= 0); // paragraph slips that wait at the gate
     M.later.slice(0, M.newQ.length).forEach((t2, j) => { if (t2.selected) M.queue.push(100 + j); });
     M.pips = (n) => `${TT().caps.pips} ${n}/${M.first.length}`;
@@ -255,7 +256,7 @@ function mount(el, opts) {
     curClip.chipAt = nS * GAP + 1.8;
     slips.forEach((e, i) => {
       e.z0 = STACK_TOP + (nS - 1 - i) * L.SLIP.t + 0.15;
-      const lane = e.t.selected ? { q: M.queue.indexOf(i) } : { drop: M.dropped.indexOf(i) };
+      const lane = e.t.selected ? { q: M.queue.indexOf(i) } : { drop: M.dropSlips.indexOf(i) };
       readOne(e, i * GAP + 0.1, i === 0 ? 0 : M.first[i - 1].prob, e.t.prob, lane);
       const tPip = i * GAP + 0.1 + 0.85 + 0.4;
       when(tPip, () => { const pip = svg.querySelector(`[data-ref="g-pips"] [data-i="${i}"]`); if (pip) { pip.setAttribute("data-on", ""); if (e.t.selected) pip.setAttribute("data-sel", ""); } setText("g-pips-cap", M.pips(i + 1)); });
@@ -275,14 +276,14 @@ function mount(el, opts) {
       const lens = []; let tot = 0;
       for (let i = 1; i < path.length; i++) { lens.push(Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1])); tot += lens[i - 1]; }
       const T1 = 1.9, T2 = T1 + 0.3 + 2.4;
-      seg(T1, T1 + 0.3, easeOut, (p) => { show(ticket, true); ticket.root.style.opacity = p; place(ticket, R0.fromX, R0.back, zt - 8 * (1 - p), 30); });
+      seg(T1, T1 + 0.3, easeOut, (p) => { clipOn(ticket, false); show(ticket, true); ticket.root.style.opacity = p; place(ticket, R0.fromX, R0.back, zt - 8 * (1 - p), 30); });
       seg(T1 + 0.3, T2, smooth, (p) => {
         let d = p * tot, i = 0;
         while (i < lens.length - 1 && d > lens[i]) { d -= lens[i]; i++; }
         const f = d / lens[i];
         place(ticket, lerp(path[i][0], path[i + 1][0], f), lerp(path[i][1], path[i + 1][1], f), zt, 60);
       });
-      seg(T2, T2 + 0.45, easeIn, (p) => place(ticket, L.FUNNEL.cx, R0.front, lerp(zt, 122, p), 60));
+      seg(T2, T2 + 0.45, easeIn, (p) => { clipOn(ticket, p > 0.08); place(ticket, L.FUNNEL.cx, R0.front, lerp(zt, 122, p), 60); });
       when(T2 + 0.5, () => show(ticket, false));
       sound(T1 + 0.05, "whirr", R0.fromX - 14, R0.back, R0.z + 12, "hold");
       sound(T2 + 0.1, "plop", L.FUNNEL.cx - 8, L.FUNNEL.cy, 176, "hold");
@@ -291,7 +292,7 @@ function mount(el, opts) {
       qslips.forEach((e, j) => {
         e.z0 = STACK_TOP + 1.5;
         const later = M.later[j];
-        const lane = M.queue.includes(100 + j) ? { q: M.queue.indexOf(100 + j) } : { drop: M.dropped.length + j };
+        const lane = M.queue.includes(100 + j) ? { q: M.queue.indexOf(100 + j) } : { drop: M.dropSlips.length + j };
         const prev = j === 0 ? M.first[M.first.length - 1].prob : M.later[j - 1] ? M.later[j - 1].prob : M.first[M.first.length - 1].prob;
         const end = readOne(e, tq + j * 0.8, prev, later ? later.prob : null, lane);
         tOpen = Math.max(tOpen, end);
@@ -316,7 +317,7 @@ function mount(el, opts) {
       seg(Math.max(0.02, tc - 0.1), tP, smooth, (p) => place(e, lerp(xFrom, XP, p), BY, ZB));
       seg(tP, tP + 0.36, lin, (p) => setTool("press", 0, 0, -23 * (p < 0.42 ? easeIn(p / 0.42) : 1 - smooth((p - 0.42) / 0.58))));
       when(tP + 0.15, () => show(e, false));
-      sound(tP + 0.14, "thunk", XP + 6, BY + 14, 52, "accent");
+      sound(tP + 0.14, "thunk", XP + 10, BY + 6, 86, "accent");
       for (let s2 = 0; s2 < shares[j]; s2++) stripT[cum + s2] = tP + 0.22 + s2 * per;
       cum += shares[j];
       tc = Math.max(tP + 0.5, tP + 0.22 + shares[j] * per - 0.1);
@@ -415,7 +416,7 @@ function mount(el, opts) {
     }
     const sc = 1 + 1.4 * (1 - easeOut(clamp(p)));
     const label = M.abstain ? tt.stamp.abstain : tt.stamp.pass, w = M.abstain ? 42 : 34;
-    h += `<g class="vrm-stamp" data-s="${st}" transform="translate(${M.abstain ? 40 : 46} 44) rotate(-7) scale(${sc.toFixed(3)})" style="opacity:${clamp(p * 1.6).toFixed(2)}"><rect x="${-w / 2}" y="-6.2" width="${w}" height="12.4" rx="2"/>${M.abstain ? `<path d="M${-w / 2 + 4} -1.6a2 2 0 1 1 2.6 1.9c-.5.3-.8.6-.8 1.1M${-w / 2 + 6.4} 3.3v.1"/>` : `<path d="M${-w / 2 + 3.6} 0.4l1.8 1.9l3.2 -3.8"/>`}<text x="${M.abstain ? 4 : 4.6}" y="2.1" text-anchor="middle" font-size="${ST0.lang === "ar" ? 6.4 : 5.2}">${esc(label)}</text></g>`;
+    h += `<g class="vrm-stamp" data-s="${st}" transform="translate(${M.abstain ? 38 : 40} 43) rotate(-7) scale(${(sc * 1.22).toFixed(3)})" style="opacity:${clamp(p * 1.6).toFixed(2)}"><rect x="${-w / 2}" y="-6.2" width="${w}" height="12.4" rx="2"/>${M.abstain ? `<path d="M${-w / 2 + 4} -1.6a2 2 0 1 1 2.6 1.9c-.5.3-.8.6-.8 1.1M${-w / 2 + 6.4} 3.3v.1"/>` : `<path d="M${-w / 2 + 3.6} 0.4l1.8 1.9l3.2 -3.8"/>`}<text x="${M.abstain ? 4 : 4.6}" y="2.1" text-anchor="middle" font-size="${ST0.lang === "ar" ? 6.4 : 5.2}">${esc(label)}</text></g>`;
     o.innerHTML = h;
   }
 
@@ -466,13 +467,13 @@ function mount(el, opts) {
       case "decide": {
         const s2 = M.decision === "correct" ? "pass" : M.decision === "incorrect" ? "reject" : "hold";
         out.push({ k: c.decision, v: `${c.dec[M.decision]}: ${c.decV(M.decision)}`, s: s2 });
-        if (M.rewrote) { M.newQ.forEach((nq) => out.push({ k: c.again, v: `<i class="vrm-q">${esc(nq)}</i>`, s: "hold", wide: 1 })); out.push({ k: c.total, v: String(M.nRetrieved), m: 1 }); }
+        if (M.rewrote) { M.newQ.forEach((nq) => out.push({ k: c.again, v: `<i class="vrm-q">${esc(cut(nq, 64))}</i>`, s: "hold" })); out.push({ k: c.total, v: String(M.nRetrieved), m: 1 }); }
         break;
       }
       case "trim": {
         out.push({ k: c.sent, v: c.sentV(M.kept.length, M.dropped.length) }, { k: c.words, v: `${M.wordsA} → ${M.wordsF}`, m: 1 });
-        M.kept.slice(0, 2).forEach((x) => out.push({ k: "+ " + fmt3(x.prob), v: esc(cut(x.text, 110)), s: "pass", wide: 1 }));
-        if (M.dropped[0]) out.push({ k: "− " + fmt3(M.dropped[0].prob), v: esc(cut(M.dropped[0].text, 110)), s: "reject", wide: 1 });
+        M.kept.slice(0, 2).forEach((x) => out.push({ k: "+ " + fmt3(x.prob), v: esc(cut(x.text, 64)), s: "pass" }));
+        if (M.dropped[0]) out.push({ k: "− " + fmt3(M.dropped[0].prob), v: esc(cut(M.dropped[0].text, 64)), s: "reject" });
         break;
       }
       case "weigh": { const ok = M.suff >= TH.tau_abstain; out.push({ k: c.enough, v: c.enoughV(M.suff, ok), s: ok ? "pass" : "abstain" }); break; }
@@ -490,13 +491,10 @@ function mount(el, opts) {
   function renderChips() {
     if (!chipsEl) return;
     if (chipUpTo === chipDrawn) return;
-    const keep = chipDrawn >= -1 && chipUpTo > chipDrawn && chipDrawn !== -2;
+    const i = chipUpTo;
     let h = "";
-    for (let i = 0; i <= chipUpTo; i++) {
-      const old = keep && i <= chipDrawn;
-      if (i === 6) h += `<li style="flex:1 1 100%;list-style:none">${compareHtml(old)}</li>`;
-      else h += chipsFor(i).map((c) => chipHtml(c, old)).join("");
-    }
+    if (i === 6) h = `<li class="vrm-cmpwrap">${compareHtml(false)}</li>`;
+    else if (i >= 0) h = chipsFor(i).map((c) => chipHtml(c, false)).join("");
     chipsEl.innerHTML = h;
     chipDrawn = chipUpTo;
   }
@@ -529,8 +527,8 @@ function mount(el, opts) {
     const tt = TT();
     ctl.innerHTML =
       `<ol class="vrm-steps">${STEP_IDS.map((id, i) => `<li><button type="button" class="vrm-step" data-i="${i}"><span class="vrm-n">${i + 1}</span><span class="vrm-l">${tt.steps[i]}</span></button></li>`).join("")}</ol>` +
-      `<div><p class="vrm-lab">${tt.modeLabel}</p><div class="vrm-seg" role="group" aria-label="${tt.modeLabel}">${["manual", "auto"].map((m2) => `<button type="button" data-mode="${m2}" aria-pressed="${ST0.mode === m2}">${tt.mode[m2]}</button>`).join("")}</div></div>` +
-      `<div><p class="vrm-lab">${tt.scenarioLabel}</p><div class="vrm-scn" role="radiogroup" aria-label="${tt.scenarioLabel}">${Object.keys(tt.scn).map((k2) => `<button type="button" role="radio" data-scn="${k2}" aria-checked="${ST0.scenario === k2}">${tt.scn[k2]}</button>`).join("")}</div></div>` +
+      `<div class="vrm-modew"><p class="vrm-lab">${tt.modeLabel}</p><div class="vrm-seg" role="group" aria-label="${tt.modeLabel}">${["manual", "auto"].map((m2) => `<button type="button" data-mode="${m2}" aria-pressed="${ST0.mode === m2}">${tt.mode[m2]}</button>`).join("")}</div></div>` +
+      `<div class="vrm-scnw"><p class="vrm-lab">${tt.scenarioLabel}</p><div class="vrm-scn" role="radiogroup" aria-label="${tt.scenarioLabel}">${Object.keys(tt.scn).map((k2) => `<button type="button" role="radio" data-scn="${k2}" aria-checked="${ST0.scenario === k2}">${tt.scn[k2]}</button>`).join("")}</div></div>` +
       `<button type="button" class="vrm-reset">${tt.reset}</button>`;
     updateControls();
   }
@@ -564,18 +562,35 @@ function mount(el, opts) {
 
   /* ---------------------------------------------------------------- the player */
   const anchors = () => ({
-    0: iso([60, 117, 96], P), 1: iso([70, 117, 70], P), 2: iso([205, 100, 56], P), 3: iso([320, 70, 80], P), 4: iso([480, 112, 56], P), 5: iso([600, 92, 60], P), 6: iso([715, 100, 60], P),
+    0: iso([70, 117, 90], P), 1: iso([100, 117, 60], P), 2: iso([215, 100, 62], P), 3: iso([270, 70, 90], P), 4: iso([505, 112, 56], P), 5: iso([625, 92, 60], P), 6: iso([735, 100, 62], P),
   });
+  let narrow = false, bw = L.W, bh = L.H;
+  function metrics() {
+    const sw = stage.clientWidth || 800;
+    const nw = sw < 560;
+    if (nw !== narrow || svg.getAttribute("preserveAspectRatio") == null) {
+      narrow = nw;
+      svg.setAttribute("preserveAspectRatio", nw ? "xMidYMid slice" : "xMidYMid meet");
+      svg.style.aspectRatio = nw ? "1 / 0.9" : "";
+    }
+    const sh = svg.clientHeight || sw * (L.H / L.W);
+    const sc = Math.max(sw / L.W, sh / L.H);
+    bw = narrow ? sw / sc : L.W;
+    bh = narrow ? sh / sc : L.H;
+    return sw;
+  }
   function camTarget(i) {
-    const w = stage.clientWidth || 800;
-    const zoom = w < 520 ? 2.3 : w < 760 ? 1.55 : 1;
-    if (zoom <= 1.001 || i < 0) { cam.tx = L.W / 2; cam.ty = L.H / 2; cam.ts = 1; return; }
-    const a = anchors()[i];
-    cam.ts = zoom;
-    // keep the view inside the drawing
-    const hw = L.W / 2 / zoom, hh = L.H / 2 / zoom;
-    cam.tx = clamp(a[0], hw, L.W - hw);
-    cam.ty = clamp(a[1], hh, L.H - hh);
+    const sw = metrics();
+    let want = L.W; // visible width in drawing units
+    if (narrow) want = i === 3 ? 560 : 430;
+    else if (sw < 760) want = i < 0 ? L.W : 640;
+    const z = Math.max(0.2, bw / want);
+    const a = anchors()[Math.max(0, i)];
+    cam.ts = z;
+    const hw = bw / (2 * z), hh = bh / (2 * z);
+    cam.tx = hw >= L.W / 2 ? L.W / 2 : clamp(a[0], hw, L.W - hw);
+    cam.ty = hh >= L.H / 2 ? L.H / 2 : clamp(a[1], hh, L.H - hh);
+    if (!narrow && z <= 1.001) { cam.tx = L.W / 2; cam.ty = L.H / 2; cam.ts = 1; }
   }
   function drawCam(snap) {
     if (snap) { cam.x = cam.tx; cam.y = cam.ty; cam.s = cam.ts; }
@@ -676,7 +691,7 @@ function mount(el, opts) {
       clearTimeout(timer);
       running = false; idx = -1; doneIdx = -1;
       initialState();
-      camTarget(-1); drawCam(true);
+      camTarget(idx); drawCam(true);
       setHint(-1);
       chipDrawn = -2; renderChips();
       updateControls();
@@ -689,7 +704,7 @@ function mount(el, opts) {
       running = false; idx = -1; doneIdx = -1;
       ST0.scenario = key;
       buildScenario();
-      camTarget(-1); drawCam(true);
+      camTarget(idx); drawCam(true);
       setHint(-1);
       updateControls();
       emit("scenario", { scenario: key });
@@ -729,7 +744,7 @@ function mount(el, opts) {
     },
   };
   buildScenario();
-  camTarget(-1); drawCam(true);
+  camTarget(idx); drawCam(true);
   setHint(-1);
   visibleHook();
   if (typeof ResizeObserver === "function") new ResizeObserver(() => { if (!destroyed) { camTarget(idx); if (!raf) schedule(); } }).observe(stage);

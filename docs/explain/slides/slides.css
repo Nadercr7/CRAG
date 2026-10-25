@@ -427,3 +427,8 @@ table.t.thr td.l{font-size:28px}
 .fcard{height:600px}
 
 .pv-r .fb{grid-template-columns:230px 1fr 110px;font-size:32px;margin:18px 0}.pv-r .fb .tr{height:52px}.pv-r .fb b{font-size:32px}
+
+/* live machine: scale its compact UI up to read well on the 1920 stage */
+.live-wrap{background:var(--paper)}
+.live-mount{width:1600px;height:700px;transform:scale(1.0486);transform-origin:0 0;position:absolute;left:0;top:0}
+.has-machine .live-switch{display:none}

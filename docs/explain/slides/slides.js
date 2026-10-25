@@ -242,7 +242,7 @@
       var def = Deck.defs[id] || {};
       var s = { el: el, id: id, def: def, tls: [], steps: 0, title: el.getAttribute("data-title") || id, section: "", notes: "" };
       var sec = el.querySelector(".marker");
-      s.section = sec ? sec.textContent.replace(/\s+/g, " ").trim() : "";
+      s.section = sec ? sec.querySelector("b").textContent + " \u00b7 " + sec.querySelector("span").textContent : "";
       var n = el.querySelector(".notes");
       s.notes = n ? n.textContent.trim() : "";
       slides.push(s);

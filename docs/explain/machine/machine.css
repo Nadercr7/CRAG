@@ -219,6 +219,7 @@
   grid-template-columns: minmax(168px, 210px) minmax(0, 1fr);
   gap: 14px;
   align-items: start;
+  grid-template-rows: minmax(0, 1fr);
   flex: 1 1 auto;
   min-height: 0;
 }
@@ -226,6 +227,7 @@
   grid-template-columns: minmax(0, 1fr);
 }
 .vrm-fig {
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -466,6 +468,7 @@
   font-size: 0.95em;
 }
 .vrm-chip svg,
+.vrm-cmp svg,
 .vrm-card-ico {
   flex: none;
   align-self: center;
@@ -512,6 +515,10 @@
 }
 .vrm-q {
   font-style: italic;
+}
+.vrm-cmpwrap {
+  flex: 1 1 100%;
+  list-style: none;
 }
 .vrm-cmp {
   display: grid;
@@ -604,6 +611,7 @@
 @container vrm (max-width: 700px) {
   .vrm-main {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
   }
   .vrm-controls {
     flex-direction: row;
@@ -619,7 +627,10 @@
   }
   .vrm-step {
     width: auto;
-    padding: 4px;
+    padding: 3px;
+  }
+  .vrm-steps {
+    order: 1;
   }
   .vrm-step .vrm-l {
     display: none;
@@ -629,8 +640,19 @@
     display: inline;
     padding-inline-end: 8px;
   }
+  .vrm-modew {
+    order: 2;
+    flex: 1 1 160px;
+  }
+  .vrm-scnw {
+    order: 4;
+    flex: 1 1 100%;
+  }
   .vrm-seg {
-    flex: 0 1 150px;
+    width: 100%;
+  }
+  .vrm-svg {
+    max-height: none;
   }
   .vrm-lab {
     display: none;
@@ -652,8 +674,14 @@
     height: 6px;
   }
   .vrm-reset {
-    flex: 1 1 auto;
-    padding: 6px 10px;
+    order: 3;
+    flex: 1 1 120px;
+    align-self: flex-end;
+    padding: 7px 10px;
+  }
+  .vrm-step .vrm-n {
+    width: 1.75em;
+    height: 1.75em;
   }
   .vrm-cmp {
     grid-template-columns: minmax(0, 1fr);

@@ -4,14 +4,13 @@
 import * as k from "../vendor/iso-kit.mjs";
 
 export const W = 1000;
-export const H = 500;
 export const AZIMUTH = 62;
 export const ELEVATION = 30;
 
 export const BELT_Y = 117; // centre line of the belt
 export const BELT_TOP = 8; // belt surface height
 export const BELT = { x: 154, y: 100, w: 656, d: 34, r: 6 };
-export const TABLE = { x: -26, y: -8, w: 868, d: 206, r: 9 };
+export const TABLE = { x: -22, y: -6, w: 858, d: 192, r: 9 };
 
 export const CAB_W = 116;
 export const CAB_Y = 14; // back of the wall cabinets
@@ -42,20 +41,21 @@ export const DROP = { x: 296, y: 150 }; // where slips that failed the gauge fal
 export const SLIP = { w: 26, d: 18, t: 1.3 };
 export const STRIP = { w: 22, d: 4, t: 1.6 };
 
-export const BIN = { x: 512, y: 148, w: 62, d: 40, h: 20, r: 3 }; // dropped-sentence bin, in front of the press
+export const BIN = { x: 512, y: 142, w: 62, d: 36, h: 20, r: 3 }; // dropped-sentence bin, in front of the press
 
-export const PROJECTION = k.fitProjection(
-  [
-    ...k.boxCorners(TABLE, -26, 0),
-    ...k.boxCorners({ x: 0, y: CAB_Y, w: 780, d: 64 }, 0, CAB_TOP + 34),
-    [FUNNEL.cx, FUNNEL.cy, RAIL.z + 12],
-    [RAIL.left, RAIL.back, RAIL.z + 8],
-    [FUNNEL.cx - FUNNEL.rTop, FUNNEL.cy + FUNNEL.rTop, FUNNEL.top],
-  ],
-  W,
-  H,
-  { pad: 18, azimuth: AZIMUTH, elevation: ELEVATION },
-);
+const EXTREMES = [
+  ...k.boxCorners(TABLE, -26, 0),
+  ...k.boxCorners({ x: 0, y: CAB_Y, w: 780, d: 64 }, 0, CAB_TOP + 34),
+  [FUNNEL.cx, FUNNEL.cy, RAIL.z + 12],
+  [RAIL.left, RAIL.back, RAIL.z + 8],
+  [FUNNEL.cx - FUNNEL.rTop, FUNNEL.cy + FUNNEL.rTop, FUNNEL.top],
+];
+const PAD = 16;
+// fit to the width first, then shrink the viewBox height to the drawing so the stage has no dead bands
+const P0 = k.fitProjection(EXTREMES, W, 2000, { pad: PAD, azimuth: AZIMUTH, elevation: ELEVATION });
+const ys = EXTREMES.map((p) => k.iso(p, P0)[1]);
+export const H = Math.ceil(Math.max(...ys) - Math.min(...ys) + PAD * 2);
+export const PROJECTION = k.fitProjection(EXTREMES, W, H, { pad: PAD, azimuth: AZIMUTH, elevation: ELEVATION });
 export const P = PROJECTION;
 
 export const layout = {

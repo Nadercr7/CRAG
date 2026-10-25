@@ -376,7 +376,7 @@
       });
       c.appendChild(sw);
       var wrap = document.createElement("div"); wrap.className = "live-wrap"; wrap.setAttribute("data-no-nav", "");
-      wrap.innerHTML = '<div class="live-mount" data-live-mount style="position:absolute;inset:0"></div>';
+      wrap.innerHTML = '<div class="live-mount" data-live-mount></div>';
       c.appendChild(wrap);
       s.scenario = "support";
       el._sw = sw;
@@ -1064,7 +1064,7 @@
       var n1 = document.createElement("p"); n1.className = "abs cap"; n1.style.cssText = "left:0;top:660px;margin:0"; // placeholder to keep height
       n1.remove();
       el._base = base;
-      var cp = document.createElement("p"); cp.className = "abs cap"; cp.style.cssText = "left:0;top:650px;margin:0;color:var(--ink)";
+      var cp = document.createElement("p"); cp.className = "abs cap"; cp.style.cssText = "left:0;top:664px;margin:0;color:var(--ink)";
       cp.textContent = "Context falls at trimming (arm D). The sufficiency gate (arm F) lowers hallucination in all three conditions.";
       c.appendChild(cp);
       this.draw(el, 0, false);

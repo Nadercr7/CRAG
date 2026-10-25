@@ -109,7 +109,7 @@ function belt() {
   for (let x = B.x + 12; x < B.x + B.w - 6; x += 11) ribs += k.lineOnTop([x, B.y], [x, B.y + B.d], top, P);
   out.push(`<g clip-path="url(#${id})">${Ln(ribs, { tone: "faint" })}</g>`);
   out.push(Ln(k.planOutline(k.insetPlan(B, 3), top, P, 8), { tone: "faint" }));
-  for (const x of [B.x + 9, B.x + B.w - 9]) {
+  for (const x of [B.x + B.w - 9]) {
     out.push(S(k.cylinder(x, B.y + B.d / 2, B.d / 2 - 1.4, top - 0.2, 0.6, P, 28), { tone: "mid", crease: "faint" }));
     out.push(Ln(k.ring(x, B.y + B.d / 2, 3.2, top + 0.4, P, 16), { tone: "mid" }));
   }
@@ -289,8 +289,8 @@ function contentCounter(rect) {
   s += `<text class="vrm-cap" data-ref="c-cap" x="5" y="5.2" font-size="4.8"></text>`;
   s += `<text class="vrm-digits vrm-dim" data-ref="c-a" x="22" y="${h - 3}" text-anchor="end" font-size="10">0</text>`;
   s += `<path class="vrm-strike" d="M5 ${h - 6.2}H23"/>`;
-  s += L2(`M28 ${h - 6}H41M38 ${h - 9}L41.4 ${h - 6}L38 ${h - 3}`, "hi");
-  s += `<text class="vrm-digits" data-ref="c-f" x="${rect.x1 - rect.x0 - 16}" y="${h - 3}" text-anchor="end" font-size="11">0</text>`;
+  s += L2(`M27 ${h - 6}H36M33.4 ${h - 8.6}L36.4 ${h - 6}L33.4 ${h - 3.4}`, "hi");
+  s += `<text class="vrm-digits" data-ref="c-f" x="${rect.x1 - rect.x0 - 12}" y="${h - 3}" text-anchor="end" font-size="10.5">0</text>`;
   return wrap(rect, s);
 }
 
@@ -530,9 +530,9 @@ function funnel() {
   const rimF = G.frameAlong([f.cx, f.cy, f.rim], [0, 0, 1]);
   const lip = G.ringBand(0, f.top - f.rim, f.rTop - 0.4, f.rTop + 2.6, rimF, P, {});
   const back = [];
-  back.push(S(body, { tone: "hi", crease: "none" }));
+  back.push(S(body, { tone: "mid", crease: "none" }));
   const mouth = k.pathOf(k.circleRing(f.cx, f.cy, f.rTop - 0.2, 56).map(([x, y]) => at([x, y, f.rim + 8])), true);
-  back.push(S(lip, { tone: "hi", crease: "faint" }));
+  back.push(S(lip, { tone: "mid", crease: "faint" }));
   back.push(`<path class="vrm-hole" d="${mouth}"/>`);
   back.push(Ln(k.ring(f.cx, f.cy, f.rTop - 0.2, f.rim + 8, P, 56), { tone: "mid" }));
   // seams on the bowl and a band at the neck

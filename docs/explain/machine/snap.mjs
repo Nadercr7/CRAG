@@ -22,5 +22,7 @@ if (step !== null) {
   await page.waitForTimeout(150);
 }
 const el = await page.$(sel);
-await el.screenshot({ path: out });
+const clip = opt("clip", null);
+if (clip) { const bb = await el.boundingBox(); const [x, y, w, h] = clip.split(",").map(Number); await page.screenshot({ path: out, clip: { x: bb.x + x * bb.width, y: bb.y + y * bb.height, width: w * bb.width, height: h * bb.height } }); }
+else await el.screenshot({ path: out });
 await b.close();
