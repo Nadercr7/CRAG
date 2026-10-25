@@ -160,7 +160,7 @@ footer { color: var(--ink-3); font-size: var(--t-sm); border-top: 1px solid var(
   <h2 id="h-run">Run it</h2>
 <pre><span class="c"># Python 3.12+</span>
 git clone https://github.com/Nadercr7/CRAG.git &amp;&amp; cd CRAG
-pip install -e ".[dev]"
+pip install -e ".[dev,eval]"
 pytest                              <span class="c"># unit tests, no network</span>
 uvicorn vrag.api.app:app            <span class="c"># UI at http://127.0.0.1:8000</span></pre>
   <p class="note">The dashboard and the 22 example traces work from a fresh clone. Live questions also need the trained models, the search index and a Groq API key; the README explains each. The models are in a <a href="https://www.kaggle.com/datasets/naderelakany/vrag-models">private Kaggle dataset</a> (ask for access) or can be retrained with the Kaggle jobs in <span class="num">scripts/kaggle_job.py</span>.</p>
