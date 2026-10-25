@@ -4,8 +4,8 @@ HotpotQA marks the sentences a human needed to answer each question (supporting 
 so sufficiency labels come for free: a context is sufficient when it contains every
 supporting sentence. Joren et al. (ICLR 2025) define sufficiency as "a plausible answer
 can be inferred from the context"; supporting-fact coverage is a stricter, cheaper proxy.
-A Groq teacher (their autorater prompt) checks agreement on a sample instead of labelling
-everything, which the free tier could not afford.
+An LLM teacher (their autorater prompt) could check agreement on a sample; this was not run
+(the Groq free tier's daily token cap went to the evaluation instead).
 
 Contexts look like the pipeline's refined context: numbered "[n] Title: sentence" lines
 (``context_lines``), with the evidence mixed among distractor sentences. Per question:
