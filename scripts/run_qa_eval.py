@@ -17,6 +17,9 @@ prepare   builds the pipeline once, runs ``prepare()`` for every (question, slic
           stops, keeps everything done so far and can be resumed with the same command.
 finalize  parses the outputs, computes outcomes and metrics and writes
           results/qa/<run>/{metrics.json, per_question.jsonl, summary.md[, risk_coverage.png]}.
+choose-tau picks the abstain threshold on a finalized dev run with a rule fixed in advance
+          (PLAN.md): on arm F, maximize the slice-averaged (correct - hallucinate - planted)
+          over tau in 0.00, 0.05, ..., 0.95; ties go to the smaller tau.
 judge     LLM judge of another model family on a stratified sample of answered questions;
           reports its agreement with the deterministic outcome.
 """
@@ -652,6 +655,76 @@ def cmd_finalize(args: argparse.Namespace) -> int:
     return 0
 
 
+# ------------------------------------------------------------------------- choose-tau
+
+TAU_GRID = [round(0.05 * i, 2) for i in range(20)]
+
+
+def utility_at(records: list[dict], tau: float) -> dict[str, dict[str, float]]:
+    """Per slice: outcome rates when arm traces abstain below ``tau`` (from the open outcome)."""
+    out = {}
+    for kind in KINDS:
+        sub = [r for r in records if r["slice"] == kind]
+        if not sub:
+            continue
+        counts = dict.fromkeys(qa.OUTCOMES, 0)
+        for r in sub:
+            prob = r["sufficiency_prob"]
+            low = prob is not None and prob < tau
+            counts["abstain" if low else r["outcome_open"]] += 1
+        rates = {k: v / len(sub) for k, v in counts.items()}
+        rates["utility"] = rates["correct"] - rates["hallucinate"] - rates["planted"]
+        out[kind] = rates
+    return out
+
+
+def cmd_choose_tau(args: argparse.Namespace) -> int:
+    cfg = load_config()
+    res = cfg.paths.results_dir / "qa" / Path(args.run).resolve().name
+    records = [r for r in read_jsonl(res / "per_question.jsonl") if r["arm"] == args.arm]
+    if not records:
+        raise SystemExit(f"no arm {args.arm} records in {res}/per_question.jsonl")
+    rows, best = [], None
+    for tau in TAU_GRID:
+        per = utility_at(records, tau)
+        mean = float(np.mean([v["utility"] for v in per.values()]))
+        rows.append((tau, per, mean))
+        if best is None or mean > best[1] + 1e-12:
+            best = (tau, mean)
+    kinds = list(rows[0][1])
+    lines = [
+        f"# Abstain threshold on {res.name} (arm {args.arm})",
+        "",
+        "Rule fixed before looking at the results: maximize the slice-averaged utility",
+        "(correct - hallucinate - planted) over the grid; ties go to the smaller threshold.",
+        "",
+        f"**Chosen tau_abstain = {best[0]:.2f}** (mean utility {best[1]:.3f}).",
+        "",
+        *table(
+            ["tau", *[f"{k} C/H/P/A %" for k in kinds], "mean utility"],
+            [
+                [
+                    f"{tau:.2f}",
+                    *[
+                        "/".join(
+                            f"{100 * per[k][o]:.0f}"
+                            for o in ("correct", "hallucinate", "planted", "abstain")
+                        )
+                        for k in kinds
+                    ],
+                    f"{mean:.3f}",
+                ]
+                for tau, per, mean in rows
+            ],
+        ),
+    ]
+    out = cfg.paths.results_dir / "tuning" / f"tau_abstain_{res.name}.md"
+    out.write_text("\n".join(lines) + "\n")
+    print("\n".join(lines))
+    print(f"\nwrote {out}", file=sys.stderr)
+    return 0
+
+
 # ------------------------------------------------------------------------------ judge
 
 
@@ -774,6 +847,11 @@ def main() -> int:
         "--allow-missing", action="store_true", help="count missing outputs as abstentions"
     )
     p.set_defaults(func=cmd_finalize)
+
+    p = sub.add_parser("choose-tau", help="pick tau_abstain on a finalized dev run")
+    p.add_argument("--run", required=True)
+    p.add_argument("--arm", default="F")
+    p.set_defaults(func=cmd_choose_tau)
 
     p = sub.add_parser("judge", help="LLM judge on a stratified sample (Groq)")
     p.add_argument("--run", required=True)

@@ -117,6 +117,8 @@ Metrics:
 - latency p50/p95 per stage
 - Groq calls per query
 
+**Abstain threshold (fixed 2026-10-25, before any full dev results).** `tau_abstain` is chosen on dev only, on arm F: maximize the slice-averaged utility (correct − hallucinate − planted) over tau ∈ {0.00, 0.05, …, 0.95}, ties to the smaller tau (`run_qa_eval.py choose-tau`). The same value is used for G and on test. The full risk-coverage curve is reported next to it.
+
 **Statistics:** paired bootstrap (10k resamples) with 95% CIs. Verifier trained with 3 seeds. Judge agreement is checked against ~100 hand-checked items.
 
 **LLM budget.** Groq's free tier allows, per model: 1000 requests/day, 30 requests/min (paced: about 5 back-to-back requests trigger a 429), 8000 tokens/min, and **200,000 tokens/day**. The daily token cap was confirmed from a 429 on 2026-10-24 ("tokens per day (TPD): Limit 200000"). It is the binding limit: about 200 answer calls a day per model, so the ~5.4k answer calls of the QA evaluation would take about 4 weeks.
