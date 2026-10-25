@@ -19,17 +19,12 @@ Commit trailer: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` + `Cla
 - Pipeline `src/vrag/pipeline/*` (prepare/finalize, arms A-G), eval `src/vrag/eval/qa_eval.py`, `stats.py`, `scripts/run_qa_eval.py` (`prepare`, `finalize`, `judge`, `import-rewrites`; `--offline-rewrites --rewrite-model local/Qwen3-4B-Instruct-2507` defers traces whose rewrite isn't cached and writes `rewrite_prompts.jsonl`). Containment metric has length/coverage guards.
 - Slices: supportive/missing/misleading; LLM substitutes in `data/processed/hotpot_substitutes.json` (old string format handled). Smoke generation on Kaggle worked (8 min).
 
-## In flight (2026-10-25 ~01:35 UTC)
-1. DONE rewrites r1: 799 prompts (dev+test merged in `data/eval/upload/rewrites_r1.jsonl`), Kaggle `vrag-gen-vrag-gen-rewrites-r1`, 798 valid JSON, imported into cache (dev 305, test 494).
-2. DONE dev prepare (L6 sufficiency): `data/eval/dev_main/` 3843 traces, 2152 prompts, 0 uncached rewrites. Answers generating on Kaggle `vrag-gen-answers-dev` (outputs -> `data/kaggle/vrag-gen-answers-dev/output/outputs.jsonl`).
-3. Test prepare (L6) running -> `data/eval/test_main/` (log `data/eval/test_main.log`).
-4. Kaggle `vrag-train-sufficiency-l12` still running. Compare: `python scripts/eval_sufficiency.py data/kaggle/vrag-train-sufficiency-l6/output/model data/kaggle/vrag-train-sufficiency-l12/output/model --out results/tuning/sufficiency.md` (base 0.866/0.974/0.920, L6 0.886/0.989/0.937 missing-hop/no-evidence/pooled). If L12 wins: re-run both prepares into new dirs with L12 (8 min each, cache hits) — the answer prompts are identical, so the generated outputs can be reused (prompt ids are trace keys).
-5. tau_abstain rule pre-registered in PLAN.md; `run_qa_eval.py choose-tau --run data/eval/dev_main` after finalize.
+## Status (2026-10-25 ~02:50 UTC): all phases done
 
-## Next steps (in order)
-1. Upload both rewrite_prompts files (`kaggle_job.py prompts data/eval/rewrites_dev/rewrite_prompts.jsonl data/eval/rewrites_test/rewrite_prompts.jsonl` — note: same file name in both dirs; copy/rename to `rewrites_dev.jsonl` / `rewrites_test.jsonl` first), `generate` each (max_tokens 256), `wait`, then `run_qa_eval.py import-rewrites --run data/eval/rewrites_<split> --outputs data/kaggle/vrag-gen-<name>/output/outputs.jsonl`.
-2. Full dev run: `prepare --split dev --arms A..G --out data/eval/dev_main/ --sufficiency <best model> --rewrite-model local/Qwen3-4B-Instruct-2507 --offline-rewrites` (G/F second-round rewrites may need one more generate+import loop). Then upload `prompts.jsonl`, generate answers, `finalize`. Choose `tau_abstain` on dev with a rule fixed beforehand (e.g. maximize correct − hallucinate pooled over slices; report the risk-coverage curve). Put it in `configs/tuned.toml`.
-3. Same for test (`data/eval/test_main/`), finalize with the dev-chosen tau_abstain, bootstrap CIs; optional `judge --n 100` (Groq qwen, check quota).
-4. Phase 7 UI: FastAPI + vanilla HTML/CSS/JS (pipeline explorer rendering Trace JSON + results dashboard, Chart.js 4.5.1). Use frontend-design skill, UI UX Pro Max, dataviz skill; Impeccable audit at end. Live demo answers via Groq gpt-oss-120b.
-5. Phase 8 docs: README + `results/report.md` (include lessons learned v1-v4, Groq budget pivot, limitations: BEIR trade-off, tau grid-edge fallbacks, HotpotQA-derived sufficiency proxy). Humanizer skill (blader/humanizer). Cross-check every number vs results json.
-6. Phase 9: /code-review, cleanup, fresh-clone reproduce, update PLAN.md, delete `notes/STATE.md` or keep as log.
+- Dev and test QA runs finalized (`results/qa/{dev,test}_main`), tau_abstain 0.90 chosen on dev by the pre-registered rule, judge on 100 test answers.
+- Report `results/report.md` (+ generated `results/report_tables.md`), numbers cross-checked by a separate agent.
+- UI: `uvicorn vrag.api.app:app` (explorer + dashboard), screenshots in `docs/screenshots/`.
+- Code review findings fixed; fresh clone passes tests and serves the UI.
+- Models: private Kaggle dataset `naderelakany/vrag-models`; `python scripts/kaggle_job.py fetch-models`.
+
+Possible follow-ups (not started): alias-aware correctness (the judge shows the strict metric over-counts hallucinations), a signal for tampered evidence (misleading slice), dropping the rewrite step, Impeccable audit of the UI.

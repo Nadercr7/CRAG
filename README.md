@@ -2,7 +2,11 @@
 
 A retrieval-augmented generation pipeline with a small cross-encoder **verifier** between retrieval and generation. The verifier checks each retrieved chunk, re-retrieves when the evidence is bad, trims chunks to the sentences that matter, and abstains when the context can't support an answer.
 
-Status: in development. The design and the reasoning behind it are in [`PLAN.md`](PLAN.md); background reading notes are in [`research/`](research/).
+Status: complete. Results are in [`results/report.md`](results/report.md); the design and the reasoning behind it are in [`PLAN.md`](PLAN.md); background reading notes are in [`research/`](research/).
+
+On 300 held-out HotpotQA questions the full system lowers the hallucination rate against plain RAG by 6 to 7.5 points in all three evidence conditions (supportive, missing, misleading; every 95% CI excludes zero) and sends about a fifth of the context tokens. It answers fewer questions: correct answers on supportive questions drop by 5 points (p = 0.06), and it does not detect a planted wrong entity.
+
+![Results dashboard](docs/screenshots/results-desktop-light.png)
 
 ## Setup
 
@@ -13,6 +17,8 @@ cp .env.example .env   # then fill in GROQ_API_KEY
 ```
 
 `requirements.lock` pins the exact versions the results were produced with.
+
+Trained models are not in git. `python scripts/kaggle_job.py fetch-models` downloads the final verifier (with its calibrations) and the sufficiency model into `data/models/` from the owner's private Kaggle dataset; without access, rebuild them with the training jobs in `scripts/kaggle_job.py` (`train`, then `scripts/wise_ft.py ... --alpha 0.7`).
 
 ## Checks
 

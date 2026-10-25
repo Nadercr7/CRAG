@@ -5,6 +5,8 @@
     python scripts/kaggle_job.py train minilm-l6-s13 --base cross-encoder/ms-marco-MiniLM-L6-v2
     python scripts/kaggle_job.py run rerank-offshelf --cmd "..." --out results   # any repo script
     python scripts/kaggle_job.py wait <kernel-slug>            # poll, then download output
+    python scripts/kaggle_job.py models                        # upload data/models (private)
+    python scripts/kaggle_job.py fetch-models                  # download them into data/models
 
 Kernels run the code at a pushed git commit (installed from GitHub), so push first.
 Outputs land in data/kaggle/<kernel-slug>/.
@@ -26,6 +28,9 @@ USER = "naderelakany"
 DATASET = "vrag-train-data"
 PREP_KERNEL = "vrag-prep"
 PROMPTS_DATASET = "vrag-prompts"
+MODELS_DATASET = "vrag-models"
+# The final verifier (with its calibrations) and sufficiency model named in configs/tuned.toml.
+MODELS = ["verifier-minilm-l6-v4-wise07", "sufficiency-minilm-l12"]
 # beir_pairs.jsonl comes from scripts/apply_teacher_filter.py over the prep job's teacher
 # scores; msmarco_pairs.jsonl is copied from the prep job's output.
 DATA_FILES = (
@@ -114,6 +119,44 @@ def upload_prompts(files: list[Path]) -> None:
         print(kaggle("datasets", "create", "-p", str(stage), "-q"))
 
 
+def upload_models() -> None:
+    """Archive each model dir and create/version the private models dataset."""
+    src = get_config().paths.data_dir / "models"
+    stage = work_dir("_models")
+    for name in MODELS:
+        shutil.make_archive(str(stage / name), "gztar", src, name)
+    meta = {
+        "title": MODELS_DATASET,
+        "id": f"{USER}/{MODELS_DATASET}",
+        "licenses": [{"name": "MIT"}],
+    }
+    (stage / "dataset-metadata.json").write_text(json.dumps(meta, indent=2))
+    exists = subprocess.run(
+        ["kaggle", "datasets", "status", f"{USER}/{MODELS_DATASET}"], capture_output=True, text=True
+    )
+    if exists.returncode == 0 and "ready" in exists.stdout.lower():
+        print(kaggle("datasets", "version", "-p", str(stage), "-m", "update", "-q"))
+    else:
+        print(kaggle("datasets", "create", "-p", str(stage), "-q"))
+
+
+def fetch_models() -> None:
+    dest = get_config().paths.data_dir / "models"
+    dest.mkdir(parents=True, exist_ok=True)
+    print(kaggle("datasets", "download", f"{USER}/{MODELS_DATASET}", "-p", str(dest), "--unzip"))
+    for name in MODELS:
+        archive, nested = dest / f"{name}.tar.gz", dest / name / name
+        if archive.exists():
+            shutil.unpack_archive(archive, dest)
+            archive.unlink()
+        elif nested.exists():  # Kaggle extracts archives server-side: name/name/...
+            tmp = dest / f"_{name}"
+            nested.rename(tmp)
+            shutil.rmtree(dest / name)
+            tmp.rename(dest / name)
+        print(f"{name} -> {dest / name}")
+
+
 def push_kernel(
     slug: str,
     script: Path,
@@ -197,6 +240,8 @@ def main() -> None:
     g.add_argument("--temperature", type=float, default=0.0)
     g.add_argument("--seed", type=int, default=0)
     g.add_argument("--vllm", default="0.32.0")
+    sub.add_parser("models", help="upload the final models as a private dataset")
+    sub.add_parser("fetch-models", help="download the final models into data/models")
     w = sub.add_parser("wait")
     w.add_argument("slug")
     args = ap.parse_args()
@@ -204,6 +249,10 @@ def main() -> None:
     kaggle_dir = REPO_ROOT / "kaggle"
     if args.command == "dataset":
         upload_dataset()
+    elif args.command == "models":
+        upload_models()
+    elif args.command == "fetch-models":
+        fetch_models()
     elif args.command == "prep":
         push_kernel(
             PREP_KERNEL,

@@ -193,3 +193,13 @@ Phase 4 consumes Groq quota (teacher labels), so it starts early and runs in the
 - **GPU:** verifier and sufficiency training run on **Kaggle GPU** (T4/P100, ~30 h/week). Notebooks are pushed and pulled via the Kaggle API from this session. CPU stays the target for *inference*.
   - With a GPU, the verifier candidates widen to MiniLM-L6 → MiniLM-L12 → ModernBERT-base (`gte-reranker-modernbert-base` init).
   - The pick depends on the dev quality vs CPU latency trade-off measured in phase 2.
+
+## 9. Outcome (2026-10-25)
+
+All phases are done; the results and the honest account of what changed are in [`results/report.md`](results/report.md). Deviations from the plan above:
+
+- **Generator.** Qwen3-4B-Instruct-2507 on Kaggle (vLLM) for every arm, query rewrites included, because of Groq's daily token cap. Groq serves the live demo and the LLM judge.
+- **Verifier.** One seed, not three. Fine-tuning alone hurt out-of-domain ranking badly; the final model is the v4 fine-tune averaged with its base (WiSE-FT, α = 0.7).
+- **Sufficiency.** Labels come from HotpotQA supporting facts, not an LLM teacher, so there is no teacher-human agreement check. The student is a MiniLM-L12 cross-encoder, used directly as the abstain score (no separate logistic model).
+- **Faithfulness.** Measured through citation validity and support only. Correctness was checked against an LLM judge on 100 test answers (85% agreement, κ 0.71).
+- **Impeccable audit** for the UI was not run; the UI was checked with Playwright screenshots at 1440 and 375 px in both themes.
