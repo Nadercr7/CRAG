@@ -101,7 +101,7 @@ Training data comes from HotpotQA supporting facts with no LLM labels: *sufficie
 | Model | missing-hop | no-evidence | pooled |
 |---|---|---|---|
 | base ms-marco-MiniLM-L6-v2, no training | 0.866 | 0.974 | 0.920 |
-| MiniLM-L6, 60k examples, 1 epoch | 0.886 | 0.989 | 0.937 |
+| MiniLM-L6, 60k examples (20k questions), 1 epoch | 0.886 | 0.989 | 0.937 |
 | **MiniLM-L12, 270k examples, 2 epochs** | **0.978** | **0.998** | **0.988** |
 
 The dev examples are built the same way as the training data, so these AUCs measure the proxy task. They do not show that the model detects insufficient context in general. Its failure on the misleading condition is the clearest evidence: a paragraph with a swapped entity is still "sufficient" by construction.
@@ -118,13 +118,13 @@ These are recorded because they changed the design, and the commit history has t
 
 **One threshold was doing two jobs.** τ_lo decided "incorrect" and also filtered chunks. Supporting facts were in the retrieved top 20 for 97.7% of dev questions, but with the first verifier they survived the filter for only 72.3%, because second-hop paragraphs score low. With a separate chunk threshold (τ_chunk) and the final verifier, the share of dev questions keeping all supporting facts after the filter went from 56% to 89%.
 
-**The LLM budget ran out.** Groq's free tier caps each model at 200,000 tokens a day, about 200 answer calls, so the 5,419 distinct evaluation prompts (dev and test) would have taken about four weeks. Generation and query rewrites moved to an open model on Kaggle (vLLM, batch), with an offline cache mode: `prepare` writes the rewrite requests it cannot serve from cache, Kaggle generates them, and `import-rewrites` stores the outputs under the original request keys. Groq is kept for the live demo and the judge.
+**The LLM budget ran out.** Groq's free tier caps each model at 200,000 tokens a day. At roughly 1,000 tokens per answer call (our estimate), the 5,419 distinct evaluation prompts (dev and test) would have needed close to four weeks. Generation and query rewrites moved to an open model on Kaggle (vLLM, batch), with an offline cache mode: `prepare` writes the rewrite requests it cannot serve from cache, Kaggle generates them, and `import-rewrites` stores the outputs under the original request keys. Groq is kept for the live demo and the judge.
 
 ## Limitations and deviations from the plan
 
 - **Proxy data.** Sufficiency labels, the misleading condition and the verifier's main training data all come from HotpotQA. The results say little about other domains, and the BEIR numbers show the verifier itself is slightly worse than its base model out of domain.
-- **Tampered evidence is not detected.** Planted answers fall by 2.9 pp at most. Detecting a fluent but altered paragraph needs a different signal (cross-source agreement, or a model trained on such edits).
-- **Strict correctness metric.** The judge shows that about 15% of answered questions marked hallucinate are alias matches. All arms are affected; the absolute hallucination rates are overstated.
+- **Tampered evidence is not detected well.** The full system lowers planted answers by only 2.9 pp against plain RAG (not significant); refinement alone gives −5.4 pp against C, but most planted answers survive every arm. Detecting a fluent but altered paragraph needs a different signal (cross-source agreement, or a model trained on such edits).
+- **Strict correctness metric.** In the judge sample, 15 of the 43 answers marked hallucinate (35%) were alias matches the judge accepted. The sample is stratified, so this is not a population rate. All arms are affected; the absolute hallucination rates are overstated.
 - **Grid-edge fallbacks.** τ_chunk (0.01) and τ_keep (0.05) are at the edge of their grids because no setting reached the 90% recall target. Refinement keeps all supporting facts for only about 57% of supportive questions, which is the likely cause of its unstable effect on correct answers.
 - **Rewrite step.** It adds an LLM call for about half the questions and had no measurable effect. With this corpus and a 4B rewriter it could be dropped.
 - **Not done from the plan.** The verifier was trained with one seed rather than three. Sufficiency labels came from HotpotQA supporting facts instead of an LLM teacher, so there was no teacher-human agreement check. Faithfulness is measured only through citation validity and citation support, not by a separate claim-level check.
