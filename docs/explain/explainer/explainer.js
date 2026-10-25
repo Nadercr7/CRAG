@@ -919,7 +919,7 @@
   }
 
   /* ---------------- machine ---------------- */
-  var machines = {};
+  var machines = window.__vragMachines = {};
   function mountMachine(el, c) {
     var ph = function (msg) {
       clear(el);

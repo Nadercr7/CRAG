@@ -430,7 +430,7 @@ table.t.thr td.l{font-size:28px}
 
 /* live machine: scale its compact UI up to read well on the 1920 stage */
 .live-wrap{background:var(--paper)}
-.live-mount{width:1400px;height:612px;transform:scale(1.2);transform-origin:0 0;position:absolute;left:0;top:0}
+.live-mount{width:1461px;height:638px;transform:scale(1.15);transform-origin:0 0;position:absolute;left:0;top:0}
 .has-machine .live-switch{display:none}
 
 .rung.variant .rg{fill:none;stroke:var(--accent);stroke-dasharray:10 8}
