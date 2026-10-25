@@ -1022,7 +1022,8 @@ rect.vrm-zone {
   }
 }
 @container vrm (max-width: 700px) {
-  .vrm[data-lens] .vrm-main {
+  .vrm[data-lens][data-controls] .vrm-main,
+  .vrm[data-lens]:not([data-controls]) .vrm-main {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "ctl" "fig" "lens" "chips";
     grid-template-rows: none;

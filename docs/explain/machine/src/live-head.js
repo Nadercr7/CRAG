@@ -49,7 +49,7 @@ function wrapText(text, perLine, maxLines) {
   if (lines.length > maxLines) { const cut = lines.slice(0, maxLines); cut[maxLines - 1] = cut[maxLines - 1].slice(0, Math.max(1, perLine - 1)).replace(/\s+$/, "") + "…"; return cut; }
   return lines;
 }
-const cleanText = (s) => decode(s).replace(/\{[^}]*\}/g, "").replace(/\s+/g, " ").replace(/\s+([,.;:])/g, "$1").trim();
+const cleanText = (s) => decode(s).replace(/\{[^}]*\}/g, "").replace(/\s+/g, " ").replace(/,?\s*\(\s*;\s*/g, " (").replace(/\s+([,.;:])/g, "$1").trim();
 const cut = (text, n) => { const t = decode(text); return t.length > n ? t.slice(0, n - 1).replace(/\s+$/, "") + "…" : t; };
 
 /* ------------------------------------------------------------------ words, English and Egyptian Arabic */

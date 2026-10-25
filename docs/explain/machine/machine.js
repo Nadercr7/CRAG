@@ -620,7 +620,7 @@ function wrapText(text, perLine, maxLines) {
   if (lines.length > maxLines) { const cut = lines.slice(0, maxLines); cut[maxLines - 1] = cut[maxLines - 1].slice(0, Math.max(1, perLine - 1)).replace(/\s+$/, "") + "…"; return cut; }
   return lines;
 }
-const cleanText = (s) => decode(s).replace(/\{[^}]*\}/g, "").replace(/\s+/g, " ").replace(/\s+([,.;:])/g, "$1").trim();
+const cleanText = (s) => decode(s).replace(/\{[^}]*\}/g, "").replace(/\s+/g, " ").replace(/,?\s*\(\s*;\s*/g, " (").replace(/\s+([,.;:])/g, "$1").trim();
 const cut = (text, n) => { const t = decode(text); return t.length > n ? t.slice(0, n - 1).replace(/\s+$/, "") + "…" : t; };
 
 /* ------------------------------------------------------------------ words, English and Egyptian Arabic */
@@ -868,7 +868,7 @@ function mount(el, opts) {
     const tt = TT(), lt = tt.lens, ar = ST0.lang === "ar";
     const E = esc;
     const ck = '<svg class="lp-ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
-    const clean = (s) => decode(s).replace(/\{[^}]*\}/g, "").replace(/\s+/g, " ").replace(/\s+([,.;:])/g, "$1").trim();
+    const clean = cleanText;
     /* dial for the gauge (pane 2) and the half dial for the scale (pane 5) */
     const th = TH;
     const dial = (() => {
@@ -881,7 +881,7 @@ function mount(el, opts) {
       const cx = 135, cy = 112, r = 86, sw = 180, st = -90;
       const t = TICKS(cx, cy, r, 40, 4, [5, 11], sw, st);
       const a = ((st + sw * th.tau_abstain) * Math.PI) / 180;
-      return `<svg class="lp-half" viewBox="0 0 270 156" role="img" aria-hidden="true"><path class="lp-z lp-za" d="${ARC(cx, cy, r + 10, 0, th.tau_abstain, sw, st)}"/><path class="lp-z lp-zp" d="${ARC(cx, cy, r + 10, th.tau_abstain, 1, sw, st)}"/><path class="lp-face" d="${ARC(cx, cy, r + 3, 0, 1, sw, st)}Z"/><path class="lp-tk" d="${ARC(cx, cy, r, 0, 1, sw, st)}"/><path class="lp-tk" d="${t.minor}"/><path class="lp-tk lp-tkm" d="${t.major}"/><path class="lp-red" d="M${(cx + 12 * Math.sin(a)).toFixed(1)} ${(cy - 12 * Math.cos(a)).toFixed(1)}L${(cx + (r + 18) * Math.sin(a)).toFixed(1)} ${(cy - (r + 18) * Math.cos(a)).toFixed(1)}"/><text class="lp-redl" x="${(cx + (r + 30) * Math.sin(a)).toFixed(1)}" y="${(cy - (r + 24) * Math.cos(a) + 4).toFixed(1)}" text-anchor="middle">${fmt2(th.tau_abstain)}</text><g data-r="needle" transform="translate(${cx} ${cy}) rotate(${st})"><path class="lp-needle" d="M0 12L0 -${r - 6}"/></g><circle class="lp-hub" cx="${cx}" cy="${cy}" r="6"/><text class="lp-big" data-r="sread" x="${cx}" y="${cy + 38}" text-anchor="middle">0.000</text></svg>`;
+      return `<svg class="lp-half" viewBox="0 0 270 156" role="img" aria-hidden="true"><path class="lp-z lp-za" d="${ARC(cx, cy, r + 10, 0, th.tau_abstain, sw, st)}"/><path class="lp-z lp-zp" d="${ARC(cx, cy, r + 10, th.tau_abstain, 1, sw, st)}"/><path class="lp-face" d="${ARC(cx, cy, r + 3, 0, 1, sw, st)}Z"/><path class="lp-tk" d="${ARC(cx, cy, r, 0, 1, sw, st)}"/><path class="lp-tk" d="${t.minor}"/><path class="lp-tk lp-tkm" d="${t.major}"/><path class="lp-red" d="M${(cx + 12 * Math.sin(a)).toFixed(1)} ${(cy - 12 * Math.cos(a)).toFixed(1)}L${(cx + (r + 18) * Math.sin(a)).toFixed(1)} ${(cy - (r + 18) * Math.cos(a)).toFixed(1)}"/><text class="lp-redl" x="${(cx + (r + 38) * Math.sin(a)).toFixed(1)}" y="${(cy - (r + 28) * Math.cos(a) + 4).toFixed(1)}" text-anchor="middle">${fmt2(th.tau_abstain)}</text><g data-r="needle" transform="translate(${cx} ${cy}) rotate(${st})"><path class="lp-needle" d="M0 12L0 -${r - 6}"/></g><circle class="lp-hub" cx="${cx}" cy="${cy}" r="6"/><text class="lp-big" data-r="sread" x="${cx}" y="${cy + 38}" text-anchor="middle">0.000</text></svg>`;
     })();
     const band = (() => {
       const u0 = 12, u1 = 288, bw = u1 - u0, ux = (v) => (u0 + bw * v).toFixed(1);
