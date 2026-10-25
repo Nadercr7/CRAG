@@ -141,19 +141,25 @@ def upload_models() -> None:
 
 
 def fetch_models() -> None:
+    """Download the models dataset file by file (the whole-dataset zip can lag behind).
+
+    Kaggle extracts the uploaded archives server-side, so files sit under name/name/...
+    """
     dest = get_config().paths.data_dir / "models"
-    dest.mkdir(parents=True, exist_ok=True)
-    print(kaggle("datasets", "download", f"{USER}/{MODELS_DATASET}", "-p", str(dest), "--unzip"))
+    ref = f"{USER}/{MODELS_DATASET}"
+    listing = kaggle("datasets", "files", ref, "--page-size", "200", "-v")
+    files = [line.split(",")[0] for line in listing.splitlines()[1:] if line.strip()]
     for name in MODELS:
-        archive, nested = dest / f"{name}.tar.gz", dest / name / name
-        if archive.exists():
-            shutil.unpack_archive(archive, dest)
-            archive.unlink()
-        elif nested.exists():  # Kaggle extracts archives server-side: name/name/...
-            tmp = dest / f"_{name}"
-            nested.rename(tmp)
-            shutil.rmtree(dest / name)
-            tmp.rename(dest / name)
+        prefix = f"{name}/{name}/"
+        for f in (f for f in files if f.startswith(prefix)):
+            out = dest / name / Path(f[len(prefix) :]).parent
+            out.mkdir(parents=True, exist_ok=True)
+            kaggle("datasets", "download", ref, "-f", f, "-p", str(out), "-q")
+            # the CLI keeps the remote directories under -p; flatten them
+            got = out / f
+            if got.exists():
+                got.replace(out / Path(f).name)
+                shutil.rmtree(out / name)
         print(f"{name} -> {dest / name}")
 
 
