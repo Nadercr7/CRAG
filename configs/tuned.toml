@@ -1,13 +1,15 @@
-# Tuned values from results/tuning/verifier-minilm-l6-s13.md (HotpotQA dev, Platt-calibrated probabilities).
+# Tuned values from results/tuning/verifier-minilm-l6-v4-wise07.md (HotpotQA dev, Platt-calibrated probabilities).
 # Use as an overlay on default.toml: VRAG_CONFIG_OVERLAY=configs/tuned.toml or load_config(overlay=...).
 
 [pipeline]
-tau_hi = 0.6
+tau_hi = 0.65
 tau_lo = 0.15
-tau_single = 0.1
-tau_keep = 0.1
+tau_single = 0.15
+tau_chunk = 0.01
+top_k_context = 8
+tau_keep = 0.05
 
 [verifier]
-model = "data/models/verifier-minilm-l6-s13/model"
-calibration_passage = "data/models/verifier-minilm-l6-s13/calibration_passage.json"
-calibration_sentence = "data/models/verifier-minilm-l6-s13/calibration_sentence.json"
+model = "data/models/verifier-minilm-l6-v4-wise07/model"
+calibration_passage = "data/models/verifier-minilm-l6-v4-wise07/calibration_passage.json"
+calibration_sentence = "data/models/verifier-minilm-l6-v4-wise07/calibration_sentence.json"

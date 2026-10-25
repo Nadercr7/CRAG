@@ -6,7 +6,8 @@ Stages (all resumable; verifier scores are cached under data/tuning/<name>/):
                and every sentence of it with the verifier, label them against the gold
     calibrate  Platt scaling per level (passage, sentence); Brier and ECE before / after
     decide     tau_hi / tau_lo grid on the max passage probability, arm G's single threshold
-    keep       tau_keep sweep on the supportive slice, over the chunks the pipeline would keep
+    chunk      tau_chunk x top_k_context sweep (chunk filter, separate from the decision's tau_lo)
+    keep       tau_keep sweep on the supportive slice, over the chunks selected under tau_chunk
     write      results/tuning/<name>.md (+ .json), configs/tuned.toml
     sanity     ``prepare()`` of arm F with the tuned values on a few dev questions x 3 slices
 
@@ -43,6 +44,9 @@ SLICES = ("supportive", "missing")
 TAU_HI = [round(0.5 + 0.05 * i, 2) for i in range(10)]  # 0.50 .. 0.95
 TAU_LO = [round(0.05 + 0.05 * i, 2) for i in range(10)]  # 0.05 .. 0.50
 TAU_SINGLE = [round(0.05 + 0.05 * i, 2) for i in range(19)]  # 0.05 .. 0.95
+TAU_CHUNK = [0.01, 0.02, 0.03, 0.05, 0.08, 0.1, 0.15]
+TOP_K_CONTEXT = [5, 8]
+MIN_ALL_GOLD = 0.90
 TAU_KEEP = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 MIN_PRECISION = 0.90
 MAX_SUPPORTIVE_INCORRECT = 0.05
@@ -256,6 +260,69 @@ def select_thresholds(grid: dict) -> dict:
     return {"tau_hi": tau_hi, "tau_lo": tau_lo, "tau_single": tau_single, "notes": notes}
 
 
+# -------------------------------------------------------------------------------- chunk
+
+
+def chunk_sweep(records, cal_p, sup_qs, baseline) -> dict:
+    """tau_chunk x top_k_context: which chunks reach refinement (pipeline's ``_select`` logic:
+    rank by verifier logit, drop calibrated prob < tau_chunk, keep the top k).
+
+    Supportive slice: share of questions with all / at least one gold paragraph selected and
+    the average number of selected chunks. Missing slice: average selected chunks (noise).
+    ``baseline`` = (tau, k) of the old behaviour (tau_chunk unset: tau_lo), for reference.
+    """
+    by = {(r["qid"], r["slice"]): r for r in records}
+    prob = {
+        key: {
+            c["id"]: float(pr)
+            for c, pr in zip(r["chunks"], cal_p([c["logit"] for c in r["chunks"]]), strict=True)
+        }
+        for key, r in by.items()
+    }
+
+    def pick(key, tau, k):
+        ranked = sorted(by[key]["chunks"], key=lambda c: -c["logit"])
+        return [c for c in ranked if prob[key][c["id"]] >= tau][:k]
+
+    def one(tau, k):
+        all_g = any_g = n_sup = n_mis = 0
+        for q in sup_qs:
+            sel = pick((q.id, "supportive"), tau, k)
+            got = {c["id"] for c in sel} & set(q.gold_ids)
+            all_g += got == set(q.gold_ids)
+            any_g += bool(got)
+            n_sup += len(sel)
+            n_mis += len(pick((q.id, "missing"), tau, k))
+        n = len(sup_qs)
+        return {
+            "all_gold": all_g / n,
+            "any_gold": any_g / n,
+            "avg_selected": n_sup / n,
+            "avg_selected_missing": n_mis / n,
+        }
+
+    rows = [
+        {"tau_chunk": t, "top_k_context": k, **one(t, k)} for k in TOP_K_CONTEXT for t in TAU_CHUNK
+    ]
+    return {
+        "rows": rows,
+        "baseline": {"tau_chunk": baseline[0], "top_k_context": baseline[1], **one(*baseline)},
+    }
+
+
+def select_chunk_setting(rows: list[dict]) -> tuple[dict, str]:
+    """Fewest average selected chunks among rows with all-gold recall >= 0.90 (ties: higher
+    all-gold recall, then the larger tau_chunk). None reaching it: best all-gold recall at the
+    largest top_k (ties: fewer chunks)."""
+    ok = [r for r in rows if r["all_gold"] >= MIN_ALL_GOLD]
+    if ok:
+        best = min(ok, key=lambda r: (r["avg_selected"], -r["all_gold"], -r["tau_chunk"]))
+        return best, ""
+    top = [r for r in rows if r["top_k_context"] == max(TOP_K_CONTEXT)]
+    best = max(top, key=lambda r: (r["all_gold"], -r["avg_selected"]))
+    return best, f"no setting reaches all-gold recall {MIN_ALL_GOLD}; took the best at top_k 8"
+
+
 # --------------------------------------------------------------------------------- keep
 
 
@@ -271,21 +338,21 @@ def select_chunks(records, rag, cal_p) -> dict[tuple[str, str], list]:
     return out
 
 
-def fact_ceilings(records, selected, sup_qs, pool) -> dict:
-    """Share of supporting facts that sit in the retrieved / top-5 by logit / selected chunks."""
+def fact_ceilings(records, selected, sup_qs, pool, top_k) -> dict:
+    """Share of supporting facts that sit in the retrieved / top-k by logit / selected chunks."""
     by_q = {r["qid"]: r for r in records if r["slice"] == "supportive"}
-    got = {"retrieved": 0, "top5_unfiltered": 0, "selected": 0}
+    got = {"retrieved": 0, "topk_unfiltered": 0, "selected": 0}
     all_sel = 0
     total = 0
     for q in sup_qs:
         r = by_q[q.id]
         facts = set(q.supporting_facts)
         ids = [c["id"] for c in r["chunks"]]
-        top5 = [c["id"] for c in sorted(r["chunks"], key=lambda c: -c["logit"])[:5]]
+        top5 = [c["id"] for c in sorted(r["chunks"], key=lambda c: -c["logit"])[:top_k]]
         sel = {c.id: c for c in selected[(q.id, "supportive")]}
         titles = {pid: pool[pid].title for pid in ids}
         total += len(facts)
-        for name, pids in (("retrieved", ids), ("top5_unfiltered", top5), ("selected", list(sel))):
+        for name, pids in (("retrieved", ids), ("topk_unfiltered", top5), ("selected", list(sel))):
             n = {(titles[pid], i) for pid in pids for i in range(len(pool[pid].sentences))}
             got[name] += len(facts & n)
             if name == "selected":
@@ -404,7 +471,11 @@ def pct(x: float) -> str:
     return "n/a" if math.isnan(x) else f"{100 * x:.1f}"
 
 
-def render(name, cal, grid, chosen, keep_rows, ceilings, tau_keep, keep_note, sanity_rows, ctx):
+def render(name, res, sanity_rows, ctx, compare=None):
+    cal, grid, chosen = res["cal"], res["grid"], res["chosen"]
+    keep_rows, ceilings = res["keep_rows"], res["ceilings"]
+    tau_keep, keep_note = res["tau_keep"], res["keep_note"]
+    chunk, setting, chunk_note = res["chunk"], res["chunk_setting"], res["chunk_note"]
     L = []
     w = L.append
     w(f"# Verifier tuning on HotpotQA dev: {name}\n")
@@ -439,8 +510,8 @@ def render(name, cal, grid, chosen, keep_rows, ceilings, tau_keep, keep_note, sa
             for lv, c in cal.items()
         )
         + ".\n\nThe sentence calibrator is fitted on the sentences of the chunks the pipeline "
-        "selects (top-5 with prob >= tau_lo), because refinement only ever scores those; the "
-        "base rate of supporting facts there is much higher than among all 20 retrieved "
+        "selects (top_k_context with prob >= tau_chunk), because refinement only ever scores "
+        "those; the base rate of supporting facts there is much higher than among all 20 retrieved "
         "chunks, and the all-retrieved fit (shown for comparison, not saved) would put every "
         "sentence far too low for the keep threshold.\n"
     )
@@ -502,11 +573,46 @@ def render(name, cal, grid, chosen, keep_rows, ceilings, tau_keep, keep_note, sa
             f"{pct(s['precision_correct'])}{mark} |"
         )
 
+    w("\n## Chunk filter: tau_chunk x top_k_context (supportive slice)\n")
+    w(
+        "The chunk filter is separate from the decision's tau_lo: chunks are ranked by verifier "
+        "logit, those with calibrated passage prob < tau_chunk are dropped, the top "
+        "top_k_context go on to refinement. Gold = the question's supporting paragraphs. "
+        "'Noise' = average selected chunks on the missing slice (no gold paragraph there, "
+        "so everything passed on is noise).\n"
+    )
+    w(
+        "| tau_chunk | top_k | all gold % | at least one gold % | avg selected "
+        "| noise: avg selected (missing) |"
+    )
+    w("|---|---|---|---|---|---|")
+    pick = (setting["tau_chunk"], setting["top_k_context"])
+    for r in chunk["rows"]:
+        mark = " **<- chosen**" if (r["tau_chunk"], r["top_k_context"]) == pick else ""
+        w(
+            f"| {r['tau_chunk']}{mark} | {r['top_k_context']} | {pct(r['all_gold'])} | "
+            f"{pct(r['any_gold'])} | {r['avg_selected']:.2f} | {r['avg_selected_missing']:.2f} |"
+        )
+    b = chunk["baseline"]
+    w(
+        f"\nReference, old behaviour (tau_chunk unset, filter = tau_lo {b['tau_chunk']}, top_k "
+        f"{b['top_k_context']}): all gold {pct(b['all_gold'])} %, at least one "
+        f"{pct(b['any_gold'])} %, avg selected {b['avg_selected']:.2f}, missing "
+        f"{b['avg_selected_missing']:.2f}.\n"
+    )
+    w(
+        "**Rule.** The (tau_chunk, top_k_context) with the fewest average selected chunks among "
+        f"those with all-gold recall >= {MIN_ALL_GOLD:.0%} (ties: higher recall, then larger "
+        f"tau_chunk). Chosen: tau_chunk {setting['tau_chunk']}, top_k_context "
+        f"{setting['top_k_context']}. " + chunk_note + "\n"
+    )
+
     w("\n## Sentence keep threshold (supportive slice)\n")
     w(
-        f"Over the chunks the pipeline keeps (top {ctx['top_k_context']} with prob >= tau_lo = "
-        f"{chosen['tau_lo']}). Recall = supporting facts kept / supporting facts inside those "
-        f"chunks. 'Capped' applies max_sentences = {ctx['max_sentences']} as the pipeline does; "
+        f"Over the chunks selected under tau_chunk {setting['tau_chunk']} (top "
+        f"{setting['top_k_context']}); the sentence calibrator is fitted on exactly those chunks. "
+        "Recall = supporting facts kept / supporting facts inside those chunks. 'Capped' "
+        f"applies max_sentences = {ctx['max_sentences']} as the pipeline does; "
         "the rule uses the capped columns. 'All facts kept' needs every supporting fact of the "
         "question (also those outside the selected chunks); 'all selected facts kept' only "
         "those inside.\n"
@@ -514,7 +620,8 @@ def render(name, cal, grid, chosen, keep_rows, ceilings, tau_keep, keep_note, sa
     w(
         "Where the supporting facts are before refinement (all supportive questions): "
         f"{pct(ceilings['retrieved'])} % in the retrieved top-{ctx['k']}, "
-        f"{pct(ceilings['top5_unfiltered'])} % in the top 5 by verifier logit, "
+        f"{pct(ceilings['topk_unfiltered'])} % in the top {setting['top_k_context']} by "
+        "verifier logit, "
         f"{pct(ceilings['selected'])} % in the selected chunks; "
         f"{pct(ceilings['all_facts_selected'])} % of questions have all their facts in the "
         "selected chunks (the ceiling of 'all facts kept').\n"
@@ -533,6 +640,9 @@ def render(name, cal, grid, chosen, keep_rows, ceilings, tau_keep, keep_note, sa
             f"{pct(c['all_facts_kept'])} |"
         )
     w("\nRule: the largest tau_keep with (capped) recall >= 0.90. " + keep_note + "\n")
+
+    if compare:
+        L.extend(render_compare(name, res, compare))
 
     if sanity_rows:
         rw = sanity_rows[0]["rewrite"]
@@ -557,7 +667,114 @@ def render(name, cal, grid, chosen, keep_rows, ceilings, tau_keep, keep_note, sa
     return "\n".join(L) + "\n"
 
 
-def render_toml(name, chosen, tau_keep, model_dir) -> str:
+def render_compare(name, new, old) -> list[str]:
+    """Key rows of the old verifier vs this one, both through the same procedure."""
+    L: list[str] = []
+    w = L.append
+    oname = old["name"]
+    w(f"\n## Comparison: {oname} (old) vs {name} (final)\n")
+    w(
+        "Both verifiers go through the same procedure and rules (this script, same dev "
+        f"questions, same retrieved candidates); the {oname} numbers are recomputed from its "
+        f"cached scores, so they differ from `{oname}.md`, which used tau_lo as the chunk "
+        "filter with top 5 and no tau_chunk. Key rows only.\n"
+    )
+
+    def pair(r):
+        d = r["chosen"]
+        return next(
+            p
+            for p in r["grid"]["pairs"]
+            if p["tau_hi"] == d["tau_hi"] and p["tau_lo"] == d["tau_lo"]
+        )
+
+    def single(r):
+        return next(x for x in r["grid"]["single"] if x["tau"] == r["chosen"]["tau_single"])
+
+    def keep(r):
+        return next(x for x in r["keep_rows"] if x["tau_keep"] == r["tau_keep"])["capped"]
+
+    def cal_row(lv, key):
+        return lambda r: f"{r['cal'][lv]['before'][key]:.4f} -> {r['cal'][lv]['after'][key]:.4f}"
+
+    def shares(k):
+        return lambda r: " / ".join(
+            pct(pair(r)[k][x]) for x in ("correct", "ambiguous", "incorrect")
+        )
+
+    rows = [
+        ("passage Brier before -> after", cal_row("passage", "brier")),
+        ("passage ECE before -> after", cal_row("passage", "ece")),
+        ("passage ECE after (CV)", lambda r: f"{r['cal']['passage']['after_cv']['ece']:.4f}"),
+        ("sentence Brier before -> after", cal_row("sentence", "brier")),
+        ("sentence ECE before -> after", cal_row("sentence", "ece")),
+        (
+            "tau_hi / tau_lo / tau_single",
+            lambda r: (
+                f"{r['chosen']['tau_hi']} / {r['chosen']['tau_lo']} / {r['chosen']['tau_single']}"
+            ),
+        ),
+        ("pair, supportive correct / ambiguous / incorrect %", shares("supportive")),
+        ("pair, missing correct / ambiguous / incorrect %", shares("missing")),
+        ("precision(correct) %", lambda r: pct(pair(r)["precision_correct"])),
+        (
+            "single tau: supportive / missing correct %",
+            lambda r: (
+                f"{pct(single(r)['supportive_correct'])} / {pct(single(r)['missing_correct'])}"
+            ),
+        ),
+        (
+            "chosen tau_chunk / top_k_context",
+            lambda r: f"{r['chunk_setting']['tau_chunk']} / {r['chunk_setting']['top_k_context']}",
+        ),
+        (
+            "chosen: all gold % / at least one %",
+            lambda r: (
+                f"{pct(r['chunk_setting']['all_gold'])} / {pct(r['chunk_setting']['any_gold'])}"
+            ),
+        ),
+        (
+            "chosen: avg selected / noise on missing",
+            lambda r: (
+                f"{r['chunk_setting']['avg_selected']:.2f} / "
+                f"{r['chunk_setting']['avg_selected_missing']:.2f}"
+            ),
+        ),
+        (
+            "reference tau_lo filter, top 5: all gold % / avg selected",
+            lambda r: (
+                f"{pct(r['chunk']['baseline']['all_gold'])} / "
+                f"{r['chunk']['baseline']['avg_selected']:.2f}"
+            ),
+        ),
+        ("supporting facts inside selected chunks %", lambda r: pct(r["ceilings"]["selected"])),
+        ("tau_keep", lambda r: str(r["tau_keep"])),
+        (
+            "at tau_keep: recall % / avg kept / all facts kept %",
+            lambda r: (
+                f"{pct(keep(r)['recall'])} / {keep(r)['avg_kept']:.2f} / "
+                f"{pct(keep(r)['all_facts_kept'])}"
+            ),
+        ),
+    ]
+    w("| | old | final |")
+    w("|---|---|---|")
+    for label, f in rows:
+        w(f"| {label} | {f(old)} | {f(new)} |")
+    w("\ntau_keep curve, capped recall % (avg kept):\n")
+    w("| tau_keep | old | final |")
+    w("|---|---|---|")
+    for a, b in zip(old["keep_rows"], new["keep_rows"], strict=True):
+        w(
+            f"| {a['tau_keep']} | {pct(a['capped']['recall'])} ({a['capped']['avg_kept']:.2f}) | "
+            f"{pct(b['capped']['recall'])} ({b['capped']['avg_kept']:.2f}) |"
+        )
+    w("")
+    return L
+
+
+def render_toml(name, chosen, tau_chunk, top_k, tau_keep, model_dir) -> str:
+    top_k_line = f"top_k_context = {top_k}\n" if top_k != PipelineConfig().top_k_context else ""
     return (
         f"# Tuned values from results/tuning/{name}.md (HotpotQA dev, Platt-calibrated "
         "probabilities).\n"
@@ -567,12 +784,66 @@ def render_toml(name, chosen, tau_keep, model_dir) -> str:
         f"tau_hi = {chosen['tau_hi']}\n"
         f"tau_lo = {chosen['tau_lo']}\n"
         f"tau_single = {chosen['tau_single']}\n"
+        f"tau_chunk = {tau_chunk}\n"
+        f"{top_k_line}"
         f"tau_keep = {tau_keep}\n\n"
         "[verifier]\n"
         f'model = "{model_dir}/model"\n'
         f'calibration_passage = "{model_dir}/calibration_passage.json"\n'
         f'calibration_sentence = "{model_dir}/calibration_sentence.json"\n'
     )
+
+
+def analyze(records, cfg, data, dev, retriever) -> dict:
+    """The whole tuning on cached scores: calibration, decision grid, tau_chunk, tau_keep."""
+    passage = fit_level(records, "passage")
+    cal_p = passage["calibrator"]
+    grid = decide_grid(max_probs(records, cal_p))
+    chosen = select_thresholds(grid)
+    print("chosen", chosen, flush=True)
+
+    chunk = chunk_sweep(records, cal_p, dev, (chosen["tau_lo"], cfg.pipeline.top_k_context))
+    setting, chunk_note = select_chunk_setting(chunk["rows"])
+    print("chunk", setting, chunk_note, flush=True)
+
+    # Refinement only sees the chunks the pipeline selects, whose sentences are far more often
+    # relevant than a random retrieved one: fit the sentence calibrator on that population.
+    pcfg = cfg.pipeline.model_copy(
+        update={
+            **{k: chosen[k] for k in ("tau_hi", "tau_lo", "tau_single")},
+            "tau_chunk": setting["tau_chunk"],
+            "top_k_context": setting["top_k_context"],
+        }
+    )
+    selected = select_chunks(records, make_rag(retriever, data, pcfg, _NoVerifier()), cal_p)
+    keep_ids = {key: {c.id for c in chunks} for key, chunks in selected.items()}
+    cal = {
+        "passage": passage,
+        "sentence": fit_level(records, "sentence", keep_ids),
+        "sentence_all": fit_level(records, "sentence"),
+    }
+    cal_s = cal["sentence"]["calibrator"]
+    ceilings = fact_ceilings(records, selected, dev, data.pool, pcfg.top_k_context)
+    keep_rows = keep_sweep(records, selected, cal_s, dev, pcfg.max_sentences)
+    tau_keep, keep_note = select_keep(keep_rows)
+    print("tau_keep", tau_keep, keep_note, ceilings, flush=True)
+    return {
+        "cal": cal,
+        "grid": grid,
+        "chosen": chosen,
+        "chunk": chunk,
+        "chunk_setting": setting,
+        "chunk_note": chunk_note,
+        "keep_rows": keep_rows,
+        "tau_keep": tau_keep,
+        "keep_note": keep_note,
+        "ceilings": ceilings,
+    }
+
+
+def load_cached(cfg, name: str) -> list[dict]:
+    path = cfg.paths.data_dir / "tuning" / name / "scores.jsonl"
+    return [json.loads(line) for line in path.read_text().splitlines()]
 
 
 def main() -> None:
@@ -584,6 +855,11 @@ def main() -> None:
     )
     ap.add_argument("--sanity-n", type=int, default=5)
     ap.add_argument("--skip-sanity", action="store_true")
+    ap.add_argument(
+        "--compare-to",
+        default=None,
+        help="name of an earlier tuning run whose cached scores are re-analysed for a comparison",
+    )
     args = ap.parse_args()
     args.model = args.model if args.model.is_absolute() else REPO_ROOT / args.model
 
@@ -604,41 +880,34 @@ def main() -> None:
     rag = make_rag(retriever, data, cfg.pipeline, _NoVerifier())
     records = collect(args, cfg, data, dev, slices, rag, verifier)
 
-    passage = fit_level(records, "passage")
-    cal_p = passage["calibrator"]
-    grid = decide_grid(max_probs(records, cal_p))
-    chosen = select_thresholds(grid)
-    print("chosen", chosen, flush=True)
+    res = analyze(records, cfg, data, dev, retriever)
+    compare = None
+    if args.compare_to:
+        compare = {
+            "name": args.compare_to,
+            **analyze(load_cached(cfg, args.compare_to), cfg, data, dev, retriever),
+        }
 
-    # Refinement only sees the chunks the pipeline selects, whose sentences are far more often
-    # relevant than a random retrieved one: fit the sentence calibrator on that population.
-    pcfg = cfg.pipeline.model_copy(
-        update={k: chosen[k] for k in ("tau_hi", "tau_lo", "tau_single")}
-    )
-    sel_rag = make_rag(retriever, data, pcfg, _NoVerifier())
-    selected = select_chunks(records, sel_rag, cal_p)
-    keep_ids = {key: {c.id for c in chunks} for key, chunks in selected.items()}
-    cal = {
-        "passage": passage,
-        "sentence": fit_level(records, "sentence", keep_ids),
-        "sentence_all": fit_level(records, "sentence"),
-    }
-    cal_s = cal["sentence"]["calibrator"]
     model_dir = cfg.paths.data_dir / "models" / args.name
-    cal_p.save(model_dir / "calibration_passage.json")
-    cal_s.save(model_dir / "calibration_sentence.json")
+    res["cal"]["passage"]["calibrator"].save(model_dir / "calibration_passage.json")
+    res["cal"]["sentence"]["calibrator"].save(model_dir / "calibration_sentence.json")
     link = model_dir / "model"
     if not (link.is_symlink() or link.exists()):
         link.symlink_to(os.path.relpath(args.model, model_dir))
 
-    ceilings = fact_ceilings(records, selected, dev, data.pool)
-    keep_rows = keep_sweep(records, selected, cal_s, dev, pcfg.max_sentences)
-    tau_keep, keep_note = select_keep(keep_rows)
-    print("tau_keep", tau_keep, keep_note, ceilings, flush=True)
-
     rel = os.path.relpath(model_dir, REPO_ROOT)
     tuned = REPO_ROOT / "configs" / "tuned.toml"
-    tuned.write_text(render_toml(args.name, chosen, tau_keep, rel))
+    setting = res["chunk_setting"]
+    tuned.write_text(
+        render_toml(
+            args.name,
+            res["chosen"],
+            setting["tau_chunk"],
+            setting["top_k_context"],
+            res["tau_keep"],
+            rel,
+        )
+    )
     tuned_cfg = load_config(overlay=tuned)
     sanity_rows = (
         []
@@ -649,31 +918,39 @@ def main() -> None:
     ctx = {
         "n_dev": len(dev),
         "k": cfg.pipeline.retrieve_k,
-        "top_k_context": cfg.pipeline.top_k_context,
+        "top_k_context": setting["top_k_context"],
         "max_sentences": cfg.pipeline.max_sentences,
     }
     out = REPO_ROOT / cfg.paths.results_dir / "tuning"
     out.mkdir(parents=True, exist_ok=True)
-    (out / f"{args.name}.md").write_text(
-        render(
-            args.name, cal, grid, chosen, keep_rows, ceilings, tau_keep, keep_note, sanity_rows, ctx
-        )
-    )
-    full = {
-        "calibration": {
-            lv: {
-                **{k: v for k, v in c.items() if k != "calibrator"},
-                "a": c["calibrator"].a,
-                "b": c["calibrator"].b,
-            }
-            for lv, c in cal.items()
-        },
-        "chosen": {**chosen, "tau_keep": tau_keep},
-        "decision_grid": grid,
-        "keep_sweep": keep_rows,
-        "fact_ceilings": ceilings,
-        "sanity": sanity_rows,
-    }
+    (out / f"{args.name}.md").write_text(render(args.name, res, sanity_rows, ctx, compare))
+
+    def dump(r: dict) -> dict:
+        return {
+            "calibration": {
+                lv: {
+                    **{k: v for k, v in c.items() if k != "calibrator"},
+                    "a": c["calibrator"].a,
+                    "b": c["calibrator"].b,
+                }
+                for lv, c in r["cal"].items()
+            },
+            "chosen": {
+                **r["chosen"],
+                "tau_chunk": r["chunk_setting"]["tau_chunk"],
+                "top_k_context": r["chunk_setting"]["top_k_context"],
+                "tau_keep": r["tau_keep"],
+            },
+            "decision_grid": r["grid"],
+            "chunk_sweep": r["chunk"],
+            "chunk_note": r["chunk_note"],
+            "keep_sweep": r["keep_rows"],
+            "fact_ceilings": r["ceilings"],
+        }
+
+    full = {**dump(res), "sanity": sanity_rows}
+    if compare:
+        full["comparison"] = {compare["name"]: dump(compare)}
     (out / f"{args.name}.json").write_text(json.dumps(full, indent=1))
     print(f"wrote {out / (args.name + '.md')}")
 
