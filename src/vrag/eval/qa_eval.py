@@ -133,12 +133,21 @@ def contains(prediction: str | None, gold: str) -> bool:
     """Normalized gold inside the normalized prediction, or the other way round.
 
     Containment is on whole tokens ("rome" is not in "prometheus"). False for an empty
-    prediction and for an abstention phrase.
+    prediction and for an abstention phrase. Two guards keep it from rewarding vague or
+    padded answers:
+
+    - gold inside prediction counts only while the prediction is at most
+      ``3 * len(gold) + 3`` tokens (a sentence that happens to name the answer is not one);
+    - prediction inside gold counts only when it covers at least half of the gold tokens
+      ("University of Pennsylvania" for "Wharton School of the University of Pennsylvania"
+      passes; "Tony" for "eight Tony Awards" does not).
     """
     p, g = normalize_answer(prediction).split(), normalize_answer(gold).split()
     if not p or not g or is_abstention_text(prediction):
         return False
-    return _has_run(p, g) or _has_run(g, p)
+    if len(p) <= 3 * len(g) + 3 and _has_run(p, g):
+        return True
+    return 2 * len(p) >= len(g) and _has_run(g, p)
 
 
 def _matches(prediction: str | None, target: str) -> bool:

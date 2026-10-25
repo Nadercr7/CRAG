@@ -305,3 +305,15 @@ def test_judge_agreement_and_kappa():
     assert a["kappa"] == pytest.approx((0.8 - p_e) / (1 - p_e))
     assert qa.judge_agreement([])["agreement"] is None
     assert qa.judge_agreement([(True, True)] * 3)["kappa"] is None  # no variation
+
+
+def test_containment_guards():
+    from vrag.eval.qa_eval import contains
+
+    assert contains(
+        "University of Pennsylvania", "Wharton School of the University of Pennsylvania"
+    )
+    assert not contains("Tony", "eight Tony Awards")
+    assert contains("He was born in Paris", "Paris")
+    long = "the film was released by a studio that was based in Paris at the time of its release"
+    assert not contains(long, "Paris")
