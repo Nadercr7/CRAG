@@ -22,6 +22,16 @@ cp .env.example .env   # then fill in GROQ_API_KEY
 .venv/bin/python scripts/smoke_llm.py    # one live call per model; a second run is served from cache
 ```
 
+## Run the UI
+
+```bash
+.venv/bin/uvicorn vrag.api.app:app      # http://127.0.0.1:8000
+```
+
+- `/` is the pipeline explorer: 22 real traces (plain RAG vs the full system) and a live box that runs arm F over the HotpotQA pool. Live mode needs `data/indexes`, the models named in `configs/tuned.toml` and `GROQ_API_KEY`; without them `POST /api/ask` answers 503 and the rest of the UI still works.
+- `/results.html` is the dashboard. It reads `results/qa/<run>/metrics.json` (test split if `test_main` exists, otherwise dev) and `results/retrieval/summary.md`.
+- Rebuild the examples after a new dev run with `python scripts/build_ui_examples.py`.
+
 ## LLM access
 
 Generation, query rewriting and teacher labelling go through Groq's OpenAI-compatible API. `vrag.llm.LLMClient` adds two things on top of the SDK:

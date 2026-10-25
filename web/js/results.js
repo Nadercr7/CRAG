@@ -203,7 +203,7 @@
             animation: false,
             scales: {
               x: { stacked: true, min: 0, max: 100, ticks: { callback: (v) => v + "%", stepSize: 25 }, grid: { color: cssVar("--rule") } },
-              y: { stacked: true, grid: { display: false }, ticks: { autoSkip: false, color: cssVar("--ink") } },
+              y: { stacked: true, grid: { display: false }, afterFit: (a) => { a.width = Math.min(136, Math.round(a.chart.width * 0.34)); }, ticks: { autoSkip: false, color: cssVar("--ink") } },
             },
             plugins: {
               legend: { display: false },
@@ -358,7 +358,7 @@
           layout: { padding: { right: 44 } },
           scales: {
             x: { min: 0, grid: { color: cssVar("--rule") }, title: { display: true, text: "Tokens (about 4 characters each)" } },
-            y: { grid: { display: false }, ticks: { autoSkip: false, color: cssVar("--ink") } },
+            y: { grid: { display: false }, afterFit: (a) => { a.width = Math.min(136, Math.round(a.chart.width * 0.34)); }, ticks: { autoSkip: false, color: cssVar("--ink") } },
           },
           plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => fmt.int(c.raw) + " tokens on average" } } },
         },
