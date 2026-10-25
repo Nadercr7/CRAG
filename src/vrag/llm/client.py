@@ -26,6 +26,14 @@ Message = dict[str, str]
 MAX_RETRY_WAIT_S = 180.0
 
 
+class CacheMiss(RuntimeError):
+    """Offline mode: the request is not in the cache. ``payload`` is what would be sent."""
+
+    def __init__(self, payload: dict[str, Any]):
+        super().__init__(f"{payload.get('model')}: not in the cache (offline mode)")
+        self.payload = payload
+
+
 class QuotaExhausted(RuntimeError):
     """The provider asked us to wait longer than MAX_RETRY_WAIT_S."""
 
@@ -109,12 +117,16 @@ class LLMClient:
         limiter: RateLimiter | None = None,
         api: Any = None,
         sleep: Callable[[float], None] = time.sleep,
+        offline: bool = False,
     ):
         cfg = get_config()
         self.config = config or cfg.llm
         self.cache = cache if cache is not None else LLMCache(cfg.paths.cache_db)
         self.limiter = limiter or RateLimiter(self.config.limits)
         self._sleep = sleep
+        # Offline: answer from the cache only and raise CacheMiss otherwise, so requests can
+        # be generated in batch elsewhere (Kaggle) and imported with ``cache.put``.
+        self.offline = offline
         self._api = api or openai.OpenAI(
             base_url=self.config.base_url,
             api_key=os.environ.get(self.config.api_key_env, ""),
@@ -149,6 +161,8 @@ class LLMClient:
 
         if use_cache and (hit := self.cache.get(payload)) is not None:
             return Completion(**hit, cached=True)
+        if self.offline:
+            raise CacheMiss(payload)
 
         try:
             result = self._call(payload)

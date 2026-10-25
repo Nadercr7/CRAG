@@ -39,7 +39,8 @@ from vrag.data.hotpot import HotpotData, load_hotpot
 from vrag.data.slices import KINDS, Slice, build_slices
 from vrag.eval import qa_eval as qa
 from vrag.eval.stats import paired_bootstrap
-from vrag.llm import LLMClient, QuotaExhausted
+from vrag.llm import CacheMiss, LLMClient, QuotaExhausted
+from vrag.llm.cache import request_key
 from vrag.pipeline.calibrate import PlattCalibrator
 from vrag.pipeline.pipeline import (
     PRESETS,
@@ -281,7 +282,9 @@ def cmd_prepare(args: argparse.Namespace) -> int:
 
     run = Path(args.out)
     run.mkdir(parents=True, exist_ok=True)
-    llm = CountingLLM(LLMClient())
+    if args.rewrite_model:
+        cfg.llm.rewrite_model = args.rewrite_model
+    llm = CountingLLM(LLMClient(offline=args.offline_rewrites))
     rags = build_arms(cfg, data, arms, llm, args.sufficiency)
     meta = {
         "split": args.split,
@@ -294,6 +297,7 @@ def cmd_prepare(args: argparse.Namespace) -> int:
         "verifier": str(cfg.verifier.model),
         "offshelf": OFFSHELF,
         "overlay": args.overlay,
+        "rewrite_model": cfg.llm.rewrite_model,
         "overlay_sha": hashlib.sha1(overlay.read_bytes()).hexdigest()[:12] if overlay else None,
         "generated": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
@@ -322,10 +326,15 @@ def cmd_prepare(args: argparse.Namespace) -> int:
     todo = [(q, k, a) for q, k in pairs for a in arms if f"{q.id}|{a}|{k}" not in done]
     print(f"{len(done)} traces on disk, {len(todo)} to prepare", flush=True)
     stopped = None
+    pending: dict[str, dict] = {}  # offline rewrites: request key -> payload
     start = time.perf_counter()
     with traces_path.open("a") as f:
         for n, (q, kind, arm) in enumerate(todo, start=1):
-            trace = rags[arm].prepare(q.question, slices[q.id][kind], qid=q.id)
+            try:
+                trace = rags[arm].prepare(q.question, slices[q.id][kind], qid=q.id)
+            except CacheMiss as miss:
+                pending[request_key(miss.payload)] = miss.payload
+                continue  # prepared again once the rewrite is imported
             if any(note.startswith("rewrite_failed") for note in trace.notes):
                 stopped = next(note for note in trace.notes if note.startswith("rewrite_failed"))
                 break  # the trace is incomplete: leave it for the next run
@@ -342,6 +351,19 @@ def cmd_prepare(args: argparse.Namespace) -> int:
         f"Groq rewrite calls this run: {llm.calls} "
         f"({llm.network} uncached, {llm.calls - llm.network} cached)"
     )
+    if pending:
+        out = run / "rewrite_prompts.jsonl"
+        with out.open("w") as f:
+            for key, payload in pending.items():
+                row = {"id": key, "messages": payload["messages"], "payload": payload}
+                f.write(json.dumps(row, ensure_ascii=False) + "\n")
+        print(
+            f"\n{len(pending)} rewrites are not cached yet -> {out}\n"
+            "Generate them (scripts/kaggle_job.py prompts/generate), then run "
+            "import-rewrites and prepare again.",
+            file=sys.stderr,
+        )
+        return 3
     if stopped:
         print(
             f"\nSTOPPED: Groq quota exhausted ({stopped}).\n"
@@ -690,6 +712,29 @@ def cmd_judge(args: argparse.Namespace) -> int:
 # -------------------------------------------------------------------------------- main
 
 
+def cmd_import_rewrites(args: argparse.Namespace) -> int:
+    """Put batch-generated rewrites into the LLM cache under their original requests."""
+    run = Path(args.run)
+    outputs = {r["id"]: r["output"] for r in read_jsonl(Path(args.outputs))}
+    cache = LLMClient(offline=True).cache
+    n = 0
+    for row in read_jsonl(run / "rewrite_prompts.jsonl"):
+        if row["id"] in outputs:
+            payload = row["payload"]
+            cache.put(
+                payload,
+                {
+                    "text": outputs[row["id"]],
+                    "model": payload["model"],
+                    "usage": {},
+                    "finish_reason": "stop",
+                },
+            )
+            n += 1
+    print(f"imported {n} rewrites into the cache")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     sub = ap.add_subparsers(dest="command", required=True)
@@ -707,7 +752,19 @@ def main() -> int:
     p.add_argument(
         "--count-only", action="store_true", help="print the trace count and stop (no models)"
     )
+    p.add_argument("--rewrite-model", help="model name for rewrites (cache key)")
+    p.add_argument(
+        "--offline-rewrites",
+        action="store_true",
+        help="never call Groq: traces whose rewrite is not cached are deferred and their "
+        "prompts written to rewrite_prompts.jsonl for batch generation",
+    )
     p.set_defaults(func=cmd_prepare)
+
+    p = sub.add_parser("import-rewrites", help="load batch-generated rewrites into the cache")
+    p.add_argument("--run", required=True)
+    p.add_argument("--outputs", required=True, help='{"id", "output"} JSONL from the generator')
+    p.set_defaults(func=cmd_import_rewrites)
 
     p = sub.add_parser("finalize", help="parse outputs, compute metrics, write results/qa/<run>/")
     p.add_argument("--run", required=True)

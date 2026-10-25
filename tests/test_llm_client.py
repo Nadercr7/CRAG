@@ -158,3 +158,15 @@ def test_json_validate_failed_retries_without_json_mode(make_client):
     assert "response_format" not in api.calls[1]
     assert client.complete_json(MSG, "m") == {"a": 2}  # cached under the JSON-mode request
     assert len(api.calls) == 2
+
+
+def test_offline_mode_raises_cache_miss_and_serves_cache(make_client):
+    from vrag.llm.client import CacheMiss
+
+    client, api, _ = make_client([])
+    client.offline = True
+    with pytest.raises(CacheMiss) as miss:
+        client.complete(MSG, "m")
+    client.cache.put(miss.value.payload, {"text": "hi", "model": "m", "usage": {}})
+    assert client.complete(MSG, "m").text == "hi"
+    assert api.calls == []
