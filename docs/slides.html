@@ -4503,6 +4503,7 @@ window.VRAGMachine = { mount, version: "1.0.0", steps: STEP_IDS.slice() };
   }
 
   function show(i, where, dir) {
+    if (document.activeElement && document.activeElement.closest && document.activeElement.closest(".live-wrap") && document.activeElement.blur) document.activeElement.blur();
     if (i < 0 || i >= slides.length) return;
     var prev = slides[Deck.cur];
     var nxt = slides[i];
@@ -4667,6 +4668,26 @@ window.VRAGMachine = { mount, version: "1.0.0", steps: STEP_IDS.slice() };
       if (m2 && +m2[1] - 1 !== Deck.cur) show(Math.max(0, Math.min(slides.length - 1, +m2[1] - 1)), "start", 1);
     });
 
+    // Machine focus mode: once the machine area is clicked or focused, Space/Enter step the machine
+    // exactly once and no key reaches the deck until Esc or a click outside.
+    var liveActive = false;
+    function inLiveEl(t) { return !!(t && t.closest && t.closest(".live-wrap")); }
+    document.addEventListener("pointerdown", function (e) { liveActive = inLiveEl(e.target); }, true);
+    document.addEventListener("focusin", function (e) { if (inLiveEl(e.target)) liveActive = true; }, true);
+    document.addEventListener("keydown", function (e) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      var cur = slides[Deck.cur];
+      if (!cur || cur.id !== "live" || !(liveActive || inLiveEl(e.target))) return;
+      var k = e.key;
+      if (k === "Escape") { liveActive = false; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); e.preventDefault(); e.stopPropagation(); return; }
+      if (/^(Arrow|Page|Home|End|Backspace)/.test(k)) { e.stopPropagation(); return; }
+      if (k === " " || k === "Enter") {
+        var tag = e.target && e.target.tagName;
+        if (tag === "SELECT") { e.stopPropagation(); return; }
+        e.preventDefault(); e.stopPropagation();
+        if (!e.repeat && cur.machine && cur.machine.next) cur.machine.next();
+      }
+    }, true);
     document.addEventListener("keydown", function (e) {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       var tag = (e.target && e.target.tagName) || "";

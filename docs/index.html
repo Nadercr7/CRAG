@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Verified RAG</title>
+<meta name="description" content="A mini project: a small model that checks retrieved evidence before a language model answers. Links to the code, report, explainer and slides.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@500&display=swap">
+<style>/* ../tokens.css */
+/* Verified RAG: shared tokens for the explainer, the slides and the speaker guide.
+   Concept: an inspection line. Evidence comes in like parts on a bench, gets measured,
+   sorted, trimmed and weighed before anything leaves the line. Ink-on-paper drawing
+   with signal colours used only where they carry a state (pass / hold / reject). */
+
+:root {
+  /* paper and ink (light) */
+  --paper: #edf0f2;        /* cool drafting paper, slight blue bias */
+  --paper-2: #e2e7eb;      /* recessed panels, wells */
+  --sheet: #f8f9fa;        /* raised sheet, cards that must stand out */
+  --ink: #142235;          /* navy ink: text and outlines */
+  --ink-2: #44546a;        /* secondary text */
+  --ink-3: #7b8796;        /* captions, ticks */
+  --rule: #c9d1d9;         /* hairlines */
+  --accent: #2350b8;       /* inspection blue: the one interactive / highlight colour */
+  --accent-ink: #ffffff;
+
+  /* signal colours: only for states the pipeline actually produces */
+  --pass: #1d7a52;         /* Correct / kept / answered correctly */
+  --hold: #a86a00;         /* Ambiguous / rewrite */
+  --reject: #b8361f;       /* Incorrect / dropped / hallucinated */
+  --plant: #6b3fb0;        /* planted (swapped) answer */
+  --abstain: #5d6b7c;      /* abstain: a deliberate grey, not an error */
+
+  --pass-bg: #dcefe5;
+  --hold-bg: #f6e8cc;
+  --reject-bg: #f5ddd7;
+  --plant-bg: #e9e0f6;
+  --abstain-bg: #e1e6ec;
+
+  /* type */
+  --f-display: "IBM Plex Sans Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --f-arabic: "IBM Plex Sans Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+
+  /* scale (1.25) */
+  --t-xs: 0.8rem;
+  --t-sm: 0.9rem;
+  --t-md: 1rem;
+  --t-lg: 1.25rem;
+  --t-xl: 1.563rem;
+  --t-2xl: 1.953rem;
+  --t-3xl: 2.441rem;
+  --t-4xl: 3.052rem;
+
+  --r-sm: 4px;             /* chips, buttons */
+  --r-md: 8px;             /* panels that are objects */
+  --shadow: 0 1px 0 rgba(20, 34, 53, 0.06), 0 6px 18px -10px rgba(20, 34, 53, 0.35);
+  --ease: cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1722;
+    --paper-2: #16202d;
+    --sheet: #1b2635;
+    --ink: #e4eaf1;
+    --ink-2: #aeb9c6;
+    --ink-3: #7d8a99;
+    --rule: #2b3747;
+    --accent: #7fa6ff;
+    --accent-ink: #0b1220;
+    --pass: #4fc08d;
+    --hold: #e2a73a;
+    --reject: #f07a62;
+    --plant: #b394f0;
+    --abstain: #9aa7b6;
+    --pass-bg: #163326;
+    --hold-bg: #3a2c12;
+    --reject-bg: #3d1d17;
+    --plant-bg: #2b2140;
+    --abstain-bg: #232e3b;
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 8px 22px -12px rgba(0, 0, 0, 0.8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1722;
+  --paper-2: #16202d;
+  --sheet: #1b2635;
+  --ink: #e4eaf1;
+  --ink-2: #aeb9c6;
+  --ink-3: #7d8a99;
+  --rule: #2b3747;
+  --accent: #7fa6ff;
+  --accent-ink: #0b1220;
+  --pass: #4fc08d;
+  --hold: #e2a73a;
+  --reject: #f07a62;
+  --plant: #b394f0;
+  --abstain: #9aa7b6;
+  --pass-bg: #163326;
+  --hold-bg: #3a2c12;
+  --reject-bg: #3d1d17;
+  --plant-bg: #2b2140;
+  --abstain-bg: #232e3b;
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 8px 22px -12px rgba(0, 0, 0, 0.8);
+  color-scheme: dark;
+}
+
+</style>
+<style>
+/* Layout: one narrow column; a strip of the seven stations as the only picture;
+   links grouped by what the reader wants to do (open, read the code, run it). */
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 400 1rem/1.6 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap > * { min-width: 0; }
+.wrap { max-width: 46rem; margin: 0 auto; padding-block: 3.5rem 4rem; display: grid; gap: 2.75rem; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+h1 { font: 700 clamp(2.6rem, 8vw, 4rem)/1 var(--f-display); letter-spacing: -0.01em; margin: 0; }
+h2 { font: 600 var(--t-xl)/1.2 var(--f-display); margin: 0 0 0.9rem; text-wrap: balance; }
+p { margin: 0; }
+.lede { font-size: var(--t-lg); line-height: 1.5; color: var(--ink); max-width: 38rem; margin-top: 1rem; }
+.sub { color: var(--ink-2); margin-top: 0.75rem; max-width: 38rem; }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.theme { flex: none; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); border-radius: var(--r-sm); width: 2.4rem; height: 2.4rem; display: grid; place-items: center; cursor: pointer; }
+.theme svg { width: 1.1rem; height: 1.1rem; }
+
+/* the line: seven stations; 3-6 are what plain RAG skips */
+.line { margin-top: 2rem; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding-block: 1.1rem 0.9rem; overflow-x: auto; }
+.line svg { display: block; width: 100%; min-width: 34rem; height: auto; }
+.line text { font: 500 13px var(--f-body); fill: var(--ink-2); }
+.line .st { fill: var(--sheet); stroke: var(--ink); stroke-width: 1.5; }
+.line .on { stroke: var(--accent); stroke-width: 2; }
+.line .ic { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.line .rail { stroke: var(--ink-3); stroke-width: 1.5; }
+.line .brace { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+.line .note { fill: var(--accent); font-size: 12px; }
+.cap { color: var(--ink-3); font-size: var(--t-sm); margin-top: 0.6rem; }
+
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--ink); }
+.fact { padding: 1rem 1rem 0 0; display: grid; gap: 0.35rem; align-content: start; }
+.fact + .fact { padding-left: 1rem; border-left: 1px solid var(--rule); }
+.fact b { font: 500 var(--t-2xl)/1 var(--f-mono); font-variant-numeric: tabular-nums; }
+.fact.good b { color: var(--pass); }
+.fact.cost b { color: var(--reject); }
+.fact span { color: var(--ink-2); font-size: var(--t-sm); line-height: 1.45; }
+
+/* link lists: what it is on the left, the address on the right */
+.links { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.links li { border-bottom: 1px solid var(--rule); }
+.links a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.25rem 1rem; align-items: baseline; padding: 0.85rem 0.25rem; text-decoration: none; color: var(--ink); }
+.links a:hover .t { color: var(--accent); text-decoration: underline; }
+.links .t { font-weight: 600; }
+.links .d { grid-column: 1; color: var(--ink-2); font-size: var(--t-sm); }
+.links .u { grid-row: 1; grid-column: 2; font: 400 var(--t-xs) var(--f-mono); color: var(--ink-3); white-space: nowrap; }
+.links .ar { font-family: var(--f-arabic); font-weight: 500; }
+.primary a { padding-block: 1rem; }
+.primary .t { font-size: var(--t-lg); }
+
+pre { margin: 0; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--r-md); padding: 1rem 1.1rem; overflow-x: auto; font: 400 var(--t-sm)/1.65 var(--f-mono); color: var(--ink); }
+pre .c { color: var(--ink-3); }
+.note { color: var(--ink-2); font-size: var(--t-sm); margin-top: 0.75rem; }
+footer { color: var(--ink-3); font-size: var(--t-sm); border-top: 1px solid var(--rule); padding-top: 1rem; }
+
+@media (max-width: 560px) {
+  .wrap { padding-block: 2rem 3rem; gap: 2.25rem; }
+  .facts { grid-template-columns: 1fr; }
+  .fact + .fact { padding-left: 0; border-left: 0; border-top: 1px solid var(--rule); }
+  .fact { padding-bottom: 0.9rem; }
+  .links a { grid-template-columns: minmax(0, 1fr); }
+  .links .u { grid-row: auto; grid-column: 1; white-space: normal; overflow-wrap: anywhere; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .line .on { animation: lit 2.4s var(--ease) 0.3s both; }
+  @keyframes lit { from { stroke: var(--ink); } to { stroke: var(--accent); } }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<header>
+  <div class="top">
+    <h1>Verified RAG</h1>
+    <button class="theme" id="theme" type="button" aria-label="Switch between light and dark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>
+    </button>
+  </div>
+  <p class="lede">A language model that answers from search results will trust whatever the search hands it. This project puts a small model between the search and the answer. It checks each paragraph, keeps only the sentences that matter, and says &ldquo;I don&rsquo;t know&rdquo; when the evidence isn&rsquo;t enough.</p>
+  <p class="sub">A mini project, tested once on 300 held-out HotpotQA questions, each asked three ways: with the evidence, with the evidence removed, and with a wrong answer planted in it.</p>
+
+  <div class="line" aria-hidden="true">
+    <svg viewBox="0 0 700 126">
+      <line class="rail" x1="40" y1="44" x2="660" y2="44"/>
+      <g transform="translate(40 44)"><rect class="st" x="-22" y="-22" width="44" height="44" rx="5"/><path class="ic" d="M-7 -7h14v10h-8l-6 5z"/><text y="42" text-anchor="middle">Ask</text></g>
+      <g transform="translate(143 44)"><rect class="st" x="-22" y="-22" width="44" height="44" rx="5"/><circle class="ic" cx="-2" cy="-2" r="7"/><path class="ic" d="M3 3l6 6"/><text y="42" text-anchor="middle">Search</text></g>
+      <g transform="translate(246 44)"><rect class="st on" x="-22" y="-22" width="44" height="44" rx="5"/><path class="ic" d="M-10 5a10 10 0 0 1 20 0"/><path class="ic" d="M0 5l4-8"/><text y="42" text-anchor="middle">Inspect</text></g>
+      <g transform="translate(349 44)"><rect class="st on" x="-22" y="-22" width="44" height="44" rx="5"/><path class="ic" d="M-8 -9l8 8 8-8M0 -1v11"/><text y="42" text-anchor="middle">Decide</text></g>
+      <g transform="translate(452 44)"><rect class="st on" x="-22" y="-22" width="44" height="44" rx="5"/><circle class="ic" cx="-6" cy="5" r="3.5"/><circle class="ic" cx="6" cy="5" r="3.5"/><path class="ic" d="M-4 2l9-11M4 2l-9-11"/><text y="42" text-anchor="middle">Trim</text></g>
+      <g transform="translate(555 44)"><rect class="st on" x="-22" y="-22" width="44" height="44" rx="5"/><path class="ic" d="M0 -10v18M-9 -6h18M-9 -6l-4 8h8zM9 -6l-4 8h8z"/><text y="42" text-anchor="middle">Weigh</text></g>
+      <g transform="translate(660 44)"><rect class="st" x="-22" y="-22" width="44" height="44" rx="5"/><path class="ic" d="M-7 -10h10l4 4v16h-14zM-3 2l3 3 5-6"/><text y="42" text-anchor="middle">Answer</text></g>
+      <path class="brace" d="M224 100v6h353v-6"/>
+      <text class="note" x="400" y="118" text-anchor="middle">the four checks plain RAG skips</text>
+    </svg>
+  </div>
+</header>
+
+<section aria-labelledby="h-res">
+  <h2 id="h-res">What it changed, against plain RAG</h2>
+  <div class="facts">
+    <div class="fact good"><b class="num">&minus;6.3 to &minus;7.5</b><span>points of made-up answers in all three test conditions (each 95% interval excludes zero)</span></div>
+    <div class="fact good"><b class="num">1,070 &rarr; 217</b><span>tokens of context sent to the answer model, on average</span></div>
+    <div class="fact cost"><b class="num">&minus;5.0</b><span>points of correct answers when the evidence was there: it answers less often (p = 0.06)</span></div>
+  </div>
+  <p class="note">It does not catch a fluent paragraph with a swapped answer, and the query-rewrite step had no measurable effect. Both are in the report.</p>
+</section>
+
+<section aria-labelledby="h-open">
+  <h2 id="h-open">Read and try</h2>
+  <ul class="links primary">
+    <li><a href="https://nadercr7.github.io/CRAG/explainer.html"><span class="t">Explainer</span><span class="u">explainer.html</span><span class="d">The whole project from zero, with a machine you can click through. English, then <span class="ar">مصري</span>.</span></a></li>
+    <li><a href="https://nadercr7.github.io/CRAG/slides.html"><span class="t">Presentation</span><span class="u">slides.html</span><span class="d">30 slides with live charts and the machine. Arrow keys to move, N for notes, F for full screen.</span></a></li>
+    <li><a href="https://github.com/Nadercr7/CRAG/blob/main/results/report.md"><span class="t">Results report</span><span class="u">results/report.md</span><span class="d">Every number, how it was measured, what went wrong along the way, and the limits.</span></a></li>
+  </ul>
+</section>
+
+<section aria-labelledby="h-code">
+  <h2 id="h-code">Source code</h2>
+  <ul class="links">
+    <li><a href="https://github.com/Nadercr7/CRAG"><span class="t">GitHub repository</span><span class="u">Nadercr7/CRAG</span><span class="d">Everything below lives here. README has setup and checks.</span></a></li>
+    <li><a href="https://github.com/Nadercr7/CRAG/tree/main/src/vrag/pipeline"><span class="t">The pipeline</span><span class="u">src/vrag/pipeline</span><span class="d">Decide, refine, rewrite, sufficiency gate, answer with citations, and the trace each request produces.</span></a></li>
+    <li><a href="https://github.com/Nadercr7/CRAG/tree/main/src/vrag/verifier"><span class="t">The verifier</span><span class="u">src/vrag/verifier</span><span class="d">Training data, the cross-encoder, and the weight averaging (WiSE-FT) that kept it working outside HotpotQA.</span></a></li>
+    <li><a href="https://github.com/Nadercr7/CRAG/tree/main/src/vrag/retrieval"><span class="t">Retrieval</span><span class="u">src/vrag/retrieval</span><span class="d">BM25, bge-small embeddings and their fusion.</span></a></li>
+    <li><a href="https://github.com/Nadercr7/CRAG/tree/main/src/vrag/eval"><span class="t">Evaluation</span><span class="u">src/vrag/eval</span><span class="d">Outcome scoring, risk-coverage and the paired bootstrap.</span></a></li>
+    <li><a href="https://github.com/Nadercr7/CRAG/tree/main/scripts"><span class="t">Scripts</span><span class="u">scripts/</span><span class="d">Data building, tuning on dev, the QA runs, and the Kaggle GPU jobs.</span></a></li>
+    <li><a href="https://github.com/Nadercr7/CRAG/tree/main/web"><span class="t">Web app</span><span class="u">web/ + src/vrag/api</span><span class="d">FastAPI with a pipeline explorer and a results dashboard.</span></a></li>
+    <li><a href="https://github.com/Nadercr7/CRAG/tree/main/results"><span class="t">Raw results</span><span class="u">results/</span><span class="d">Metrics JSON, per-question outcomes, tuning tables and the judge check.</span></a></li>
+    <li><a href="https://github.com/Nadercr7/CRAG/blob/main/PLAN.md"><span class="t">Plan and research notes</span><span class="u">PLAN.md, research/</span><span class="d">The design, the papers it builds on, and what changed from the plan.</span></a></li>
+  </ul>
+</section>
+
+<section aria-labelledby="h-team">
+  <h2 id="h-team">For the team</h2>
+  <ul class="links">
+    <li><a href="https://nadercr7.github.io/CRAG/speaker-guide.html"><span class="t">Speaker guide</span><span class="u">speaker-guide.html</span><span class="d">Slide-by-slide notes in Egyptian Arabic for the people presenting.</span></a></li>
+  </ul>
+</section>
+
+<section aria-labelledby="h-run">
+  <h2 id="h-run">Run it</h2>
+<pre><span class="c"># Python 3.12+</span>
+git clone https://github.com/Nadercr7/CRAG.git &amp;&amp; cd CRAG
+pip install -e ".[dev]"
+pytest                              <span class="c"># unit tests, no network</span>
+uvicorn vrag.api.app:app            <span class="c"># UI at http://127.0.0.1:8000</span></pre>
+  <p class="note">The dashboard and the 22 example traces work from a fresh clone. Live questions also need the trained models, the search index and a Groq API key; the README explains each. The models are in a <a href="https://www.kaggle.com/datasets/naderelakany/vrag-models">private Kaggle dataset</a> (ask for access) or can be retrained with the Kaggle jobs in <span class="num">scripts/kaggle_job.py</span>.</p>
+</section>
+
+<footer>
+  Built on CRAG (Yan et al., 2024) and Sufficient Context (Joren et al., ICLR 2025). Data: HotpotQA, BEIR, MS MARCO. Answers generated by Qwen3-4B-Instruct on Kaggle.
+</footer>
+
+</main>
+<script>
+(function () {
+  var root = document.documentElement, key = "vrag-theme";
+  try { var t = localStorage.getItem(key); if (t) root.setAttribute("data-theme", t); } catch (e) {}
+  document.getElementById("theme").addEventListener("click", function () {
+    var dark = root.getAttribute("data-theme") === "dark" ||
+      (!root.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
+    var next = dark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem(key, next); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

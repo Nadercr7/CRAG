@@ -13,6 +13,7 @@ const JOBS = [
   ["explainer/explainer.html", "explainer.html"],
   ["slides/slides.html", "slides.html"],
   ["guide/speaker-guide.html", "speaker-guide.html"],
+  ["hub/index.html", "index.html"],
 ];
 const MIME = { ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".webp": "image/webp" };
 const isLocal = (u) => !/^(https?:)?\/\//.test(u) && !u.startsWith("data:");
