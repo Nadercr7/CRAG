@@ -9,7 +9,7 @@ const { chromium } = createRequire("/opt/node-tools/")("playwright");
 const HERE = dirname(fileURLToPath(import.meta.url));
 const [sc = "support,missing", th = "light,dark", wd = "1440,390"] = process.argv.slice(2);
 const IDS = ["ask", "search", "inspect", "decide", "trim", "weigh", "answer"];
-const FRAC = [0.55, 0.62, 0.55, 0.45, 0.5, 0.6, 0.72];
+const FRAC = [0.55, 0.62, 0.55, 0.45, 0.5, 0.85, 0.72];
 mkdirSync(join(HERE, "shots"), { recursive: true });
 const b = await chromium.launch();
 for (const scenario of sc.split(","))

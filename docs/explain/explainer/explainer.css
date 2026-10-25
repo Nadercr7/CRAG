@@ -87,9 +87,11 @@ h3 { font-weight: 600; font-size: var(--t-xl); line-height: 1.25; margin-bottom:
 .hero-strip svg { display: block; width: 100%; height: auto; max-height: 150px; }
 
 .machine-sec { padding: 24px 0 32px; }
+.machine-sec h2, .machine-sec .prose { max-width: 66ch; }
 .machine-sec h2 { font-size: clamp(1.6rem, 4vw, var(--t-3xl)); }
-.machine-frame { margin-top: 20px; border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--sheet); box-shadow: var(--shadow); padding: 8px; min-height: 280px; }
-.machine-mount { min-height: 264px; }
+.machine-frame { margin-top: 20px; border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--sheet); box-shadow: var(--shadow); padding: 12px; margin-inline: calc(50% - min(660px, 50vw - 16px)); }
+.machine-mount { min-width: 0; }
+@media (max-width: 640px) { .machine-frame { padding: 6px; } }
 .machine-ph { min-height: 264px; display: grid; place-content: center; text-align: center; gap: 10px; padding: 24px; color: var(--ink-2); border: 1.5px dashed var(--rule); border-radius: var(--r-sm); }
 .machine-ph svg { margin-inline: auto; color: var(--ink-3); }
 .machine-ph b { color: var(--ink); font-weight: 600; }

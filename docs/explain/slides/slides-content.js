@@ -378,6 +378,13 @@
       var wrap = document.createElement("div"); wrap.className = "live-wrap"; wrap.setAttribute("data-no-nav", "");
       wrap.innerHTML = '<div class="live-mount" data-live-mount></div>';
       c.appendChild(wrap);
+      var note = document.createElement("p"); note.className = "abs live-note";
+      note.textContent = "Click a step, or press Space. Esc returns to the slides.";
+      c.appendChild(note);
+      wrap.addEventListener("click", function (ev) {
+        var r = wrap.querySelector(".vrm");
+        if (r && !ev.target.closest("button,select,input")) { if (!r.hasAttribute("tabindex")) r.setAttribute("tabindex", "0"); r.focus({ preventScroll: true }); }
+      });
       s.scenario = "support";
       el._sw = sw;
     },
@@ -388,7 +395,7 @@
       if (window.VRAGMachine && window.VRAGMachine.mount) {
         try {
           host.innerHTML = "";
-          s.machine = window.VRAGMachine.mount(host, { data: D, scenario: s.scenario || "support", lang: "en", mode: "manual", controls: true });
+          s.machine = window.VRAGMachine.mount(host, { data: D, scenario: s.scenario || "support", lang: "en", mode: "manual", controls: true, chips: false, idea: false });
           el.classList.add("has-machine");
           return;
         } catch (e) { console.error("machine mount", e); }

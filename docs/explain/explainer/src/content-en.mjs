@@ -8,7 +8,7 @@ export const en = {
     "An AI assistant that looks things up will often trust whatever it finds. This project puts an inspector between the search and the answer. This page explains how it works from zero, with real questions and parts you can click.",
   machineTitle: "The whole system, as one machine",
   machineText:
-    "Here is the project as a machine on a bench. Press the button to send a real question through it, one station at a time. You do not need to understand it yet. The rest of the page takes each part slowly.",
+    "Here is the project as a machine on a bench. Press the highlighted step to send a real question through it, one station at a time. The panel beside the machine (under it on a phone) zooms in on the station that is working and shows its real numbers. You do not need to understand it yet. The rest of the page takes each part slowly.",
   mapLabel: "Sections of this page",
   map: [
     ["zero", "Starting from zero", "What a language model is, why it makes things up, what RAG adds"],

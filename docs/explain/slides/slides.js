@@ -273,6 +273,11 @@
       if (/INPUT|TEXTAREA|SELECT/.test(tag)) return;
       var k = e.key;
       var onBtn = tag === "BUTTON";
+      var inLive = e.target.closest && e.target.closest(".live-wrap");
+      if (inLive) {
+        if (k === "Escape") { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); e.preventDefault(); return; }
+        if (/^(Arrow|Page|Home|End|Backspace| |Enter)/.test(k)) return; // keys inside the machine belong to the machine
+      }
       if (gridEl.classList.contains("open")) {
         if (k === "Escape" || k === "g" || k === "G") { toggleGrid(false); e.preventDefault(); }
         return;
