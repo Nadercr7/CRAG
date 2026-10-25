@@ -1,0 +1,100 @@
+/* Verified RAG: shared tokens for the explainer, the slides and the speaker guide.
+   Concept: an inspection line. Evidence comes in like parts on a bench, gets measured,
+   sorted, trimmed and weighed before anything leaves the line. Ink-on-paper drawing
+   with signal colours used only where they carry a state (pass / hold / reject). */
+
+:root {
+  /* paper and ink (light) */
+  --paper: #edf0f2;        /* cool drafting paper, slight blue bias */
+  --paper-2: #e2e7eb;      /* recessed panels, wells */
+  --sheet: #f8f9fa;        /* raised sheet, cards that must stand out */
+  --ink: #142235;          /* navy ink: text and outlines */
+  --ink-2: #44546a;        /* secondary text */
+  --ink-3: #7b8796;        /* captions, ticks */
+  --rule: #c9d1d9;         /* hairlines */
+  --accent: #2350b8;       /* inspection blue: the one interactive / highlight colour */
+  --accent-ink: #ffffff;
+
+  /* signal colours: only for states the pipeline actually produces */
+  --pass: #1d7a52;         /* Correct / kept / answered correctly */
+  --hold: #a86a00;         /* Ambiguous / rewrite */
+  --reject: #b8361f;       /* Incorrect / dropped / hallucinated */
+  --plant: #6b3fb0;        /* planted (swapped) answer */
+  --abstain: #5d6b7c;      /* abstain: a deliberate grey, not an error */
+
+  --pass-bg: #dcefe5;
+  --hold-bg: #f6e8cc;
+  --reject-bg: #f5ddd7;
+  --plant-bg: #e9e0f6;
+  --abstain-bg: #e1e6ec;
+
+  /* type */
+  --f-display: "IBM Plex Sans Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --f-arabic: "IBM Plex Sans Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+
+  /* scale (1.25) */
+  --t-xs: 0.8rem;
+  --t-sm: 0.9rem;
+  --t-md: 1rem;
+  --t-lg: 1.25rem;
+  --t-xl: 1.563rem;
+  --t-2xl: 1.953rem;
+  --t-3xl: 2.441rem;
+  --t-4xl: 3.052rem;
+
+  --r-sm: 4px;             /* chips, buttons */
+  --r-md: 8px;             /* panels that are objects */
+  --shadow: 0 1px 0 rgba(20, 34, 53, 0.06), 0 6px 18px -10px rgba(20, 34, 53, 0.35);
+  --ease: cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1722;
+    --paper-2: #16202d;
+    --sheet: #1b2635;
+    --ink: #e4eaf1;
+    --ink-2: #aeb9c6;
+    --ink-3: #7d8a99;
+    --rule: #2b3747;
+    --accent: #7fa6ff;
+    --accent-ink: #0b1220;
+    --pass: #4fc08d;
+    --hold: #e2a73a;
+    --reject: #f07a62;
+    --plant: #b394f0;
+    --abstain: #9aa7b6;
+    --pass-bg: #163326;
+    --hold-bg: #3a2c12;
+    --reject-bg: #3d1d17;
+    --plant-bg: #2b2140;
+    --abstain-bg: #232e3b;
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 8px 22px -12px rgba(0, 0, 0, 0.8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1722;
+  --paper-2: #16202d;
+  --sheet: #1b2635;
+  --ink: #e4eaf1;
+  --ink-2: #aeb9c6;
+  --ink-3: #7d8a99;
+  --rule: #2b3747;
+  --accent: #7fa6ff;
+  --accent-ink: #0b1220;
+  --pass: #4fc08d;
+  --hold: #e2a73a;
+  --reject: #f07a62;
+  --plant: #b394f0;
+  --abstain: #9aa7b6;
+  --pass-bg: #163326;
+  --hold-bg: #3a2c12;
+  --reject-bg: #3d1d17;
+  --plant-bg: #2b2140;
+  --abstain-bg: #232e3b;
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 8px 22px -12px rgba(0, 0, 0, 0.8);
+  color-scheme: dark;
+}
