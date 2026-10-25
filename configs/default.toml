@@ -66,3 +66,8 @@ rewrite_queries = 2
 rewrite_evidence = 3   # top kept sentences shown to the rewriter
 rewrite_max_tokens = 512
 answer_max_tokens = 256
+
+# Optional model paths; configs/tuned.toml fills them.
+# [verifier]
+# model = "data/models/..."              # fine-tuned verifier (arms C-G)
+# sufficiency_model = "data/models/..."  # sufficiency student (arms F, G); unset: none

@@ -15,3 +15,4 @@ tau_abstain = 0.90
 model = "data/models/verifier-minilm-l6-v4-wise07/model"
 calibration_passage = "data/models/verifier-minilm-l6-v4-wise07/calibration_passage.json"
 calibration_sentence = "data/models/verifier-minilm-l6-v4-wise07/calibration_sentence.json"
+sufficiency_model = "data/models/sufficiency-minilm-l12"

@@ -93,6 +93,7 @@ class VerifierConfig(BaseModel):
     model: Path | None = None
     calibration_passage: Path | None = None
     calibration_sentence: Path | None = None
+    sufficiency_model: Path | None = None  # student cross-encoder for arms F and G
 
     def resolve(self, root: Path) -> VerifierConfig:
         """Return a copy with every relative path anchored at ``root``."""
