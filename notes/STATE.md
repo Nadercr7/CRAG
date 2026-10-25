@@ -20,7 +20,7 @@ Commit trailer: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` + `Cla
 - Slices: supportive/missing/misleading; LLM substitutes in `data/processed/hotpot_substitutes.json` (old string format handled). Smoke generation on Kaggle worked (8 min).
 
 ## In flight when this note was written
-1. Local background: `prepare --split dev|test --arms E G --out data/eval/rewrites_{dev,test}/ --sufficiency none --rewrite-model local/Qwen3-4B-Instruct-2507 --offline-rewrites` to collect rewrite prompts (check `data/eval/rewrites_*/rewrite_prompts.jsonl`; rerun the same command if incomplete — it resumes).
+1. DONE: rewrite prompts collected: `data/eval/rewrites_dev/rewrite_prompts.jsonl` (305) and `data/eval/rewrites_test/rewrite_prompts.jsonl` (494), via `prepare --split dev|test --arms E G --out data/eval/rewrites_<split>/ --sufficiency none --rewrite-model local/Qwen3-4B-Instruct-2507 --offline-rewrites`. Note: `data/` is gitignored and lives only in this container.
 2. Kaggle: `vrag-train-sufficiency-l12` (MiniLM-L12, 270k, 2 epochs). Compare with L6 on dev (per-kind AUC script idea: score sufficiency_dev.jsonl, AUC sufficient vs missing-hop / no-evidence); pick the better.
 
 ## Next steps (in order)
