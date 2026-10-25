@@ -28,3 +28,7 @@ Commit trailer: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` + `Cla
 - Models: private Kaggle dataset `naderelakany/vrag-models`; `python scripts/kaggle_job.py fetch-models`.
 
 Possible follow-ups (not started): alias-aware correctness (the judge shows the strict metric over-counts hallucinations), a signal for tampered evidence (misleading slice), dropping the rewrite step, Impeccable audit of the UI.
+
+## Presentation materials (2026-10-25)
+- `docs/index.html` (project page, also the file for Drive), `docs/explainer.html` (EN + Egyptian), `docs/slides.html` (30 slides), `docs/speaker-guide.html` (Egyptian). Sources in `docs/explain/`; rebuild with `python scripts/build_explain_data.py && node docs/explain/build.mjs`.
+- Repo settings the owner sets by hand (the proxy blocks settings writes): Pages from `main` /docs, description, homepage, topics.
