@@ -54,7 +54,7 @@
   <div class="marker"><b>1</b><span>The problem</span></div>
   <h2 class="title">How often plain RAG is wrong</h2>
   <div class="content" data-mount></div>
-  <aside class="notes">Plain RAG hallucination rate on the 300 test questions. Even with the right evidence it is wrong about a quarter of the time. With a swapped answer, another 30.5% of answers repeat the planted entity. The generator is Qwen3-4B, which abstains on its own a lot, so this is a fair baseline, not a weak one.</aside>
+  <aside class="notes">Plain RAG hallucination rate on the 300 test questions. Even with the right evidence it is wrong about a quarter of the time. With a swapped answer, another 30.5% of answers repeat the planted entity. The generator is Qwen3-4B, which abstains on its own a lot, so the baseline is already cautious.</aside>
 </section>
 <section class="slide" data-id="idea" data-title="Put an inspector between search and answer">
   <div class="marker"><b>2</b><span>The idea</span></div>
@@ -96,7 +96,7 @@
   <div class="marker"><b>3</b><span>How it works</span></div>
   <h2 class="title">The scale decides: enough to answer, or stop</h2>
   <div class="content" data-mount></div>
-  <aside class="notes">A second small model, MiniLM-L12, reads the question and the trimmed context and returns the probability that it is sufficient. Below 0.90 the system abstains. On its dev proxy task it separates sufficient from missing-hop at AUC 0.978 and from no-evidence at 0.998. Press for the Guildford example: 0.618, so the line stops. Press again for the AUC numbers. Note the caveat: AUC measures the proxy task, not insufficiency in general.</aside>
+  <aside class="notes">A second small model, MiniLM-L12, reads the question and the trimmed context and returns the probability that it is sufficient. Below 0.90 the system abstains. On its dev proxy task it separates sufficient from missing-hop at AUC 0.978 and from no-evidence at 0.998. Press for the Guildford example: 0.618, so the line stops. Press again for the AUC numbers. Caveat: AUC measures the proxy task and says little about insufficiency in general.</aside>
 </section>
 <section class="slide" data-id="bug" data-title="Fine-tuning broke ranking outside HotpotQA">
   <div class="marker"><b>4</b><span>Building the verifier</span></div>
@@ -132,7 +132,7 @@
   <div class="marker"><b>5</b><span>How we tested it fairly</span></div>
   <h2 class="title">Seven arms, one station added at a time</h2>
   <div class="content" data-mount></div>
-  <aside class="notes">The ablation ladder. A is plain hybrid RAG. Each arm adds one thing, so we can see what every station buys. F is the full system. G is F with a single threshold. Same generator, same prompts for every arm.</aside>
+  <aside class="notes">The ablation ladder. A is plain hybrid RAG. Each arm adds one thing, so we can see what every station buys. F is the full system. G is a variant of F with a single threshold, so it sits beside F rather than above it. Same generator, same prompts for every arm.</aside>
 </section>
 <section class="slide" data-id="pivot" data-title="The free tier ran out, so generation moved">
   <div class="marker"><b>5</b><span>How we tested it fairly</span></div>
@@ -156,13 +156,13 @@
   <div class="marker"><b>6</b><span>Results</span></div>
   <h2 class="title">Abstaining costs some correct answers</h2>
   <div class="content" data-mount></div>
-  <aside class="notes">The price. On supportive questions the full system answers 62% of the time against 73%, and its correct rate falls by 5 points, with an interval that touches zero. The curve shows selective accuracy as the abstain threshold sweeps. Plain RAG sits to the right and lower. Our operating point is at 0.90.</aside>
+  <aside class="notes">The price. On supportive questions the full system answers 62% of the time against 73%, and its correct rate falls by 5 points, with an interval that touches zero. The curve shows selective accuracy as the abstain threshold sweeps. Plain RAG sits to the right and lower. Curve and both points are for supportive questions only. Our operating point is at 0.90.</aside>
 </section>
 <section class="slide" data-id="cost" data-title="A case where the gate cost us the answer">
   <div class="marker"><b>6</b><span>Results</span></div>
   <h2 class="title">A case where the gate cost us the answer</h2>
   <div class="content" data-mount></div>
-  <aside class="notes">A real loss. Plain RAG answered Geraldine Page correctly. In our system the sentence that holds the answer scored 0.049, just under the 0.05 cut, so the context was thin, sufficiency came out at 0.002, and the system said I don&#x27;t know. This is the same effect as the 57% of supportive questions where trimming keeps every supporting fact.</aside>
+  <aside class="notes">Here is a case we lost. Plain RAG answered Geraldine Page correctly. In our system the sentence that holds the answer scored 0.049, just under the 0.05 cut, so the context was thin, sufficiency came out at 0.002, and the system said I don&#x27;t know. This is the same effect as the 57% of supportive questions where trimming keeps every supporting fact.</aside>
 </section>
 <section class="slide" data-id="judge" data-title="A second model checked our metric">
   <div class="marker"><b>6</b><span>Results</span></div>
@@ -174,7 +174,7 @@
   <div class="marker"><b>7</b><span>Limits and next</span></div>
   <h2 class="title">What it does not do</h2>
   <div class="content" data-mount></div>
-  <aside class="notes">Four honest limits. Planted answers mostly get through. The rewrite step did nothing measurable. Everything is trained on HotpotQA, and the verifier is slightly worse out of domain than its base. The metric is strict, so absolute hallucination rates are overstated.</aside>
+  <aside class="notes">Four limits. Planted answers mostly get through. The rewrite step did nothing measurable. Everything is trained on HotpotQA, and the verifier is slightly worse out of domain than its base. The metric is strict, so absolute hallucination rates are overstated.</aside>
 </section>
 <section class="slide" data-id="ui" data-title="It ships with a UI that shows every decision">
   <div class="marker"><b>7</b><span>Limits and next</span></div>
@@ -209,7 +209,7 @@
   <div class="marker"><b>A</b><span>Appendix</span></div>
   <h2 class="title">Appendix: thresholds and how each was chosen</h2>
   <div class="content" data-mount></div>
-  <aside class="notes">Every threshold was set on dev. The two grid-edge fallbacks are honest: no setting reached the 90% recall target, so we took the best available.</aside>
+  <aside class="notes">Every threshold was set on dev. Two thresholds sit at the edge of their grids: no setting reached the 90% recall target, so we took the best available.</aside>
 </section>
     </div>
     <div id="foot"><span class="brand">Verified RAG</span><span class="num" id="num"></span></div>

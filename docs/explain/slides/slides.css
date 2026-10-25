@@ -432,3 +432,5 @@ table.t.thr td.l{font-size:28px}
 .live-wrap{background:var(--paper)}
 .live-mount{width:1600px;height:700px;transform:scale(1.0486);transform-origin:0 0;position:absolute;left:0;top:0}
 .has-machine .live-switch{display:none}
+
+.rung.variant .rg{fill:none;stroke:var(--accent);stroke-dasharray:10 8}

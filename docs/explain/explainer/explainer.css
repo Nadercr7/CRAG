@@ -168,7 +168,8 @@ input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid var(--i
 .badge[data-k="plant"] { color: var(--plant); background: var(--plant-bg); }
 .badge[data-k="abstain"] { color: var(--abstain); background: var(--abstain-bg); }
 .part[lang="ar"] .badge { font-size: 0.95rem; }
-.readout { font-family: var(--f-mono); font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; display: inline-block; }
+.readout { font-variant-numeric: tabular-nums; font-weight: 600; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; display: inline-block; }
 .q-en { unicode-bidi: isolate; direction: ltr; text-align: left; font-style: italic; }
 .q-gloss { display: block; font-weight: 600; margin-bottom: 4px; }
 .mini { font-size: var(--t-sm); color: var(--ink-2); }
@@ -224,7 +225,7 @@ input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid var(--i
 .hb { display: grid; gap: 14px; }
 .hb-row { display: grid; gap: 4px; }
 .hb-lab { font-size: var(--t-sm); color: var(--ink); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.hb-lab .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; direction: ltr; }
+.hb-lab .v { font-variant-numeric: tabular-nums; unicode-bidi: isolate; }
 .hb-track { direction: ltr; height: 22px; background: var(--paper-2); border-radius: 3px; position: relative; overflow: hidden; }
 .hb-fill { position: absolute; inset: 0 auto 0 0; width: 100%; transform-origin: left center; background: var(--ink-2); border-radius: 0 4px 4px 0; transition: transform 0.45s var(--ease); }
 .hb-fill[data-k="pass"] { background: var(--pass); }
@@ -261,7 +262,7 @@ input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid var(--i
 .dial .thr { stroke: var(--accent); stroke-width: 3; }
 .dial .zone-lo { stroke: var(--reject); } .dial .zone-mid { stroke: var(--hold); } .dial .zone-hi { stroke: var(--pass); }
 .dial .zone { fill: none; stroke-width: 10; opacity: 0.85; }
-.readout-big { text-align: center; font-family: var(--f-mono); font-size: var(--t-2xl); font-weight: 500; line-height: 1; margin-top: -6px; }
+.readout-big { text-align: center; font-size: var(--t-2xl); font-weight: 500; line-height: 1; margin-top: -6px; }
 .gauge-grid { display: grid; gap: 16px; }
 @media (min-width: 640px) { .gauge-grid { grid-template-columns: 220px 1fr; align-items: center; } .gauge-grid .dial { max-width: 220px; } }
 @media (min-width: 1000px) and (max-width: 1180px) { .gauge-grid { grid-template-columns: 1fr; } .gauge-grid .dial { max-width: 300px; } }
@@ -285,9 +286,13 @@ input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid var(--i
 .band-zones .z-hi span:last-child { display: none; }
 @media (min-width: 520px) { .band-zones .z-hi span:last-child { display: inline; } }
 .band-line { position: absolute; top: -26px; bottom: 36px; width: 0; border-inline-start: 2px solid var(--ink); }
-.band-line b { position: absolute; top: -2px; left: 0; transform: translateX(-50%); font-family: var(--f-mono); font-size: var(--t-xs); font-weight: 500; background: var(--paper); border: 1px solid var(--ink); padding: 0 5px; border-radius: var(--r-sm); white-space: nowrap; }
-.band-ticks { position: relative; height: 26px; margin-top: 4px; }
-.band-ticks .tk { position: absolute; top: 2px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--sheet); }
+.band-line b { position: absolute; top: -2px; left: 0; transform: translateX(-50%); font-size: var(--t-xs); font-weight: 500; background: var(--paper); border: 1px solid var(--ink); padding: 0 5px; border-radius: var(--r-sm); white-space: nowrap; }
+.band-ticks { position: relative; height: 34px; margin-top: 4px; }
+.band-ticks .tk { position: absolute; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--sheet); padding: 0; cursor: pointer; }
+.band-ticks .tk::after { content: ""; position: absolute; inset: -10px; }
+.band-ticks .tk[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
+.tk-legend { list-style: none; margin: 6px 0 14px; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: var(--t-xs); color: var(--ink-2); }
+.tk-legend .tkd { display: inline-block; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ink); margin-inline-end: 5px; }
 .band .slide { margin-top: 6px; }
 .band-out { margin-top: 14px; display: grid; gap: 6px; }
 .band-out .big { font-size: var(--t-lg); font-weight: 600; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }

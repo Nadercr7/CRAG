@@ -933,7 +933,7 @@
     ["D", "Plus sentence trimming"],
     ["E", "Plus decision and query rewrite"],
     ["F", "Plus the sufficiency gate: the full system"],
-    ["G", "F with one threshold instead of two"]
+    ["G", "A variant: F with one threshold instead of two"]
   ];
   def("arms", {
     mount: function (el) {
@@ -941,7 +941,7 @@
       txt(s, 0, 30, "Same generator and same prompts for every arm.", "lab", "start");
       line(s, 0, base, 1680, base, "axis-l");
       ARMS.forEach(function (a, i) {
-        var x = i * 240, top = 500 - i * 50, g = SV("g", { "class": "rung" + (a[0] === "F" ? " full" : "") }, s);
+        var x = i * 240, top = 500 - Math.min(i, 5) * 50, g = SV("g", { "class": "rung" + (a[0] === "F" ? " full" : "") + (a[0] === "G" ? " variant" : "") }, s);
         rect(g, x, top, 224, base - top, "rg", 8);
         txt(g, x + 20, base - 22, a[0], "arm-l", "start");
         wrapSvg(g, a[1], x, top - 18, 17, 34, "lab m" + (a[0] === "F" ? " fw" : ""), true);
@@ -1103,7 +1103,7 @@
       [0.5, 0.6, 0.7, 0.8, 0.9, 1].forEach(function (v) { line(s, x0, Y(v), x0 + xw, Y(v), v === 0.5 ? "axis-l" : "grid-l"); txt(s, x0 - 14, Y(v) + 9, P0(v) + "%", "ax", "end"); });
       [0, 0.2, 0.4, 0.6, 0.8].forEach(function (v) { txt(s, X(v), yb + 40, P0(v) + "%", "ax", "middle"); });
       txt(s, X(0.4), yb + 84, "share of questions answered", "lab m", "middle");
-      txt(s, 0, 24, "share of answers that are right", "lab m", "start");
+      txt(s, 0, 24, "share of answers that are right (supportive questions only)", "lab m", "start");
       var pts5 = pts.filter(function (p) { return p[0] >= 0.05; });
       var d = pts5.map(function (p, i) { return (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(Math.max(0.5, p[1])).toFixed(1); }).join(" ");
       var path = SV("path", { d: d, "class": "curve", fill: "none" }, s);
@@ -1124,8 +1124,8 @@
       R.style.cssText = "left:1100px;top:30px;width:580px";
       var cc = cmp("F", "A", "supportive", "correct");
       R.innerHTML =
-        '<div class="st2"><span class="k">Answered</span><div class="v"><span class="from">' + P0(aa.coverage) + '</span><span class="ar">→</span><span class="to">' + P0(fa.coverage) + '</span><small>%</small></div></div>' +
-        '<div class="st2"><span class="k">Correct</span><div class="v"><span class="from">' + P1(aa.correct) + '</span><span class="ar">→</span><span class="to">' + P1(fa.correct) + '</span><small>%</small></div>' +
+        '<div class="st2"><span class="k">Answered, supportive</span><div class="v"><span class="from">' + P0(aa.coverage) + '</span><span class="ar">→</span><span class="to">' + P0(fa.coverage) + '</span><small>%</small></div></div>' +
+        '<div class="st2"><span class="k">Correct, supportive</span><div class="v"><span class="from">' + P1(aa.correct) + '</span><span class="ar">→</span><span class="to">' + P1(fa.correct) + '</span><small>%</small></div>' +
         '<p class="cap" style="margin:6px 0 0">' + PP(cc.mean_diff) + ' pp, 95% interval [' + PP(cc.ci_low) + ', ' + PP(cc.ci_high) + '], p = ' + cc.p_value.toFixed(2) + '</p></div>';
       c.appendChild(R);
     },

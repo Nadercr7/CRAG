@@ -431,7 +431,7 @@
     function update(first) {
       var p = SC(key).F.top[sel];
       $$("button", list).forEach(function (b, i) { b.setAttribute("aria-pressed", String(i === sel)); });
-      big.textContent = f3(p.prob);
+      clear(big); big.appendChild(h("span", { class: "mono", text: f3(p.prob) }));
       if (first) settle(body, function () { setNeedle(svg, p.prob); }); else setNeedle(svg, p.prob);
     }
     body.appendChild(picker(t, SC_KEYS, key, function (k) { key = k; sel = 0; render(false); }));
@@ -449,9 +449,15 @@
       h("div", { class: "z-mid", style: "flex:1 1 0" }, h("span", { html: icon("hold"), "aria-hidden": "true" }), h("span", { text: B.mid })),
       h("div", { class: "z-hi", style: "flex:0 0 " + (1 - hi) * 100 + "%" }, h("span", { html: icon("pass"), "aria-hidden": "true" }), h("span", { text: B.hi })));
     var range = h("input", { type: "range", min: "0", max: "1", step: "0.005", value: String(SC(key).F.best_prob), "aria-label": B.score + ". " + B.label, class: "slide" });
-    var line = function (v, lab) { return h("div", { class: "band-line", style: "left:" + v * 100 + "%" }, h("b", { text: lab + " " + f2(v) })); };
-    var ticks = h("div", { class: "band-ticks", "aria-hidden": "true" });
-    SC_KEYS.forEach(function (k) { ticks.appendChild(h("span", { class: "tk", style: "left:" + SC(k).F.best_prob * 100 + "%", title: t.sc[k] })); });
+    var line = function (v, lab) { return h("div", { class: "band-line", style: "left:" + v * 100 + "%" }, h("b", {}, lab + " ", h("span", { class: "mono", text: f2(v) }))); };
+    var ticks = h("div", { class: "band-ticks" });
+    var tickEls = {}, prevPos = -1, row = 0;
+    SC_KEYS.slice().sort(function (x, y) { return SC(x).F.best_prob - SC(y).F.best_prob; }).forEach(function (k) {
+      var p = SC(k).F.best_prob;
+      row = (p - prevPos < 0.03 && prevPos >= 0) ? (row + 1) % 2 : 0; prevPos = p;
+      var b = h("button", { type: "button", class: "tk", style: "left:" + p * 100 + "%;top:" + (row * 15) + "px", title: t.sc[k] + " " + f3(p), "aria-label": t.sc[k] + " " + f3(p), "aria-pressed": String(k === key), on: { click: function () { choose(k); } } });
+      tickEls[k] = b; ticks.appendChild(b);
+    });
     var band = h("div", { class: "band" }, zones, line(lo, "τ low"), line(hi, "τ high"), ticks, range);
     var out = h("div", { class: "band-out", "aria-live": "polite" });
     function render() {
@@ -459,16 +465,23 @@
       var k = v >= hi ? "hi" : v > lo ? "mid" : "lo";
       var bk = k === "hi" ? "pass" : k === "mid" ? "hold" : "reject";
       clear(out);
-      out.appendChild(h("div", { class: "big" }, h("span", { class: "readout", text: B.score + " " + f3(v) }), badge(bk, B[k])));
+      out.appendChild(h("div", { class: "big" }, h("span", { class: "readout" }, B.score + " ", h("span", { class: "mono", text: f3(v) })), badge(bk, B[k])));
       out.appendChild(h("p", { text: B.next[k] }));
       range.setAttribute("aria-valuetext", f3(v) + ", " + B[k]);
     }
     range.addEventListener("input", render);
-    var pk = picker(t, SC_KEYS, key, function (k) { key = k; var v = SC(k).F.best_prob; range.value = v; render(); });
+    var pk = picker(t, SC_KEYS, key, function (k) { choose(k, true); });
+    function choose(k, fromPicker) {
+      key = k; range.value = SC(k).F.best_prob; render();
+      SC_KEYS.forEach(function (x) { tickEls[x].setAttribute("aria-pressed", String(x === k)); });
+      $$("button", pk).forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.k === k)); });
+    }
+    var tl = h("ul", { class: "tk-legend" });
+    SC_KEYS.forEach(function (k) { tl.appendChild(h("li", {}, h("span", { class: "tkd" }), t.sc[k] + " ", h("span", { class: "mono", text: f3(SC(k).F.best_prob) }))); });
     var lg = h("div", { class: "hb-legend", style: "margin-top:0" },
       h("span", {}, badge("reject", B.lo), " " + tpl(B.rl, { a: f2(lo) })), h("span", {}, badge("hold", B.mid), " " + tpl(B.rm, { a: f2(lo), b: f2(hi) })), h("span", {}, badge("pass", B.hi), " " + tpl(B.rh, { b: f2(hi) })));
     body.appendChild(pk);
-    body.appendChild(band); body.appendChild(lg); body.appendChild(out);
+    body.appendChild(band); body.appendChild(tl); body.appendChild(lg); body.appendChild(out);
     render();
   };
 
@@ -519,7 +532,7 @@
     function paint() {
       var s = SC(key), n = 0, lost = false;
       cut = parseFloat(range.value);
-      readout.textContent = Tm.cut + " " + f3(cut) + (Math.abs(cut - th) < 0.0001 ? " (" + Tm.def + ")" : "");
+      clear(readout); readout.appendChild(document.createTextNode(Tm.cut + " ")); readout.appendChild(h("span", { class: "mono", text: f3(cut) })); if (Math.abs(cut - th) < 0.0001) readout.appendChild(document.createTextNode(" (" + Tm.def + ")"));
       $$("li", list).forEach(function (li, i) {
         var x = s.F.sentences[i], kept = x.prob >= cut;
         if (kept) n++; else if (x.gold) lost = true;
@@ -552,7 +565,7 @@
     function render() {
       var s = SC(key), v = s.F.sufficiency;
       thr = parseFloat(range.value);
-      big.textContent = S.score + " " + f3(v);
+      clear(big); big.appendChild(document.createTextNode(S.score + " ")); big.appendChild(h("span", { class: "mono", text: f3(v) }));
       setNeedle(svg, v); setThr(svg, thr);
       clear(verdict); verdict.appendChild(v >= thr ? badge("pass", S.enough) : badge("abstain", S.notenough));
       rl.textContent = S.thr + ": " + f2(thr);
