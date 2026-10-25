@@ -1,0 +1,4122 @@
+{
+ "calibration": {
+  "passage": {
+   "n": 8000,
+   "positives": 390,
+   "before": {
+    "brier": 0.05768097162217752,
+    "ece": 0.0844671852393383
+   },
+   "after": {
+    "brier": 0.026871172218462646,
+    "ece": 0.0048643561224130435
+   },
+   "after_cv": {
+    "brier": 0.026971433649909313,
+    "ece": 0.004868826034710149
+   },
+   "a": 0.7335840028657962,
+   "b": -2.3793201185411705
+  },
+  "sentence": {
+   "n": 7481,
+   "positives": 451,
+   "before": {
+    "brier": 0.11070404289897537,
+    "ece": 0.1559091195459352
+   },
+   "after": {
+    "brier": 0.03996208202023877,
+    "ece": 0.006362719454124987
+   },
+   "after_cv": {
+    "brier": 0.04006818749379937,
+    "ece": 0.0051061935817953265
+   },
+   "a": 0.6449325627243067,
+   "b": -2.52363973235552
+  },
+  "sentence_all": {
+   "n": 33857,
+   "positives": 465,
+   "before": {
+    "brier": 0.029021908019839993,
+    "ece": 0.049802811438975345
+   },
+   "after": {
+    "brier": 0.009360814019073904,
+    "ece": 0.0010266535568812815
+   },
+   "after_cv": {
+    "brier": 0.009382478772870167,
+    "ece": 0.001021435587077192
+   },
+   "a": 0.7568027755232604,
+   "b": -2.899994070418265
+  }
+ },
+ "chosen": {
+  "tau_hi": 0.65,
+  "tau_lo": 0.15,
+  "tau_single": 0.15,
+  "notes": [],
+  "tau_chunk": 0.01,
+  "top_k_context": 8,
+  "tau_keep": 0.05
+ },
+ "decision_grid": {
+  "pairs": [
+   {
+    "tau_hi": 0.5,
+    "tau_lo": 0.05,
+    "supportive": {
+     "correct": 0.73,
+     "ambiguous": 0.265,
+     "incorrect": 0.005
+    },
+    "missing": {
+     "correct": 0.11,
+     "ambiguous": 0.575,
+     "incorrect": 0.315
+    },
+    "precision_correct": 0.8690476190476191
+   },
+   {
+    "tau_hi": 0.5,
+    "tau_lo": 0.1,
+    "supportive": {
+     "correct": 0.73,
+     "ambiguous": 0.245,
+     "incorrect": 0.025
+    },
+    "missing": {
+     "correct": 0.11,
+     "ambiguous": 0.415,
+     "incorrect": 0.475
+    },
+    "precision_correct": 0.8690476190476191
+   },
+   {
+    "tau_hi": 0.5,
+    "tau_lo": 0.15,
+    "supportive": {
+     "correct": 0.73,
+     "ambiguous": 0.23,
+     "incorrect": 0.04
+    },
+    "missing": {
+     "correct": 0.11,
+     "ambiguous": 0.29,
+     "incorrect": 0.6
+    },
+    "precision_correct": 0.8690476190476191
+   },
+   {
+    "tau_hi": 0.5,
+    "tau_lo": 0.2,
+    "supportive": {
+     "correct": 0.73,
+     "ambiguous": 0.19,
+     "incorrect": 0.08
+    },
+    "missing": {
+     "correct": 0.11,
+     "ambiguous": 0.19,
+     "incorrect": 0.7
+    },
+    "precision_correct": 0.8690476190476191
+   },
+   {
+    "tau_hi": 0.5,
+    "tau_lo": 0.25,
+    "supportive": {
+     "correct": 0.73,
+     "ambiguous": 0.18,
+     "incorrect": 0.09
+    },
+    "missing": {
+     "correct": 0.11,
+     "ambiguous": 0.135,
+     "incorrect": 0.755
+    },
+    "precision_correct": 0.8690476190476191
+   },
+   {
+    "tau_hi": 0.5,
+    "tau_lo": 0.3,
+    "supportive": {
+     "correct": 0.73,
+     "ambiguous": 0.155,
+     "incorrect": 0.115
+    },
+    "missing": {
+     "correct": 0.11,
+     "ambiguous": 0.12,
+     "incorrect": 0.77
+    },
+    "precision_correct": 0.8690476190476191
+   },
+   {
+    "tau_hi": 0.5,
+    "tau_lo": 0.35,
+    "supportive": {
+     "correct": 0.73,
+     "ambiguous": 0.13,
+     "incorrect": 0.14
+    },
+    "missing": {
+     "correct": 0.11,
+     "ambiguous": 0.085,
+     "incorrect": 0.805
+    },
+    "precision_correct": 0.8690476190476191
+   },
+   {
+    "tau_hi": 0.5,
+    "tau_lo": 0.4,
+    "supportive": {
+     "correct": 0.73,
+     "ambiguous": 0.085,
+     "incorrect": 0.185
+    },
+    "missing": {
+     "correct": 0.11,
+     "ambiguous": 0.05,
+     "incorrect": 0.84
+    },
+    "precision_correct": 0.8690476190476191
+   },
+   {
+    "tau_hi": 0.5,
+    "tau_lo": 0.45,
+    "supportive": {
+     "correct": 0.73,
+     "ambiguous": 0.025,
+     "incorrect": 0.245
+    },
+    "missing": {
+     "correct": 0.11,
+     "ambiguous": 0.02,
+     "incorrect": 0.87
+    },
+    "precision_correct": 0.8690476190476191
+   },
+   {
+    "tau_hi": 0.55,
+    "tau_lo": 0.05,
+    "supportive": {
+     "correct": 0.665,
+     "ambiguous": 0.33,
+     "incorrect": 0.005
+    },
+    "missing": {
+     "correct": 0.095,
+     "ambiguous": 0.59,
+     "incorrect": 0.315
+    },
+    "precision_correct": 0.875
+   },
+   {
+    "tau_hi": 0.55,
+    "tau_lo": 0.1,
+    "supportive": {
+     "correct": 0.665,
+     "ambiguous": 0.31,
+     "incorrect": 0.025
+    },
+    "missing": {
+     "correct": 0.095,
+     "ambiguous": 0.43,
+     "incorrect": 0.475
+    },
+    "precision_correct": 0.875
+   },
+   {
+    "tau_hi": 0.55,
+    "tau_lo": 0.15,
+    "supportive": {
+     "correct": 0.665,
+     "ambiguous": 0.295,
+     "incorrect": 0.04
+    },
+    "missing": {
+     "correct": 0.095,
+     "ambiguous": 0.305,
+     "incorrect": 0.6
+    },
+    "precision_correct": 0.875
+   },
+   {
+    "tau_hi": 0.55,
+    "tau_lo": 0.2,
+    "supportive": {
+     "correct": 0.665,
+     "ambiguous": 0.255,
+     "incorrect": 0.08
+    },
+    "missing": {
+     "correct": 0.095,
+     "ambiguous": 0.205,
+     "incorrect": 0.7
+    },
+    "precision_correct": 0.875
+   },
+   {
+    "tau_hi": 0.55,
+    "tau_lo": 0.25,
+    "supportive": {
+     "correct": 0.665,
+     "ambiguous": 0.245,
+     "incorrect": 0.09
+    },
+    "missing": {
+     "correct": 0.095,
+     "ambiguous": 0.15,
+     "incorrect": 0.755
+    },
+    "precision_correct": 0.875
+   },
+   {
+    "tau_hi": 0.55,
+    "tau_lo": 0.3,
+    "supportive": {
+     "correct": 0.665,
+     "ambiguous": 0.22,
+     "incorrect": 0.115
+    },
+    "missing": {
+     "correct": 0.095,
+     "ambiguous": 0.135,
+     "incorrect": 0.77
+    },
+    "precision_correct": 0.875
+   },
+   {
+    "tau_hi": 0.55,
+    "tau_lo": 0.35,
+    "supportive": {
+     "correct": 0.665,
+     "ambiguous": 0.195,
+     "incorrect": 0.14
+    },
+    "missing": {
+     "correct": 0.095,
+     "ambiguous": 0.1,
+     "incorrect": 0.805
+    },
+    "precision_correct": 0.875
+   },
+   {
+    "tau_hi": 0.55,
+    "tau_lo": 0.4,
+    "supportive": {
+     "correct": 0.665,
+     "ambiguous": 0.15,
+     "incorrect": 0.185
+    },
+    "missing": {
+     "correct": 0.095,
+     "ambiguous": 0.065,
+     "incorrect": 0.84
+    },
+    "precision_correct": 0.875
+   },
+   {
+    "tau_hi": 0.55,
+    "tau_lo": 0.45,
+    "supportive": {
+     "correct": 0.665,
+     "ambiguous": 0.09,
+     "incorrect": 0.245
+    },
+    "missing": {
+     "correct": 0.095,
+     "ambiguous": 0.035,
+     "incorrect": 0.87
+    },
+    "precision_correct": 0.875
+   },
+   {
+    "tau_hi": 0.55,
+    "tau_lo": 0.5,
+    "supportive": {
+     "correct": 0.665,
+     "ambiguous": 0.065,
+     "incorrect": 0.27
+    },
+    "missing": {
+     "correct": 0.095,
+     "ambiguous": 0.015,
+     "incorrect": 0.89
+    },
+    "precision_correct": 0.875
+   },
+   {
+    "tau_hi": 0.6,
+    "tau_lo": 0.05,
+    "supportive": {
+     "correct": 0.635,
+     "ambiguous": 0.36,
+     "incorrect": 0.005
+    },
+    "missing": {
+     "correct": 0.08,
+     "ambiguous": 0.605,
+     "incorrect": 0.315
+    },
+    "precision_correct": 0.8881118881118881
+   },
+   {
+    "tau_hi": 0.6,
+    "tau_lo": 0.1,
+    "supportive": {
+     "correct": 0.635,
+     "ambiguous": 0.34,
+     "incorrect": 0.025
+    },
+    "missing": {
+     "correct": 0.08,
+     "ambiguous": 0.445,
+     "incorrect": 0.475
+    },
+    "precision_correct": 0.8881118881118881
+   },
+   {
+    "tau_hi": 0.6,
+    "tau_lo": 0.15,
+    "supportive": {
+     "correct": 0.635,
+     "ambiguous": 0.325,
+     "incorrect": 0.04
+    },
+    "missing": {
+     "correct": 0.08,
+     "ambiguous": 0.32,
+     "incorrect": 0.6
+    },
+    "precision_correct": 0.8881118881118881
+   },
+   {
+    "tau_hi": 0.6,
+    "tau_lo": 0.2,
+    "supportive": {
+     "correct": 0.635,
+     "ambiguous": 0.285,
+     "incorrect": 0.08
+    },
+    "missing": {
+     "correct": 0.08,
+     "ambiguous": 0.22,
+     "incorrect": 0.7
+    },
+    "precision_correct": 0.8881118881118881
+   },
+   {
+    "tau_hi": 0.6,
+    "tau_lo": 0.25,
+    "supportive": {
+     "correct": 0.635,
+     "ambiguous": 0.275,
+     "incorrect": 0.09
+    },
+    "missing": {
+     "correct": 0.08,
+     "ambiguous": 0.165,
+     "incorrect": 0.755
+    },
+    "precision_correct": 0.8881118881118881
+   },
+   {
+    "tau_hi": 0.6,
+    "tau_lo": 0.3,
+    "supportive": {
+     "correct": 0.635,
+     "ambiguous": 0.25,
+     "incorrect": 0.115
+    },
+    "missing": {
+     "correct": 0.08,
+     "ambiguous": 0.15,
+     "incorrect": 0.77
+    },
+    "precision_correct": 0.8881118881118881
+   },
+   {
+    "tau_hi": 0.6,
+    "tau_lo": 0.35,
+    "supportive": {
+     "correct": 0.635,
+     "ambiguous": 0.225,
+     "incorrect": 0.14
+    },
+    "missing": {
+     "correct": 0.08,
+     "ambiguous": 0.115,
+     "incorrect": 0.805
+    },
+    "precision_correct": 0.8881118881118881
+   },
+   {
+    "tau_hi": 0.6,
+    "tau_lo": 0.4,
+    "supportive": {
+     "correct": 0.635,
+     "ambiguous": 0.18,
+     "incorrect": 0.185
+    },
+    "missing": {
+     "correct": 0.08,
+     "ambiguous": 0.08,
+     "incorrect": 0.84
+    },
+    "precision_correct": 0.8881118881118881
+   },
+   {
+    "tau_hi": 0.6,
+    "tau_lo": 0.45,
+    "supportive": {
+     "correct": 0.635,
+     "ambiguous": 0.12,
+     "incorrect": 0.245
+    },
+    "missing": {
+     "correct": 0.08,
+     "ambiguous": 0.05,
+     "incorrect": 0.87
+    },
+    "precision_correct": 0.8881118881118881
+   },
+   {
+    "tau_hi": 0.6,
+    "tau_lo": 0.5,
+    "supportive": {
+     "correct": 0.635,
+     "ambiguous": 0.095,
+     "incorrect": 0.27
+    },
+    "missing": {
+     "correct": 0.08,
+     "ambiguous": 0.03,
+     "incorrect": 0.89
+    },
+    "precision_correct": 0.8881118881118881
+   },
+   {
+    "tau_hi": 0.65,
+    "tau_lo": 0.05,
+    "supportive": {
+     "correct": 0.575,
+     "ambiguous": 0.42,
+     "incorrect": 0.005
+    },
+    "missing": {
+     "correct": 0.06,
+     "ambiguous": 0.625,
+     "incorrect": 0.315
+    },
+    "precision_correct": 0.905511811023622
+   },
+   {
+    "tau_hi": 0.65,
+    "tau_lo": 0.1,
+    "supportive": {
+     "correct": 0.575,
+     "ambiguous": 0.4,
+     "incorrect": 0.025
+    },
+    "missing": {
+     "correct": 0.06,
+     "ambiguous": 0.465,
+     "incorrect": 0.475
+    },
+    "precision_correct": 0.905511811023622
+   },
+   {
+    "tau_hi": 0.65,
+    "tau_lo": 0.15,
+    "supportive": {
+     "correct": 0.575,
+     "ambiguous": 0.385,
+     "incorrect": 0.04
+    },
+    "missing": {
+     "correct": 0.06,
+     "ambiguous": 0.34,
+     "incorrect": 0.6
+    },
+    "precision_correct": 0.905511811023622
+   },
+   {
+    "tau_hi": 0.65,
+    "tau_lo": 0.2,
+    "supportive": {
+     "correct": 0.575,
+     "ambiguous": 0.345,
+     "incorrect": 0.08
+    },
+    "missing": {
+     "correct": 0.06,
+     "ambiguous": 0.24,
+     "incorrect": 0.7
+    },
+    "precision_correct": 0.905511811023622
+   },
+   {
+    "tau_hi": 0.65,
+    "tau_lo": 0.25,
+    "supportive": {
+     "correct": 0.575,
+     "ambiguous": 0.335,
+     "incorrect": 0.09
+    },
+    "missing": {
+     "correct": 0.06,
+     "ambiguous": 0.185,
+     "incorrect": 0.755
+    },
+    "precision_correct": 0.905511811023622
+   },
+   {
+    "tau_hi": 0.65,
+    "tau_lo": 0.3,
+    "supportive": {
+     "correct": 0.575,
+     "ambiguous": 0.31,
+     "incorrect": 0.115
+    },
+    "missing": {
+     "correct": 0.06,
+     "ambiguous": 0.17,
+     "incorrect": 0.77
+    },
+    "precision_correct": 0.905511811023622
+   },
+   {
+    "tau_hi": 0.65,
+    "tau_lo": 0.35,
+    "supportive": {
+     "correct": 0.575,
+     "ambiguous": 0.285,
+     "incorrect": 0.14
+    },
+    "missing": {
+     "correct": 0.06,
+     "ambiguous": 0.135,
+     "incorrect": 0.805
+    },
+    "precision_correct": 0.905511811023622
+   },
+   {
+    "tau_hi": 0.65,
+    "tau_lo": 0.4,
+    "supportive": {
+     "correct": 0.575,
+     "ambiguous": 0.24,
+     "incorrect": 0.185
+    },
+    "missing": {
+     "correct": 0.06,
+     "ambiguous": 0.1,
+     "incorrect": 0.84
+    },
+    "precision_correct": 0.905511811023622
+   },
+   {
+    "tau_hi": 0.65,
+    "tau_lo": 0.45,
+    "supportive": {
+     "correct": 0.575,
+     "ambiguous": 0.18,
+     "incorrect": 0.245
+    },
+    "missing": {
+     "correct": 0.06,
+     "ambiguous": 0.07,
+     "incorrect": 0.87
+    },
+    "precision_correct": 0.905511811023622
+   },
+   {
+    "tau_hi": 0.65,
+    "tau_lo": 0.5,
+    "supportive": {
+     "correct": 0.575,
+     "ambiguous": 0.155,
+     "incorrect": 0.27
+    },
+    "missing": {
+     "correct": 0.06,
+     "ambiguous": 0.05,
+     "incorrect": 0.89
+    },
+    "precision_correct": 0.905511811023622
+   },
+   {
+    "tau_hi": 0.7,
+    "tau_lo": 0.05,
+    "supportive": {
+     "correct": 0.51,
+     "ambiguous": 0.485,
+     "incorrect": 0.005
+    },
+    "missing": {
+     "correct": 0.04,
+     "ambiguous": 0.645,
+     "incorrect": 0.315
+    },
+    "precision_correct": 0.9272727272727272
+   },
+   {
+    "tau_hi": 0.7,
+    "tau_lo": 0.1,
+    "supportive": {
+     "correct": 0.51,
+     "ambiguous": 0.465,
+     "incorrect": 0.025
+    },
+    "missing": {
+     "correct": 0.04,
+     "ambiguous": 0.485,
+     "incorrect": 0.475
+    },
+    "precision_correct": 0.9272727272727272
+   },
+   {
+    "tau_hi": 0.7,
+    "tau_lo": 0.15,
+    "supportive": {
+     "correct": 0.51,
+     "ambiguous": 0.45,
+     "incorrect": 0.04
+    },
+    "missing": {
+     "correct": 0.04,
+     "ambiguous": 0.36,
+     "incorrect": 0.6
+    },
+    "precision_correct": 0.9272727272727272
+   },
+   {
+    "tau_hi": 0.7,
+    "tau_lo": 0.2,
+    "supportive": {
+     "correct": 0.51,
+     "ambiguous": 0.41,
+     "incorrect": 0.08
+    },
+    "missing": {
+     "correct": 0.04,
+     "ambiguous": 0.26,
+     "incorrect": 0.7
+    },
+    "precision_correct": 0.9272727272727272
+   },
+   {
+    "tau_hi": 0.7,
+    "tau_lo": 0.25,
+    "supportive": {
+     "correct": 0.51,
+     "ambiguous": 0.4,
+     "incorrect": 0.09
+    },
+    "missing": {
+     "correct": 0.04,
+     "ambiguous": 0.205,
+     "incorrect": 0.755
+    },
+    "precision_correct": 0.9272727272727272
+   },
+   {
+    "tau_hi": 0.7,
+    "tau_lo": 0.3,
+    "supportive": {
+     "correct": 0.51,
+     "ambiguous": 0.375,
+     "incorrect": 0.115
+    },
+    "missing": {
+     "correct": 0.04,
+     "ambiguous": 0.19,
+     "incorrect": 0.77
+    },
+    "precision_correct": 0.9272727272727272
+   },
+   {
+    "tau_hi": 0.7,
+    "tau_lo": 0.35,
+    "supportive": {
+     "correct": 0.51,
+     "ambiguous": 0.35,
+     "incorrect": 0.14
+    },
+    "missing": {
+     "correct": 0.04,
+     "ambiguous": 0.155,
+     "incorrect": 0.805
+    },
+    "precision_correct": 0.9272727272727272
+   },
+   {
+    "tau_hi": 0.7,
+    "tau_lo": 0.4,
+    "supportive": {
+     "correct": 0.51,
+     "ambiguous": 0.305,
+     "incorrect": 0.185
+    },
+    "missing": {
+     "correct": 0.04,
+     "ambiguous": 0.12,
+     "incorrect": 0.84
+    },
+    "precision_correct": 0.9272727272727272
+   },
+   {
+    "tau_hi": 0.7,
+    "tau_lo": 0.45,
+    "supportive": {
+     "correct": 0.51,
+     "ambiguous": 0.245,
+     "incorrect": 0.245
+    },
+    "missing": {
+     "correct": 0.04,
+     "ambiguous": 0.09,
+     "incorrect": 0.87
+    },
+    "precision_correct": 0.9272727272727272
+   },
+   {
+    "tau_hi": 0.7,
+    "tau_lo": 0.5,
+    "supportive": {
+     "correct": 0.51,
+     "ambiguous": 0.22,
+     "incorrect": 0.27
+    },
+    "missing": {
+     "correct": 0.04,
+     "ambiguous": 0.07,
+     "incorrect": 0.89
+    },
+    "precision_correct": 0.9272727272727272
+   },
+   {
+    "tau_hi": 0.75,
+    "tau_lo": 0.05,
+    "supportive": {
+     "correct": 0.4,
+     "ambiguous": 0.595,
+     "incorrect": 0.005
+    },
+    "missing": {
+     "correct": 0.03,
+     "ambiguous": 0.655,
+     "incorrect": 0.315
+    },
+    "precision_correct": 0.9302325581395349
+   },
+   {
+    "tau_hi": 0.75,
+    "tau_lo": 0.1,
+    "supportive": {
+     "correct": 0.4,
+     "ambiguous": 0.575,
+     "incorrect": 0.025
+    },
+    "missing": {
+     "correct": 0.03,
+     "ambiguous": 0.495,
+     "incorrect": 0.475
+    },
+    "precision_correct": 0.9302325581395349
+   },
+   {
+    "tau_hi": 0.75,
+    "tau_lo": 0.15,
+    "supportive": {
+     "correct": 0.4,
+     "ambiguous": 0.56,
+     "incorrect": 0.04
+    },
+    "missing": {
+     "correct": 0.03,
+     "ambiguous": 0.37,
+     "incorrect": 0.6
+    },
+    "precision_correct": 0.9302325581395349
+   },
+   {
+    "tau_hi": 0.75,
+    "tau_lo": 0.2,
+    "supportive": {
+     "correct": 0.4,
+     "ambiguous": 0.52,
+     "incorrect": 0.08
+    },
+    "missing": {
+     "correct": 0.03,
+     "ambiguous": 0.27,
+     "incorrect": 0.7
+    },
+    "precision_correct": 0.9302325581395349
+   },
+   {
+    "tau_hi": 0.75,
+    "tau_lo": 0.25,
+    "supportive": {
+     "correct": 0.4,
+     "ambiguous": 0.51,
+     "incorrect": 0.09
+    },
+    "missing": {
+     "correct": 0.03,
+     "ambiguous": 0.215,
+     "incorrect": 0.755
+    },
+    "precision_correct": 0.9302325581395349
+   },
+   {
+    "tau_hi": 0.75,
+    "tau_lo": 0.3,
+    "supportive": {
+     "correct": 0.4,
+     "ambiguous": 0.485,
+     "incorrect": 0.115
+    },
+    "missing": {
+     "correct": 0.03,
+     "ambiguous": 0.2,
+     "incorrect": 0.77
+    },
+    "precision_correct": 0.9302325581395349
+   },
+   {
+    "tau_hi": 0.75,
+    "tau_lo": 0.35,
+    "supportive": {
+     "correct": 0.4,
+     "ambiguous": 0.46,
+     "incorrect": 0.14
+    },
+    "missing": {
+     "correct": 0.03,
+     "ambiguous": 0.165,
+     "incorrect": 0.805
+    },
+    "precision_correct": 0.9302325581395349
+   },
+   {
+    "tau_hi": 0.75,
+    "tau_lo": 0.4,
+    "supportive": {
+     "correct": 0.4,
+     "ambiguous": 0.415,
+     "incorrect": 0.185
+    },
+    "missing": {
+     "correct": 0.03,
+     "ambiguous": 0.13,
+     "incorrect": 0.84
+    },
+    "precision_correct": 0.9302325581395349
+   },
+   {
+    "tau_hi": 0.75,
+    "tau_lo": 0.45,
+    "supportive": {
+     "correct": 0.4,
+     "ambiguous": 0.355,
+     "incorrect": 0.245
+    },
+    "missing": {
+     "correct": 0.03,
+     "ambiguous": 0.1,
+     "incorrect": 0.87
+    },
+    "precision_correct": 0.9302325581395349
+   },
+   {
+    "tau_hi": 0.75,
+    "tau_lo": 0.5,
+    "supportive": {
+     "correct": 0.4,
+     "ambiguous": 0.33,
+     "incorrect": 0.27
+    },
+    "missing": {
+     "correct": 0.03,
+     "ambiguous": 0.08,
+     "incorrect": 0.89
+    },
+    "precision_correct": 0.9302325581395349
+   },
+   {
+    "tau_hi": 0.8,
+    "tau_lo": 0.05,
+    "supportive": {
+     "correct": 0.31,
+     "ambiguous": 0.685,
+     "incorrect": 0.005
+    },
+    "missing": {
+     "correct": 0.02,
+     "ambiguous": 0.665,
+     "incorrect": 0.315
+    },
+    "precision_correct": 0.9393939393939394
+   },
+   {
+    "tau_hi": 0.8,
+    "tau_lo": 0.1,
+    "supportive": {
+     "correct": 0.31,
+     "ambiguous": 0.665,
+     "incorrect": 0.025
+    },
+    "missing": {
+     "correct": 0.02,
+     "ambiguous": 0.505,
+     "incorrect": 0.475
+    },
+    "precision_correct": 0.9393939393939394
+   },
+   {
+    "tau_hi": 0.8,
+    "tau_lo": 0.15,
+    "supportive": {
+     "correct": 0.31,
+     "ambiguous": 0.65,
+     "incorrect": 0.04
+    },
+    "missing": {
+     "correct": 0.02,
+     "ambiguous": 0.38,
+     "incorrect": 0.6
+    },
+    "precision_correct": 0.9393939393939394
+   },
+   {
+    "tau_hi": 0.8,
+    "tau_lo": 0.2,
+    "supportive": {
+     "correct": 0.31,
+     "ambiguous": 0.61,
+     "incorrect": 0.08
+    },
+    "missing": {
+     "correct": 0.02,
+     "ambiguous": 0.28,
+     "incorrect": 0.7
+    },
+    "precision_correct": 0.9393939393939394
+   },
+   {
+    "tau_hi": 0.8,
+    "tau_lo": 0.25,
+    "supportive": {
+     "correct": 0.31,
+     "ambiguous": 0.6,
+     "incorrect": 0.09
+    },
+    "missing": {
+     "correct": 0.02,
+     "ambiguous": 0.225,
+     "incorrect": 0.755
+    },
+    "precision_correct": 0.9393939393939394
+   },
+   {
+    "tau_hi": 0.8,
+    "tau_lo": 0.3,
+    "supportive": {
+     "correct": 0.31,
+     "ambiguous": 0.575,
+     "incorrect": 0.115
+    },
+    "missing": {
+     "correct": 0.02,
+     "ambiguous": 0.21,
+     "incorrect": 0.77
+    },
+    "precision_correct": 0.9393939393939394
+   },
+   {
+    "tau_hi": 0.8,
+    "tau_lo": 0.35,
+    "supportive": {
+     "correct": 0.31,
+     "ambiguous": 0.55,
+     "incorrect": 0.14
+    },
+    "missing": {
+     "correct": 0.02,
+     "ambiguous": 0.175,
+     "incorrect": 0.805
+    },
+    "precision_correct": 0.9393939393939394
+   },
+   {
+    "tau_hi": 0.8,
+    "tau_lo": 0.4,
+    "supportive": {
+     "correct": 0.31,
+     "ambiguous": 0.505,
+     "incorrect": 0.185
+    },
+    "missing": {
+     "correct": 0.02,
+     "ambiguous": 0.14,
+     "incorrect": 0.84
+    },
+    "precision_correct": 0.9393939393939394
+   },
+   {
+    "tau_hi": 0.8,
+    "tau_lo": 0.45,
+    "supportive": {
+     "correct": 0.31,
+     "ambiguous": 0.445,
+     "incorrect": 0.245
+    },
+    "missing": {
+     "correct": 0.02,
+     "ambiguous": 0.11,
+     "incorrect": 0.87
+    },
+    "precision_correct": 0.9393939393939394
+   },
+   {
+    "tau_hi": 0.8,
+    "tau_lo": 0.5,
+    "supportive": {
+     "correct": 0.31,
+     "ambiguous": 0.42,
+     "incorrect": 0.27
+    },
+    "missing": {
+     "correct": 0.02,
+     "ambiguous": 0.09,
+     "incorrect": 0.89
+    },
+    "precision_correct": 0.9393939393939394
+   },
+   {
+    "tau_hi": 0.85,
+    "tau_lo": 0.05,
+    "supportive": {
+     "correct": 0.215,
+     "ambiguous": 0.78,
+     "incorrect": 0.005
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.675,
+     "incorrect": 0.315
+    },
+    "precision_correct": 0.9555555555555556
+   },
+   {
+    "tau_hi": 0.85,
+    "tau_lo": 0.1,
+    "supportive": {
+     "correct": 0.215,
+     "ambiguous": 0.76,
+     "incorrect": 0.025
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.515,
+     "incorrect": 0.475
+    },
+    "precision_correct": 0.9555555555555556
+   },
+   {
+    "tau_hi": 0.85,
+    "tau_lo": 0.15,
+    "supportive": {
+     "correct": 0.215,
+     "ambiguous": 0.745,
+     "incorrect": 0.04
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.39,
+     "incorrect": 0.6
+    },
+    "precision_correct": 0.9555555555555556
+   },
+   {
+    "tau_hi": 0.85,
+    "tau_lo": 0.2,
+    "supportive": {
+     "correct": 0.215,
+     "ambiguous": 0.705,
+     "incorrect": 0.08
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.29,
+     "incorrect": 0.7
+    },
+    "precision_correct": 0.9555555555555556
+   },
+   {
+    "tau_hi": 0.85,
+    "tau_lo": 0.25,
+    "supportive": {
+     "correct": 0.215,
+     "ambiguous": 0.695,
+     "incorrect": 0.09
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.235,
+     "incorrect": 0.755
+    },
+    "precision_correct": 0.9555555555555556
+   },
+   {
+    "tau_hi": 0.85,
+    "tau_lo": 0.3,
+    "supportive": {
+     "correct": 0.215,
+     "ambiguous": 0.67,
+     "incorrect": 0.115
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.22,
+     "incorrect": 0.77
+    },
+    "precision_correct": 0.9555555555555556
+   },
+   {
+    "tau_hi": 0.85,
+    "tau_lo": 0.35,
+    "supportive": {
+     "correct": 0.215,
+     "ambiguous": 0.645,
+     "incorrect": 0.14
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.185,
+     "incorrect": 0.805
+    },
+    "precision_correct": 0.9555555555555556
+   },
+   {
+    "tau_hi": 0.85,
+    "tau_lo": 0.4,
+    "supportive": {
+     "correct": 0.215,
+     "ambiguous": 0.6,
+     "incorrect": 0.185
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.15,
+     "incorrect": 0.84
+    },
+    "precision_correct": 0.9555555555555556
+   },
+   {
+    "tau_hi": 0.85,
+    "tau_lo": 0.45,
+    "supportive": {
+     "correct": 0.215,
+     "ambiguous": 0.54,
+     "incorrect": 0.245
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.12,
+     "incorrect": 0.87
+    },
+    "precision_correct": 0.9555555555555556
+   },
+   {
+    "tau_hi": 0.85,
+    "tau_lo": 0.5,
+    "supportive": {
+     "correct": 0.215,
+     "ambiguous": 0.515,
+     "incorrect": 0.27
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.1,
+     "incorrect": 0.89
+    },
+    "precision_correct": 0.9555555555555556
+   },
+   {
+    "tau_hi": 0.9,
+    "tau_lo": 0.05,
+    "supportive": {
+     "correct": 0.13,
+     "ambiguous": 0.865,
+     "incorrect": 0.005
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.675,
+     "incorrect": 0.315
+    },
+    "precision_correct": 0.9285714285714286
+   },
+   {
+    "tau_hi": 0.9,
+    "tau_lo": 0.1,
+    "supportive": {
+     "correct": 0.13,
+     "ambiguous": 0.845,
+     "incorrect": 0.025
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.515,
+     "incorrect": 0.475
+    },
+    "precision_correct": 0.9285714285714286
+   },
+   {
+    "tau_hi": 0.9,
+    "tau_lo": 0.15,
+    "supportive": {
+     "correct": 0.13,
+     "ambiguous": 0.83,
+     "incorrect": 0.04
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.39,
+     "incorrect": 0.6
+    },
+    "precision_correct": 0.9285714285714286
+   },
+   {
+    "tau_hi": 0.9,
+    "tau_lo": 0.2,
+    "supportive": {
+     "correct": 0.13,
+     "ambiguous": 0.79,
+     "incorrect": 0.08
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.29,
+     "incorrect": 0.7
+    },
+    "precision_correct": 0.9285714285714286
+   },
+   {
+    "tau_hi": 0.9,
+    "tau_lo": 0.25,
+    "supportive": {
+     "correct": 0.13,
+     "ambiguous": 0.78,
+     "incorrect": 0.09
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.235,
+     "incorrect": 0.755
+    },
+    "precision_correct": 0.9285714285714286
+   },
+   {
+    "tau_hi": 0.9,
+    "tau_lo": 0.3,
+    "supportive": {
+     "correct": 0.13,
+     "ambiguous": 0.755,
+     "incorrect": 0.115
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.22,
+     "incorrect": 0.77
+    },
+    "precision_correct": 0.9285714285714286
+   },
+   {
+    "tau_hi": 0.9,
+    "tau_lo": 0.35,
+    "supportive": {
+     "correct": 0.13,
+     "ambiguous": 0.73,
+     "incorrect": 0.14
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.185,
+     "incorrect": 0.805
+    },
+    "precision_correct": 0.9285714285714286
+   },
+   {
+    "tau_hi": 0.9,
+    "tau_lo": 0.4,
+    "supportive": {
+     "correct": 0.13,
+     "ambiguous": 0.685,
+     "incorrect": 0.185
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.15,
+     "incorrect": 0.84
+    },
+    "precision_correct": 0.9285714285714286
+   },
+   {
+    "tau_hi": 0.9,
+    "tau_lo": 0.45,
+    "supportive": {
+     "correct": 0.13,
+     "ambiguous": 0.625,
+     "incorrect": 0.245
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.12,
+     "incorrect": 0.87
+    },
+    "precision_correct": 0.9285714285714286
+   },
+   {
+    "tau_hi": 0.9,
+    "tau_lo": 0.5,
+    "supportive": {
+     "correct": 0.13,
+     "ambiguous": 0.6,
+     "incorrect": 0.27
+    },
+    "missing": {
+     "correct": 0.01,
+     "ambiguous": 0.1,
+     "incorrect": 0.89
+    },
+    "precision_correct": 0.9285714285714286
+   },
+   {
+    "tau_hi": 0.95,
+    "tau_lo": 0.05,
+    "supportive": {
+     "correct": 0.03,
+     "ambiguous": 0.965,
+     "incorrect": 0.005
+    },
+    "missing": {
+     "correct": 0.0,
+     "ambiguous": 0.685,
+     "incorrect": 0.315
+    },
+    "precision_correct": 1.0
+   },
+   {
+    "tau_hi": 0.95,
+    "tau_lo": 0.1,
+    "supportive": {
+     "correct": 0.03,
+     "ambiguous": 0.945,
+     "incorrect": 0.025
+    },
+    "missing": {
+     "correct": 0.0,
+     "ambiguous": 0.525,
+     "incorrect": 0.475
+    },
+    "precision_correct": 1.0
+   },
+   {
+    "tau_hi": 0.95,
+    "tau_lo": 0.15,
+    "supportive": {
+     "correct": 0.03,
+     "ambiguous": 0.93,
+     "incorrect": 0.04
+    },
+    "missing": {
+     "correct": 0.0,
+     "ambiguous": 0.4,
+     "incorrect": 0.6
+    },
+    "precision_correct": 1.0
+   },
+   {
+    "tau_hi": 0.95,
+    "tau_lo": 0.2,
+    "supportive": {
+     "correct": 0.03,
+     "ambiguous": 0.89,
+     "incorrect": 0.08
+    },
+    "missing": {
+     "correct": 0.0,
+     "ambiguous": 0.3,
+     "incorrect": 0.7
+    },
+    "precision_correct": 1.0
+   },
+   {
+    "tau_hi": 0.95,
+    "tau_lo": 0.25,
+    "supportive": {
+     "correct": 0.03,
+     "ambiguous": 0.88,
+     "incorrect": 0.09
+    },
+    "missing": {
+     "correct": 0.0,
+     "ambiguous": 0.245,
+     "incorrect": 0.755
+    },
+    "precision_correct": 1.0
+   },
+   {
+    "tau_hi": 0.95,
+    "tau_lo": 0.3,
+    "supportive": {
+     "correct": 0.03,
+     "ambiguous": 0.855,
+     "incorrect": 0.115
+    },
+    "missing": {
+     "correct": 0.0,
+     "ambiguous": 0.23,
+     "incorrect": 0.77
+    },
+    "precision_correct": 1.0
+   },
+   {
+    "tau_hi": 0.95,
+    "tau_lo": 0.35,
+    "supportive": {
+     "correct": 0.03,
+     "ambiguous": 0.83,
+     "incorrect": 0.14
+    },
+    "missing": {
+     "correct": 0.0,
+     "ambiguous": 0.195,
+     "incorrect": 0.805
+    },
+    "precision_correct": 1.0
+   },
+   {
+    "tau_hi": 0.95,
+    "tau_lo": 0.4,
+    "supportive": {
+     "correct": 0.03,
+     "ambiguous": 0.785,
+     "incorrect": 0.185
+    },
+    "missing": {
+     "correct": 0.0,
+     "ambiguous": 0.16,
+     "incorrect": 0.84
+    },
+    "precision_correct": 1.0
+   },
+   {
+    "tau_hi": 0.95,
+    "tau_lo": 0.45,
+    "supportive": {
+     "correct": 0.03,
+     "ambiguous": 0.725,
+     "incorrect": 0.245
+    },
+    "missing": {
+     "correct": 0.0,
+     "ambiguous": 0.13,
+     "incorrect": 0.87
+    },
+    "precision_correct": 1.0
+   },
+   {
+    "tau_hi": 0.95,
+    "tau_lo": 0.5,
+    "supportive": {
+     "correct": 0.03,
+     "ambiguous": 0.7,
+     "incorrect": 0.27
+    },
+    "missing": {
+     "correct": 0.0,
+     "ambiguous": 0.11,
+     "incorrect": 0.89
+    },
+    "precision_correct": 1.0
+   }
+  ],
+  "single": [
+   {
+    "tau": 0.05,
+    "supportive_correct": 0.995,
+    "missing_correct": 0.685,
+    "precision_correct": 0.5922619047619048
+   },
+   {
+    "tau": 0.1,
+    "supportive_correct": 0.975,
+    "missing_correct": 0.525,
+    "precision_correct": 0.65
+   },
+   {
+    "tau": 0.15,
+    "supportive_correct": 0.96,
+    "missing_correct": 0.4,
+    "precision_correct": 0.7058823529411765
+   },
+   {
+    "tau": 0.2,
+    "supportive_correct": 0.92,
+    "missing_correct": 0.3,
+    "precision_correct": 0.7540983606557377
+   },
+   {
+    "tau": 0.25,
+    "supportive_correct": 0.91,
+    "missing_correct": 0.245,
+    "precision_correct": 0.7878787878787878
+   },
+   {
+    "tau": 0.3,
+    "supportive_correct": 0.885,
+    "missing_correct": 0.23,
+    "precision_correct": 0.7937219730941704
+   },
+   {
+    "tau": 0.35,
+    "supportive_correct": 0.86,
+    "missing_correct": 0.195,
+    "precision_correct": 0.8151658767772512
+   },
+   {
+    "tau": 0.4,
+    "supportive_correct": 0.815,
+    "missing_correct": 0.16,
+    "precision_correct": 0.8358974358974359
+   },
+   {
+    "tau": 0.45,
+    "supportive_correct": 0.755,
+    "missing_correct": 0.13,
+    "precision_correct": 0.8531073446327684
+   },
+   {
+    "tau": 0.5,
+    "supportive_correct": 0.73,
+    "missing_correct": 0.11,
+    "precision_correct": 0.8690476190476191
+   },
+   {
+    "tau": 0.55,
+    "supportive_correct": 0.665,
+    "missing_correct": 0.095,
+    "precision_correct": 0.875
+   },
+   {
+    "tau": 0.6,
+    "supportive_correct": 0.635,
+    "missing_correct": 0.08,
+    "precision_correct": 0.8881118881118881
+   },
+   {
+    "tau": 0.65,
+    "supportive_correct": 0.575,
+    "missing_correct": 0.06,
+    "precision_correct": 0.905511811023622
+   },
+   {
+    "tau": 0.7,
+    "supportive_correct": 0.51,
+    "missing_correct": 0.04,
+    "precision_correct": 0.9272727272727272
+   },
+   {
+    "tau": 0.75,
+    "supportive_correct": 0.4,
+    "missing_correct": 0.03,
+    "precision_correct": 0.9302325581395349
+   },
+   {
+    "tau": 0.8,
+    "supportive_correct": 0.31,
+    "missing_correct": 0.02,
+    "precision_correct": 0.9393939393939394
+   },
+   {
+    "tau": 0.85,
+    "supportive_correct": 0.215,
+    "missing_correct": 0.01,
+    "precision_correct": 0.9555555555555556
+   },
+   {
+    "tau": 0.9,
+    "supportive_correct": 0.13,
+    "missing_correct": 0.01,
+    "precision_correct": 0.9285714285714286
+   },
+   {
+    "tau": 0.95,
+    "supportive_correct": 0.03,
+    "missing_correct": 0.0,
+    "precision_correct": 1.0
+   }
+  ]
+ },
+ "chunk_sweep": {
+  "rows": [
+   {
+    "tau_chunk": 0.01,
+    "top_k_context": 5,
+    "all_gold": 0.855,
+    "any_gold": 0.99,
+    "avg_selected": 4.425,
+    "avg_selected_missing": 3.615
+   },
+   {
+    "tau_chunk": 0.02,
+    "top_k_context": 5,
+    "all_gold": 0.84,
+    "any_gold": 0.99,
+    "avg_selected": 4.045,
+    "avg_selected_missing": 2.79
+   },
+   {
+    "tau_chunk": 0.03,
+    "top_k_context": 5,
+    "all_gold": 0.805,
+    "any_gold": 0.985,
+    "avg_selected": 3.725,
+    "avg_selected_missing": 2.375
+   },
+   {
+    "tau_chunk": 0.05,
+    "top_k_context": 5,
+    "all_gold": 0.745,
+    "any_gold": 0.985,
+    "avg_selected": 3.255,
+    "avg_selected_missing": 1.81
+   },
+   {
+    "tau_chunk": 0.08,
+    "top_k_context": 5,
+    "all_gold": 0.695,
+    "any_gold": 0.955,
+    "avg_selected": 2.835,
+    "avg_selected_missing": 1.325
+   },
+   {
+    "tau_chunk": 0.1,
+    "top_k_context": 5,
+    "all_gold": 0.66,
+    "any_gold": 0.955,
+    "avg_selected": 2.605,
+    "avg_selected_missing": 1.095
+   },
+   {
+    "tau_chunk": 0.15,
+    "top_k_context": 5,
+    "all_gold": 0.56,
+    "any_gold": 0.935,
+    "avg_selected": 2.235,
+    "avg_selected_missing": 0.81
+   },
+   {
+    "tau_chunk": 0.01,
+    "top_k_context": 8,
+    "all_gold": 0.89,
+    "any_gold": 1.0,
+    "avg_selected": 5.92,
+    "avg_selected_missing": 4.56
+   },
+   {
+    "tau_chunk": 0.02,
+    "top_k_context": 8,
+    "all_gold": 0.875,
+    "any_gold": 1.0,
+    "avg_selected": 4.915,
+    "avg_selected_missing": 3.31
+   },
+   {
+    "tau_chunk": 0.03,
+    "top_k_context": 8,
+    "all_gold": 0.84,
+    "any_gold": 0.995,
+    "avg_selected": 4.395,
+    "avg_selected_missing": 2.775
+   },
+   {
+    "tau_chunk": 0.05,
+    "top_k_context": 8,
+    "all_gold": 0.78,
+    "any_gold": 0.995,
+    "avg_selected": 3.705,
+    "avg_selected_missing": 2.04
+   },
+   {
+    "tau_chunk": 0.08,
+    "top_k_context": 8,
+    "all_gold": 0.72,
+    "any_gold": 0.965,
+    "avg_selected": 3.065,
+    "avg_selected_missing": 1.44
+   },
+   {
+    "tau_chunk": 0.1,
+    "top_k_context": 8,
+    "all_gold": 0.68,
+    "any_gold": 0.965,
+    "avg_selected": 2.79,
+    "avg_selected_missing": 1.185
+   },
+   {
+    "tau_chunk": 0.15,
+    "top_k_context": 8,
+    "all_gold": 0.575,
+    "any_gold": 0.945,
+    "avg_selected": 2.365,
+    "avg_selected_missing": 0.88
+   }
+  ],
+  "baseline": {
+   "tau_chunk": 0.15,
+   "top_k_context": 5,
+   "all_gold": 0.56,
+   "any_gold": 0.935,
+   "avg_selected": 2.235,
+   "avg_selected_missing": 0.81
+  }
+ },
+ "chunk_note": "no setting reaches all-gold recall 0.9; took the best at top_k 8",
+ "keep_sweep": [
+  {
+   "tau_keep": 0.05,
+   "uncapped": {
+    "recall": 0.8470066518847007,
+    "avg_kept": 5.705,
+    "all_facts_kept": 0.6,
+    "all_selected_facts_kept": 0.7
+   },
+   "capped": {
+    "recall": 0.8403547671840355,
+    "avg_kept": 5.18,
+    "all_facts_kept": 0.585,
+    "all_selected_facts_kept": 0.685
+   }
+  },
+  {
+   "tau_keep": 0.1,
+   "uncapped": {
+    "recall": 0.7494456762749445,
+    "avg_kept": 3.835,
+    "all_facts_kept": 0.49,
+    "all_selected_facts_kept": 0.56
+   },
+   "capped": {
+    "recall": 0.7472283813747228,
+    "avg_kept": 3.71,
+    "all_facts_kept": 0.485,
+    "all_selected_facts_kept": 0.555
+   }
+  },
+  {
+   "tau_keep": 0.2,
+   "uncapped": {
+    "recall": 0.6186252771618626,
+    "avg_kept": 2.36,
+    "all_facts_kept": 0.335,
+    "all_selected_facts_kept": 0.395
+   },
+   "capped": {
+    "recall": 0.6186252771618626,
+    "avg_kept": 2.34,
+    "all_facts_kept": 0.335,
+    "all_selected_facts_kept": 0.395
+   }
+  },
+  {
+   "tau_keep": 0.3,
+   "uncapped": {
+    "recall": 0.47671840354767187,
+    "avg_kept": 1.62,
+    "all_facts_kept": 0.23,
+    "all_selected_facts_kept": 0.28
+   },
+   "capped": {
+    "recall": 0.47671840354767187,
+    "avg_kept": 1.605,
+    "all_facts_kept": 0.23,
+    "all_selected_facts_kept": 0.28
+   }
+  },
+  {
+   "tau_keep": 0.4,
+   "uncapped": {
+    "recall": 0.3924611973392461,
+    "avg_kept": 1.195,
+    "all_facts_kept": 0.15,
+    "all_selected_facts_kept": 0.19
+   },
+   "capped": {
+    "recall": 0.3924611973392461,
+    "avg_kept": 1.195,
+    "all_facts_kept": 0.15,
+    "all_selected_facts_kept": 0.19
+   }
+  },
+  {
+   "tau_keep": 0.5,
+   "uncapped": {
+    "recall": 0.2749445676274945,
+    "avg_kept": 0.805,
+    "all_facts_kept": 0.095,
+    "all_selected_facts_kept": 0.115
+   },
+   "capped": {
+    "recall": 0.2749445676274945,
+    "avg_kept": 0.805,
+    "all_facts_kept": 0.095,
+    "all_selected_facts_kept": 0.115
+   }
+  },
+  {
+   "tau_keep": 0.6,
+   "uncapped": {
+    "recall": 0.2017738359201774,
+    "avg_kept": 0.565,
+    "all_facts_kept": 0.035,
+    "all_selected_facts_kept": 0.055
+   },
+   "capped": {
+    "recall": 0.2017738359201774,
+    "avg_kept": 0.565,
+    "all_facts_kept": 0.035,
+    "all_selected_facts_kept": 0.055
+   }
+  },
+  {
+   "tau_keep": 0.7,
+   "uncapped": {
+    "recall": 0.1197339246119734,
+    "avg_kept": 0.325,
+    "all_facts_kept": 0.01,
+    "all_selected_facts_kept": 0.02
+   },
+   "capped": {
+    "recall": 0.1197339246119734,
+    "avg_kept": 0.325,
+    "all_facts_kept": 0.01,
+    "all_selected_facts_kept": 0.02
+   }
+  }
+ ],
+ "fact_ceilings": {
+  "retrieved": 0.976890756302521,
+  "topk_unfiltered": 0.957983193277311,
+  "selected": 0.9474789915966386,
+  "all_facts_selected": 0.89
+ },
+ "sanity": [
+  {
+   "qid": "5a89d36e554299515336132a",
+   "question": "Who directed the film based on the rock opera 5:15 appeared in?",
+   "slice": "supportive",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 8,
+   "gold_paragraphs_in_context": 1,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 1,
+   "n_facts": 4,
+   "notes": [],
+   "queries": [
+    "Who directed the film based on the rock opera 5:15 appeared in?",
+    "film directed rock opera 5:15"
+   ]
+  },
+  {
+   "qid": "5a89d36e554299515336132a",
+   "question": "Who directed the film based on the rock opera 5:15 appeared in?",
+   "slice": "missing",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 8,
+   "gold_paragraphs_in_context": 0,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 0,
+   "n_facts": 4,
+   "notes": [],
+   "queries": [
+    "Who directed the film based on the rock opera 5:15 appeared in?",
+    "5:15 rock opera film directed by"
+   ]
+  },
+  {
+   "qid": "5a89d36e554299515336132a",
+   "question": "Who directed the film based on the rock opera 5:15 appeared in?",
+   "slice": "misleading",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 8,
+   "gold_paragraphs_in_context": 1,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 1,
+   "n_facts": 4,
+   "notes": [],
+   "queries": [
+    "Who directed the film based on the rock opera 5:15 appeared in?",
+    "5:15 rock opera film directed by"
+   ]
+  },
+  {
+   "qid": "5a7cefcf55429909bec768af",
+   "question": "Mis'ry's Comin' Aroun is by an American librettist that won how many Tony Awards? ",
+   "slice": "supportive",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 7,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 3,
+   "n_facts": 3,
+   "notes": [],
+   "queries": [
+    "Mis'ry's Comin' Aroun is by an American librettist that won how many Tony Awards? ",
+    "Oscar Hammerstein II Tony Awards count"
+   ]
+  },
+  {
+   "qid": "5a7cefcf55429909bec768af",
+   "question": "Mis'ry's Comin' Aroun is by an American librettist that won how many Tony Awards? ",
+   "slice": "missing",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 4,
+   "gold_paragraphs_in_context": 0,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 0,
+   "n_facts": 3,
+   "notes": [],
+   "queries": [
+    "Mis'ry's Comin' Aroun is by an American librettist that won how many Tony Awards? ",
+    "Mis'ry's Comin' Aroun Bill Russell Tony Awards",
+    "Mis'ry's Comin' Aroun libretto Tony Awards"
+   ]
+  },
+  {
+   "qid": "5a7cefcf55429909bec768af",
+   "question": "Mis'ry's Comin' Aroun is by an American librettist that won how many Tony Awards? ",
+   "slice": "misleading",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 7,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 3,
+   "n_facts": 3,
+   "notes": [],
+   "queries": [
+    "Mis'ry's Comin' Aroun is by an American librettist that won how many Tony Awards? ",
+    "Oscar Hammerstein II Tony Awards count"
+   ]
+  },
+  {
+   "qid": "5ae791a55542994a481bbdaa",
+   "question": "Which of the university at which Jack M. Guttentag  is a professor emeritus of finance was established in 1881 through a donation?",
+   "slice": "supportive",
+   "rewrite": true,
+   "decision": "correct",
+   "final_decision": "correct",
+   "kept_lines": 3,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 1,
+   "n_facts": 2,
+   "notes": [],
+   "queries": [
+    "Which of the university at which Jack M. Guttentag  is a professor emeritus of finance was established in 1881 through a donation?"
+   ]
+  },
+  {
+   "qid": "5ae791a55542994a481bbdaa",
+   "question": "Which of the university at which Jack M. Guttentag  is a professor emeritus of finance was established in 1881 through a donation?",
+   "slice": "missing",
+   "rewrite": true,
+   "decision": "incorrect",
+   "final_decision": "incorrect",
+   "kept_lines": 1,
+   "gold_paragraphs_in_context": 0,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 0,
+   "n_facts": 2,
+   "notes": [],
+   "queries": [
+    "Which of the university at which Jack M. Guttentag  is a professor emeritus of finance was established in 1881 through a donation?",
+    "Jack M. Guttentag professor emeritus finance university established 1881 donation"
+   ]
+  },
+  {
+   "qid": "5ae791a55542994a481bbdaa",
+   "question": "Which of the university at which Jack M. Guttentag  is a professor emeritus of finance was established in 1881 through a donation?",
+   "slice": "misleading",
+   "rewrite": true,
+   "decision": "correct",
+   "final_decision": "correct",
+   "kept_lines": 3,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 1,
+   "n_facts": 2,
+   "notes": [],
+   "queries": [
+    "Which of the university at which Jack M. Guttentag  is a professor emeritus of finance was established in 1881 through a donation?"
+   ]
+  },
+  {
+   "qid": "5ae748d1554299572ea547b0",
+   "question": "Marcus Wayne Garland spent nine seasons with an American professional baseball team that is based in Baltimore, Maryland, and was one of the AMerican League's original eight charter franchises when the league was established in what year?",
+   "slice": "supportive",
+   "rewrite": true,
+   "decision": "correct",
+   "final_decision": "correct",
+   "kept_lines": 8,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 3,
+   "n_facts": 3,
+   "notes": [],
+   "queries": [
+    "Marcus Wayne Garland spent nine seasons with an American professional baseball team that is based in Baltimore, Maryland, and was one of the AMerican League's original eight charter franchises when the league was established in what year?"
+   ]
+  },
+  {
+   "qid": "5ae748d1554299572ea547b0",
+   "question": "Marcus Wayne Garland spent nine seasons with an American professional baseball team that is based in Baltimore, Maryland, and was one of the AMerican League's original eight charter franchises when the league was established in what year?",
+   "slice": "missing",
+   "rewrite": true,
+   "decision": "incorrect",
+   "final_decision": "incorrect",
+   "kept_lines": 7,
+   "gold_paragraphs_in_context": 0,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 0,
+   "n_facts": 3,
+   "notes": [],
+   "queries": [
+    "Marcus Wayne Garland spent nine seasons with an American professional baseball team that is based in Baltimore, Maryland, and was one of the AMerican League's original eight charter franchises when the league was established in what year?",
+    "Baltimore Orioles founded 1901"
+   ]
+  },
+  {
+   "qid": "5ae748d1554299572ea547b0",
+   "question": "Marcus Wayne Garland spent nine seasons with an American professional baseball team that is based in Baltimore, Maryland, and was one of the AMerican League's original eight charter franchises when the league was established in what year?",
+   "slice": "misleading",
+   "rewrite": true,
+   "decision": "correct",
+   "final_decision": "correct",
+   "kept_lines": 8,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 3,
+   "n_facts": 3,
+   "notes": [],
+   "queries": [
+    "Marcus Wayne Garland spent nine seasons with an American professional baseball team that is based in Baltimore, Maryland, and was one of the AMerican League's original eight charter franchises when the league was established in what year?"
+   ]
+  },
+  {
+   "qid": "5a7a46605542994f819ef1ad",
+   "question": "What year did Roy Rogers and his third wife star in a film directed by Frank McDonald?",
+   "slice": "supportive",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 8,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 2,
+   "n_facts": 2,
+   "notes": [],
+   "queries": [
+    "What year did Roy Rogers and his third wife star in a film directed by Frank McDonald?",
+    "Roy Rogers Dale Evans Frank McDonald film"
+   ]
+  },
+  {
+   "qid": "5a7a46605542994f819ef1ad",
+   "question": "What year did Roy Rogers and his third wife star in a film directed by Frank McDonald?",
+   "slice": "missing",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 8,
+   "gold_paragraphs_in_context": 0,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 0,
+   "n_facts": 2,
+   "notes": [],
+   "queries": [
+    "What year did Roy Rogers and his third wife star in a film directed by Frank McDonald?",
+    "Roy Rogers third wife Frank McDonald film"
+   ]
+  },
+  {
+   "qid": "5a7a46605542994f819ef1ad",
+   "question": "What year did Roy Rogers and his third wife star in a film directed by Frank McDonald?",
+   "slice": "misleading",
+   "rewrite": true,
+   "decision": "ambiguous",
+   "final_decision": "ambiguous",
+   "kept_lines": 8,
+   "gold_paragraphs_in_context": 2,
+   "n_gold_paragraphs": 2,
+   "facts_in_context": 2,
+   "n_facts": 2,
+   "notes": [
+    "rewrite produced no usable query"
+   ],
+   "queries": [
+    "What year did Roy Rogers and his third wife star in a film directed by Frank McDonald?"
+   ]
+  }
+ ],
+ "comparison": {
+  "verifier-minilm-l6-s13": {
+   "calibration": {
+    "passage": {
+     "n": 8000,
+     "positives": 390,
+     "before": {
+      "brier": 0.05632911282755295,
+      "ece": 0.09055662203467035
+     },
+     "after": {
+      "brier": 0.026568809020814835,
+      "ece": 0.005126015247449389
+     },
+     "after_cv": {
+      "brier": 0.02682418225018322,
+      "ece": 0.005896500366879599
+     },
+     "a": 0.9016736453903389,
+     "b": -2.2298888303528868
+    },
+    "sentence": {
+     "n": 7821,
+     "positives": 445,
+     "before": {
+      "brier": 0.12061723814024572,
+      "ece": 0.16864664709599944
+     },
+     "after": {
+      "brier": 0.03964897800749533,
+      "ece": 0.006703465957086778
+     },
+     "after_cv": {
+      "brier": 0.03981514512543586,
+      "ece": 0.0067349164879147855
+     },
+     "a": 0.6787894913077718,
+     "b": -2.59022546383284
+    },
+    "sentence_all": {
+     "n": 33857,
+     "positives": 465,
+     "before": {
+      "brier": 0.042323498084013235,
+      "ece": 0.07827434346148143
+     },
+     "after": {
+      "brier": 0.010042715879402147,
+      "ece": 0.0010642254760524542
+     },
+     "after_cv": {
+      "brier": 0.010099546963431873,
+      "ece": 0.0013679324190320379
+     },
+     "a": 0.8395650059152199,
+     "b": -3.232589380961786
+    }
+   },
+   "chosen": {
+    "tau_hi": 0.6,
+    "tau_lo": 0.15,
+    "tau_single": 0.1,
+    "notes": [],
+    "tau_chunk": 0.01,
+    "top_k_context": 8,
+    "tau_keep": 0.05
+   },
+   "decision_grid": {
+    "pairs": [
+     {
+      "tau_hi": 0.5,
+      "tau_lo": 0.05,
+      "supportive": {
+       "correct": 0.715,
+       "ambiguous": 0.275,
+       "incorrect": 0.01
+      },
+      "missing": {
+       "correct": 0.11,
+       "ambiguous": 0.645,
+       "incorrect": 0.245
+      },
+      "precision_correct": 0.8666666666666667
+     },
+     {
+      "tau_hi": 0.5,
+      "tau_lo": 0.1,
+      "supportive": {
+       "correct": 0.715,
+       "ambiguous": 0.255,
+       "incorrect": 0.03
+      },
+      "missing": {
+       "correct": 0.11,
+       "ambiguous": 0.44,
+       "incorrect": 0.45
+      },
+      "precision_correct": 0.8666666666666667
+     },
+     {
+      "tau_hi": 0.5,
+      "tau_lo": 0.15,
+      "supportive": {
+       "correct": 0.715,
+       "ambiguous": 0.235,
+       "incorrect": 0.05
+      },
+      "missing": {
+       "correct": 0.11,
+       "ambiguous": 0.355,
+       "incorrect": 0.535
+      },
+      "precision_correct": 0.8666666666666667
+     },
+     {
+      "tau_hi": 0.5,
+      "tau_lo": 0.2,
+      "supportive": {
+       "correct": 0.715,
+       "ambiguous": 0.21,
+       "incorrect": 0.075
+      },
+      "missing": {
+       "correct": 0.11,
+       "ambiguous": 0.25,
+       "incorrect": 0.64
+      },
+      "precision_correct": 0.8666666666666667
+     },
+     {
+      "tau_hi": 0.5,
+      "tau_lo": 0.25,
+      "supportive": {
+       "correct": 0.715,
+       "ambiguous": 0.19,
+       "incorrect": 0.095
+      },
+      "missing": {
+       "correct": 0.11,
+       "ambiguous": 0.195,
+       "incorrect": 0.695
+      },
+      "precision_correct": 0.8666666666666667
+     },
+     {
+      "tau_hi": 0.5,
+      "tau_lo": 0.3,
+      "supportive": {
+       "correct": 0.715,
+       "ambiguous": 0.16,
+       "incorrect": 0.125
+      },
+      "missing": {
+       "correct": 0.11,
+       "ambiguous": 0.16,
+       "incorrect": 0.73
+      },
+      "precision_correct": 0.8666666666666667
+     },
+     {
+      "tau_hi": 0.5,
+      "tau_lo": 0.35,
+      "supportive": {
+       "correct": 0.715,
+       "ambiguous": 0.14,
+       "incorrect": 0.145
+      },
+      "missing": {
+       "correct": 0.11,
+       "ambiguous": 0.095,
+       "incorrect": 0.795
+      },
+      "precision_correct": 0.8666666666666667
+     },
+     {
+      "tau_hi": 0.5,
+      "tau_lo": 0.4,
+      "supportive": {
+       "correct": 0.715,
+       "ambiguous": 0.11,
+       "incorrect": 0.175
+      },
+      "missing": {
+       "correct": 0.11,
+       "ambiguous": 0.085,
+       "incorrect": 0.805
+      },
+      "precision_correct": 0.8666666666666667
+     },
+     {
+      "tau_hi": 0.5,
+      "tau_lo": 0.45,
+      "supportive": {
+       "correct": 0.715,
+       "ambiguous": 0.065,
+       "incorrect": 0.22
+      },
+      "missing": {
+       "correct": 0.11,
+       "ambiguous": 0.05,
+       "incorrect": 0.84
+      },
+      "precision_correct": 0.8666666666666667
+     },
+     {
+      "tau_hi": 0.55,
+      "tau_lo": 0.05,
+      "supportive": {
+       "correct": 0.675,
+       "ambiguous": 0.315,
+       "incorrect": 0.01
+      },
+      "missing": {
+       "correct": 0.08,
+       "ambiguous": 0.675,
+       "incorrect": 0.245
+      },
+      "precision_correct": 0.8940397350993378
+     },
+     {
+      "tau_hi": 0.55,
+      "tau_lo": 0.1,
+      "supportive": {
+       "correct": 0.675,
+       "ambiguous": 0.295,
+       "incorrect": 0.03
+      },
+      "missing": {
+       "correct": 0.08,
+       "ambiguous": 0.47,
+       "incorrect": 0.45
+      },
+      "precision_correct": 0.8940397350993378
+     },
+     {
+      "tau_hi": 0.55,
+      "tau_lo": 0.15,
+      "supportive": {
+       "correct": 0.675,
+       "ambiguous": 0.275,
+       "incorrect": 0.05
+      },
+      "missing": {
+       "correct": 0.08,
+       "ambiguous": 0.385,
+       "incorrect": 0.535
+      },
+      "precision_correct": 0.8940397350993378
+     },
+     {
+      "tau_hi": 0.55,
+      "tau_lo": 0.2,
+      "supportive": {
+       "correct": 0.675,
+       "ambiguous": 0.25,
+       "incorrect": 0.075
+      },
+      "missing": {
+       "correct": 0.08,
+       "ambiguous": 0.28,
+       "incorrect": 0.64
+      },
+      "precision_correct": 0.8940397350993378
+     },
+     {
+      "tau_hi": 0.55,
+      "tau_lo": 0.25,
+      "supportive": {
+       "correct": 0.675,
+       "ambiguous": 0.23,
+       "incorrect": 0.095
+      },
+      "missing": {
+       "correct": 0.08,
+       "ambiguous": 0.225,
+       "incorrect": 0.695
+      },
+      "precision_correct": 0.8940397350993378
+     },
+     {
+      "tau_hi": 0.55,
+      "tau_lo": 0.3,
+      "supportive": {
+       "correct": 0.675,
+       "ambiguous": 0.2,
+       "incorrect": 0.125
+      },
+      "missing": {
+       "correct": 0.08,
+       "ambiguous": 0.19,
+       "incorrect": 0.73
+      },
+      "precision_correct": 0.8940397350993378
+     },
+     {
+      "tau_hi": 0.55,
+      "tau_lo": 0.35,
+      "supportive": {
+       "correct": 0.675,
+       "ambiguous": 0.18,
+       "incorrect": 0.145
+      },
+      "missing": {
+       "correct": 0.08,
+       "ambiguous": 0.125,
+       "incorrect": 0.795
+      },
+      "precision_correct": 0.8940397350993378
+     },
+     {
+      "tau_hi": 0.55,
+      "tau_lo": 0.4,
+      "supportive": {
+       "correct": 0.675,
+       "ambiguous": 0.15,
+       "incorrect": 0.175
+      },
+      "missing": {
+       "correct": 0.08,
+       "ambiguous": 0.115,
+       "incorrect": 0.805
+      },
+      "precision_correct": 0.8940397350993378
+     },
+     {
+      "tau_hi": 0.55,
+      "tau_lo": 0.45,
+      "supportive": {
+       "correct": 0.675,
+       "ambiguous": 0.105,
+       "incorrect": 0.22
+      },
+      "missing": {
+       "correct": 0.08,
+       "ambiguous": 0.08,
+       "incorrect": 0.84
+      },
+      "precision_correct": 0.8940397350993378
+     },
+     {
+      "tau_hi": 0.55,
+      "tau_lo": 0.5,
+      "supportive": {
+       "correct": 0.675,
+       "ambiguous": 0.04,
+       "incorrect": 0.285
+      },
+      "missing": {
+       "correct": 0.08,
+       "ambiguous": 0.03,
+       "incorrect": 0.89
+      },
+      "precision_correct": 0.8940397350993378
+     },
+     {
+      "tau_hi": 0.6,
+      "tau_lo": 0.05,
+      "supportive": {
+       "correct": 0.595,
+       "ambiguous": 0.395,
+       "incorrect": 0.01
+      },
+      "missing": {
+       "correct": 0.06,
+       "ambiguous": 0.695,
+       "incorrect": 0.245
+      },
+      "precision_correct": 0.9083969465648855
+     },
+     {
+      "tau_hi": 0.6,
+      "tau_lo": 0.1,
+      "supportive": {
+       "correct": 0.595,
+       "ambiguous": 0.375,
+       "incorrect": 0.03
+      },
+      "missing": {
+       "correct": 0.06,
+       "ambiguous": 0.49,
+       "incorrect": 0.45
+      },
+      "precision_correct": 0.9083969465648855
+     },
+     {
+      "tau_hi": 0.6,
+      "tau_lo": 0.15,
+      "supportive": {
+       "correct": 0.595,
+       "ambiguous": 0.355,
+       "incorrect": 0.05
+      },
+      "missing": {
+       "correct": 0.06,
+       "ambiguous": 0.405,
+       "incorrect": 0.535
+      },
+      "precision_correct": 0.9083969465648855
+     },
+     {
+      "tau_hi": 0.6,
+      "tau_lo": 0.2,
+      "supportive": {
+       "correct": 0.595,
+       "ambiguous": 0.33,
+       "incorrect": 0.075
+      },
+      "missing": {
+       "correct": 0.06,
+       "ambiguous": 0.3,
+       "incorrect": 0.64
+      },
+      "precision_correct": 0.9083969465648855
+     },
+     {
+      "tau_hi": 0.6,
+      "tau_lo": 0.25,
+      "supportive": {
+       "correct": 0.595,
+       "ambiguous": 0.31,
+       "incorrect": 0.095
+      },
+      "missing": {
+       "correct": 0.06,
+       "ambiguous": 0.245,
+       "incorrect": 0.695
+      },
+      "precision_correct": 0.9083969465648855
+     },
+     {
+      "tau_hi": 0.6,
+      "tau_lo": 0.3,
+      "supportive": {
+       "correct": 0.595,
+       "ambiguous": 0.28,
+       "incorrect": 0.125
+      },
+      "missing": {
+       "correct": 0.06,
+       "ambiguous": 0.21,
+       "incorrect": 0.73
+      },
+      "precision_correct": 0.9083969465648855
+     },
+     {
+      "tau_hi": 0.6,
+      "tau_lo": 0.35,
+      "supportive": {
+       "correct": 0.595,
+       "ambiguous": 0.26,
+       "incorrect": 0.145
+      },
+      "missing": {
+       "correct": 0.06,
+       "ambiguous": 0.145,
+       "incorrect": 0.795
+      },
+      "precision_correct": 0.9083969465648855
+     },
+     {
+      "tau_hi": 0.6,
+      "tau_lo": 0.4,
+      "supportive": {
+       "correct": 0.595,
+       "ambiguous": 0.23,
+       "incorrect": 0.175
+      },
+      "missing": {
+       "correct": 0.06,
+       "ambiguous": 0.135,
+       "incorrect": 0.805
+      },
+      "precision_correct": 0.9083969465648855
+     },
+     {
+      "tau_hi": 0.6,
+      "tau_lo": 0.45,
+      "supportive": {
+       "correct": 0.595,
+       "ambiguous": 0.185,
+       "incorrect": 0.22
+      },
+      "missing": {
+       "correct": 0.06,
+       "ambiguous": 0.1,
+       "incorrect": 0.84
+      },
+      "precision_correct": 0.9083969465648855
+     },
+     {
+      "tau_hi": 0.6,
+      "tau_lo": 0.5,
+      "supportive": {
+       "correct": 0.595,
+       "ambiguous": 0.12,
+       "incorrect": 0.285
+      },
+      "missing": {
+       "correct": 0.06,
+       "ambiguous": 0.05,
+       "incorrect": 0.89
+      },
+      "precision_correct": 0.9083969465648855
+     },
+     {
+      "tau_hi": 0.65,
+      "tau_lo": 0.05,
+      "supportive": {
+       "correct": 0.53,
+       "ambiguous": 0.46,
+       "incorrect": 0.01
+      },
+      "missing": {
+       "correct": 0.04,
+       "ambiguous": 0.715,
+       "incorrect": 0.245
+      },
+      "precision_correct": 0.9298245614035088
+     },
+     {
+      "tau_hi": 0.65,
+      "tau_lo": 0.1,
+      "supportive": {
+       "correct": 0.53,
+       "ambiguous": 0.44,
+       "incorrect": 0.03
+      },
+      "missing": {
+       "correct": 0.04,
+       "ambiguous": 0.51,
+       "incorrect": 0.45
+      },
+      "precision_correct": 0.9298245614035088
+     },
+     {
+      "tau_hi": 0.65,
+      "tau_lo": 0.15,
+      "supportive": {
+       "correct": 0.53,
+       "ambiguous": 0.42,
+       "incorrect": 0.05
+      },
+      "missing": {
+       "correct": 0.04,
+       "ambiguous": 0.425,
+       "incorrect": 0.535
+      },
+      "precision_correct": 0.9298245614035088
+     },
+     {
+      "tau_hi": 0.65,
+      "tau_lo": 0.2,
+      "supportive": {
+       "correct": 0.53,
+       "ambiguous": 0.395,
+       "incorrect": 0.075
+      },
+      "missing": {
+       "correct": 0.04,
+       "ambiguous": 0.32,
+       "incorrect": 0.64
+      },
+      "precision_correct": 0.9298245614035088
+     },
+     {
+      "tau_hi": 0.65,
+      "tau_lo": 0.25,
+      "supportive": {
+       "correct": 0.53,
+       "ambiguous": 0.375,
+       "incorrect": 0.095
+      },
+      "missing": {
+       "correct": 0.04,
+       "ambiguous": 0.265,
+       "incorrect": 0.695
+      },
+      "precision_correct": 0.9298245614035088
+     },
+     {
+      "tau_hi": 0.65,
+      "tau_lo": 0.3,
+      "supportive": {
+       "correct": 0.53,
+       "ambiguous": 0.345,
+       "incorrect": 0.125
+      },
+      "missing": {
+       "correct": 0.04,
+       "ambiguous": 0.23,
+       "incorrect": 0.73
+      },
+      "precision_correct": 0.9298245614035088
+     },
+     {
+      "tau_hi": 0.65,
+      "tau_lo": 0.35,
+      "supportive": {
+       "correct": 0.53,
+       "ambiguous": 0.325,
+       "incorrect": 0.145
+      },
+      "missing": {
+       "correct": 0.04,
+       "ambiguous": 0.165,
+       "incorrect": 0.795
+      },
+      "precision_correct": 0.9298245614035088
+     },
+     {
+      "tau_hi": 0.65,
+      "tau_lo": 0.4,
+      "supportive": {
+       "correct": 0.53,
+       "ambiguous": 0.295,
+       "incorrect": 0.175
+      },
+      "missing": {
+       "correct": 0.04,
+       "ambiguous": 0.155,
+       "incorrect": 0.805
+      },
+      "precision_correct": 0.9298245614035088
+     },
+     {
+      "tau_hi": 0.65,
+      "tau_lo": 0.45,
+      "supportive": {
+       "correct": 0.53,
+       "ambiguous": 0.25,
+       "incorrect": 0.22
+      },
+      "missing": {
+       "correct": 0.04,
+       "ambiguous": 0.12,
+       "incorrect": 0.84
+      },
+      "precision_correct": 0.9298245614035088
+     },
+     {
+      "tau_hi": 0.65,
+      "tau_lo": 0.5,
+      "supportive": {
+       "correct": 0.53,
+       "ambiguous": 0.185,
+       "incorrect": 0.285
+      },
+      "missing": {
+       "correct": 0.04,
+       "ambiguous": 0.07,
+       "incorrect": 0.89
+      },
+      "precision_correct": 0.9298245614035088
+     },
+     {
+      "tau_hi": 0.7,
+      "tau_lo": 0.05,
+      "supportive": {
+       "correct": 0.485,
+       "ambiguous": 0.505,
+       "incorrect": 0.01
+      },
+      "missing": {
+       "correct": 0.025,
+       "ambiguous": 0.73,
+       "incorrect": 0.245
+      },
+      "precision_correct": 0.9509803921568627
+     },
+     {
+      "tau_hi": 0.7,
+      "tau_lo": 0.1,
+      "supportive": {
+       "correct": 0.485,
+       "ambiguous": 0.485,
+       "incorrect": 0.03
+      },
+      "missing": {
+       "correct": 0.025,
+       "ambiguous": 0.525,
+       "incorrect": 0.45
+      },
+      "precision_correct": 0.9509803921568627
+     },
+     {
+      "tau_hi": 0.7,
+      "tau_lo": 0.15,
+      "supportive": {
+       "correct": 0.485,
+       "ambiguous": 0.465,
+       "incorrect": 0.05
+      },
+      "missing": {
+       "correct": 0.025,
+       "ambiguous": 0.44,
+       "incorrect": 0.535
+      },
+      "precision_correct": 0.9509803921568627
+     },
+     {
+      "tau_hi": 0.7,
+      "tau_lo": 0.2,
+      "supportive": {
+       "correct": 0.485,
+       "ambiguous": 0.44,
+       "incorrect": 0.075
+      },
+      "missing": {
+       "correct": 0.025,
+       "ambiguous": 0.335,
+       "incorrect": 0.64
+      },
+      "precision_correct": 0.9509803921568627
+     },
+     {
+      "tau_hi": 0.7,
+      "tau_lo": 0.25,
+      "supportive": {
+       "correct": 0.485,
+       "ambiguous": 0.42,
+       "incorrect": 0.095
+      },
+      "missing": {
+       "correct": 0.025,
+       "ambiguous": 0.28,
+       "incorrect": 0.695
+      },
+      "precision_correct": 0.9509803921568627
+     },
+     {
+      "tau_hi": 0.7,
+      "tau_lo": 0.3,
+      "supportive": {
+       "correct": 0.485,
+       "ambiguous": 0.39,
+       "incorrect": 0.125
+      },
+      "missing": {
+       "correct": 0.025,
+       "ambiguous": 0.245,
+       "incorrect": 0.73
+      },
+      "precision_correct": 0.9509803921568627
+     },
+     {
+      "tau_hi": 0.7,
+      "tau_lo": 0.35,
+      "supportive": {
+       "correct": 0.485,
+       "ambiguous": 0.37,
+       "incorrect": 0.145
+      },
+      "missing": {
+       "correct": 0.025,
+       "ambiguous": 0.18,
+       "incorrect": 0.795
+      },
+      "precision_correct": 0.9509803921568627
+     },
+     {
+      "tau_hi": 0.7,
+      "tau_lo": 0.4,
+      "supportive": {
+       "correct": 0.485,
+       "ambiguous": 0.34,
+       "incorrect": 0.175
+      },
+      "missing": {
+       "correct": 0.025,
+       "ambiguous": 0.17,
+       "incorrect": 0.805
+      },
+      "precision_correct": 0.9509803921568627
+     },
+     {
+      "tau_hi": 0.7,
+      "tau_lo": 0.45,
+      "supportive": {
+       "correct": 0.485,
+       "ambiguous": 0.295,
+       "incorrect": 0.22
+      },
+      "missing": {
+       "correct": 0.025,
+       "ambiguous": 0.135,
+       "incorrect": 0.84
+      },
+      "precision_correct": 0.9509803921568627
+     },
+     {
+      "tau_hi": 0.7,
+      "tau_lo": 0.5,
+      "supportive": {
+       "correct": 0.485,
+       "ambiguous": 0.23,
+       "incorrect": 0.285
+      },
+      "missing": {
+       "correct": 0.025,
+       "ambiguous": 0.085,
+       "incorrect": 0.89
+      },
+      "precision_correct": 0.9509803921568627
+     },
+     {
+      "tau_hi": 0.75,
+      "tau_lo": 0.05,
+      "supportive": {
+       "correct": 0.425,
+       "ambiguous": 0.565,
+       "incorrect": 0.01
+      },
+      "missing": {
+       "correct": 0.02,
+       "ambiguous": 0.735,
+       "incorrect": 0.245
+      },
+      "precision_correct": 0.9550561797752809
+     },
+     {
+      "tau_hi": 0.75,
+      "tau_lo": 0.1,
+      "supportive": {
+       "correct": 0.425,
+       "ambiguous": 0.545,
+       "incorrect": 0.03
+      },
+      "missing": {
+       "correct": 0.02,
+       "ambiguous": 0.53,
+       "incorrect": 0.45
+      },
+      "precision_correct": 0.9550561797752809
+     },
+     {
+      "tau_hi": 0.75,
+      "tau_lo": 0.15,
+      "supportive": {
+       "correct": 0.425,
+       "ambiguous": 0.525,
+       "incorrect": 0.05
+      },
+      "missing": {
+       "correct": 0.02,
+       "ambiguous": 0.445,
+       "incorrect": 0.535
+      },
+      "precision_correct": 0.9550561797752809
+     },
+     {
+      "tau_hi": 0.75,
+      "tau_lo": 0.2,
+      "supportive": {
+       "correct": 0.425,
+       "ambiguous": 0.5,
+       "incorrect": 0.075
+      },
+      "missing": {
+       "correct": 0.02,
+       "ambiguous": 0.34,
+       "incorrect": 0.64
+      },
+      "precision_correct": 0.9550561797752809
+     },
+     {
+      "tau_hi": 0.75,
+      "tau_lo": 0.25,
+      "supportive": {
+       "correct": 0.425,
+       "ambiguous": 0.48,
+       "incorrect": 0.095
+      },
+      "missing": {
+       "correct": 0.02,
+       "ambiguous": 0.285,
+       "incorrect": 0.695
+      },
+      "precision_correct": 0.9550561797752809
+     },
+     {
+      "tau_hi": 0.75,
+      "tau_lo": 0.3,
+      "supportive": {
+       "correct": 0.425,
+       "ambiguous": 0.45,
+       "incorrect": 0.125
+      },
+      "missing": {
+       "correct": 0.02,
+       "ambiguous": 0.25,
+       "incorrect": 0.73
+      },
+      "precision_correct": 0.9550561797752809
+     },
+     {
+      "tau_hi": 0.75,
+      "tau_lo": 0.35,
+      "supportive": {
+       "correct": 0.425,
+       "ambiguous": 0.43,
+       "incorrect": 0.145
+      },
+      "missing": {
+       "correct": 0.02,
+       "ambiguous": 0.185,
+       "incorrect": 0.795
+      },
+      "precision_correct": 0.9550561797752809
+     },
+     {
+      "tau_hi": 0.75,
+      "tau_lo": 0.4,
+      "supportive": {
+       "correct": 0.425,
+       "ambiguous": 0.4,
+       "incorrect": 0.175
+      },
+      "missing": {
+       "correct": 0.02,
+       "ambiguous": 0.175,
+       "incorrect": 0.805
+      },
+      "precision_correct": 0.9550561797752809
+     },
+     {
+      "tau_hi": 0.75,
+      "tau_lo": 0.45,
+      "supportive": {
+       "correct": 0.425,
+       "ambiguous": 0.355,
+       "incorrect": 0.22
+      },
+      "missing": {
+       "correct": 0.02,
+       "ambiguous": 0.14,
+       "incorrect": 0.84
+      },
+      "precision_correct": 0.9550561797752809
+     },
+     {
+      "tau_hi": 0.75,
+      "tau_lo": 0.5,
+      "supportive": {
+       "correct": 0.425,
+       "ambiguous": 0.29,
+       "incorrect": 0.285
+      },
+      "missing": {
+       "correct": 0.02,
+       "ambiguous": 0.09,
+       "incorrect": 0.89
+      },
+      "precision_correct": 0.9550561797752809
+     },
+     {
+      "tau_hi": 0.8,
+      "tau_lo": 0.05,
+      "supportive": {
+       "correct": 0.33,
+       "ambiguous": 0.66,
+       "incorrect": 0.01
+      },
+      "missing": {
+       "correct": 0.005,
+       "ambiguous": 0.75,
+       "incorrect": 0.245
+      },
+      "precision_correct": 0.9850746268656716
+     },
+     {
+      "tau_hi": 0.8,
+      "tau_lo": 0.1,
+      "supportive": {
+       "correct": 0.33,
+       "ambiguous": 0.64,
+       "incorrect": 0.03
+      },
+      "missing": {
+       "correct": 0.005,
+       "ambiguous": 0.545,
+       "incorrect": 0.45
+      },
+      "precision_correct": 0.9850746268656716
+     },
+     {
+      "tau_hi": 0.8,
+      "tau_lo": 0.15,
+      "supportive": {
+       "correct": 0.33,
+       "ambiguous": 0.62,
+       "incorrect": 0.05
+      },
+      "missing": {
+       "correct": 0.005,
+       "ambiguous": 0.46,
+       "incorrect": 0.535
+      },
+      "precision_correct": 0.9850746268656716
+     },
+     {
+      "tau_hi": 0.8,
+      "tau_lo": 0.2,
+      "supportive": {
+       "correct": 0.33,
+       "ambiguous": 0.595,
+       "incorrect": 0.075
+      },
+      "missing": {
+       "correct": 0.005,
+       "ambiguous": 0.355,
+       "incorrect": 0.64
+      },
+      "precision_correct": 0.9850746268656716
+     },
+     {
+      "tau_hi": 0.8,
+      "tau_lo": 0.25,
+      "supportive": {
+       "correct": 0.33,
+       "ambiguous": 0.575,
+       "incorrect": 0.095
+      },
+      "missing": {
+       "correct": 0.005,
+       "ambiguous": 0.3,
+       "incorrect": 0.695
+      },
+      "precision_correct": 0.9850746268656716
+     },
+     {
+      "tau_hi": 0.8,
+      "tau_lo": 0.3,
+      "supportive": {
+       "correct": 0.33,
+       "ambiguous": 0.545,
+       "incorrect": 0.125
+      },
+      "missing": {
+       "correct": 0.005,
+       "ambiguous": 0.265,
+       "incorrect": 0.73
+      },
+      "precision_correct": 0.9850746268656716
+     },
+     {
+      "tau_hi": 0.8,
+      "tau_lo": 0.35,
+      "supportive": {
+       "correct": 0.33,
+       "ambiguous": 0.525,
+       "incorrect": 0.145
+      },
+      "missing": {
+       "correct": 0.005,
+       "ambiguous": 0.2,
+       "incorrect": 0.795
+      },
+      "precision_correct": 0.9850746268656716
+     },
+     {
+      "tau_hi": 0.8,
+      "tau_lo": 0.4,
+      "supportive": {
+       "correct": 0.33,
+       "ambiguous": 0.495,
+       "incorrect": 0.175
+      },
+      "missing": {
+       "correct": 0.005,
+       "ambiguous": 0.19,
+       "incorrect": 0.805
+      },
+      "precision_correct": 0.9850746268656716
+     },
+     {
+      "tau_hi": 0.8,
+      "tau_lo": 0.45,
+      "supportive": {
+       "correct": 0.33,
+       "ambiguous": 0.45,
+       "incorrect": 0.22
+      },
+      "missing": {
+       "correct": 0.005,
+       "ambiguous": 0.155,
+       "incorrect": 0.84
+      },
+      "precision_correct": 0.9850746268656716
+     },
+     {
+      "tau_hi": 0.8,
+      "tau_lo": 0.5,
+      "supportive": {
+       "correct": 0.33,
+       "ambiguous": 0.385,
+       "incorrect": 0.285
+      },
+      "missing": {
+       "correct": 0.005,
+       "ambiguous": 0.105,
+       "incorrect": 0.89
+      },
+      "precision_correct": 0.9850746268656716
+     },
+     {
+      "tau_hi": 0.85,
+      "tau_lo": 0.05,
+      "supportive": {
+       "correct": 0.26,
+       "ambiguous": 0.73,
+       "incorrect": 0.01
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.755,
+       "incorrect": 0.245
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.85,
+      "tau_lo": 0.1,
+      "supportive": {
+       "correct": 0.26,
+       "ambiguous": 0.71,
+       "incorrect": 0.03
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.55,
+       "incorrect": 0.45
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.85,
+      "tau_lo": 0.15,
+      "supportive": {
+       "correct": 0.26,
+       "ambiguous": 0.69,
+       "incorrect": 0.05
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.465,
+       "incorrect": 0.535
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.85,
+      "tau_lo": 0.2,
+      "supportive": {
+       "correct": 0.26,
+       "ambiguous": 0.665,
+       "incorrect": 0.075
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.36,
+       "incorrect": 0.64
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.85,
+      "tau_lo": 0.25,
+      "supportive": {
+       "correct": 0.26,
+       "ambiguous": 0.645,
+       "incorrect": 0.095
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.305,
+       "incorrect": 0.695
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.85,
+      "tau_lo": 0.3,
+      "supportive": {
+       "correct": 0.26,
+       "ambiguous": 0.615,
+       "incorrect": 0.125
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.27,
+       "incorrect": 0.73
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.85,
+      "tau_lo": 0.35,
+      "supportive": {
+       "correct": 0.26,
+       "ambiguous": 0.595,
+       "incorrect": 0.145
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.205,
+       "incorrect": 0.795
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.85,
+      "tau_lo": 0.4,
+      "supportive": {
+       "correct": 0.26,
+       "ambiguous": 0.565,
+       "incorrect": 0.175
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.195,
+       "incorrect": 0.805
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.85,
+      "tau_lo": 0.45,
+      "supportive": {
+       "correct": 0.26,
+       "ambiguous": 0.52,
+       "incorrect": 0.22
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.16,
+       "incorrect": 0.84
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.85,
+      "tau_lo": 0.5,
+      "supportive": {
+       "correct": 0.26,
+       "ambiguous": 0.455,
+       "incorrect": 0.285
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.11,
+       "incorrect": 0.89
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.9,
+      "tau_lo": 0.05,
+      "supportive": {
+       "correct": 0.16,
+       "ambiguous": 0.83,
+       "incorrect": 0.01
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.755,
+       "incorrect": 0.245
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.9,
+      "tau_lo": 0.1,
+      "supportive": {
+       "correct": 0.16,
+       "ambiguous": 0.81,
+       "incorrect": 0.03
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.55,
+       "incorrect": 0.45
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.9,
+      "tau_lo": 0.15,
+      "supportive": {
+       "correct": 0.16,
+       "ambiguous": 0.79,
+       "incorrect": 0.05
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.465,
+       "incorrect": 0.535
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.9,
+      "tau_lo": 0.2,
+      "supportive": {
+       "correct": 0.16,
+       "ambiguous": 0.765,
+       "incorrect": 0.075
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.36,
+       "incorrect": 0.64
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.9,
+      "tau_lo": 0.25,
+      "supportive": {
+       "correct": 0.16,
+       "ambiguous": 0.745,
+       "incorrect": 0.095
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.305,
+       "incorrect": 0.695
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.9,
+      "tau_lo": 0.3,
+      "supportive": {
+       "correct": 0.16,
+       "ambiguous": 0.715,
+       "incorrect": 0.125
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.27,
+       "incorrect": 0.73
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.9,
+      "tau_lo": 0.35,
+      "supportive": {
+       "correct": 0.16,
+       "ambiguous": 0.695,
+       "incorrect": 0.145
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.205,
+       "incorrect": 0.795
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.9,
+      "tau_lo": 0.4,
+      "supportive": {
+       "correct": 0.16,
+       "ambiguous": 0.665,
+       "incorrect": 0.175
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.195,
+       "incorrect": 0.805
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.9,
+      "tau_lo": 0.45,
+      "supportive": {
+       "correct": 0.16,
+       "ambiguous": 0.62,
+       "incorrect": 0.22
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.16,
+       "incorrect": 0.84
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.9,
+      "tau_lo": 0.5,
+      "supportive": {
+       "correct": 0.16,
+       "ambiguous": 0.555,
+       "incorrect": 0.285
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.11,
+       "incorrect": 0.89
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.95,
+      "tau_lo": 0.05,
+      "supportive": {
+       "correct": 0.055,
+       "ambiguous": 0.935,
+       "incorrect": 0.01
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.755,
+       "incorrect": 0.245
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.95,
+      "tau_lo": 0.1,
+      "supportive": {
+       "correct": 0.055,
+       "ambiguous": 0.915,
+       "incorrect": 0.03
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.55,
+       "incorrect": 0.45
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.95,
+      "tau_lo": 0.15,
+      "supportive": {
+       "correct": 0.055,
+       "ambiguous": 0.895,
+       "incorrect": 0.05
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.465,
+       "incorrect": 0.535
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.95,
+      "tau_lo": 0.2,
+      "supportive": {
+       "correct": 0.055,
+       "ambiguous": 0.87,
+       "incorrect": 0.075
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.36,
+       "incorrect": 0.64
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.95,
+      "tau_lo": 0.25,
+      "supportive": {
+       "correct": 0.055,
+       "ambiguous": 0.85,
+       "incorrect": 0.095
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.305,
+       "incorrect": 0.695
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.95,
+      "tau_lo": 0.3,
+      "supportive": {
+       "correct": 0.055,
+       "ambiguous": 0.82,
+       "incorrect": 0.125
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.27,
+       "incorrect": 0.73
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.95,
+      "tau_lo": 0.35,
+      "supportive": {
+       "correct": 0.055,
+       "ambiguous": 0.8,
+       "incorrect": 0.145
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.205,
+       "incorrect": 0.795
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.95,
+      "tau_lo": 0.4,
+      "supportive": {
+       "correct": 0.055,
+       "ambiguous": 0.77,
+       "incorrect": 0.175
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.195,
+       "incorrect": 0.805
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.95,
+      "tau_lo": 0.45,
+      "supportive": {
+       "correct": 0.055,
+       "ambiguous": 0.725,
+       "incorrect": 0.22
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.16,
+       "incorrect": 0.84
+      },
+      "precision_correct": 1.0
+     },
+     {
+      "tau_hi": 0.95,
+      "tau_lo": 0.5,
+      "supportive": {
+       "correct": 0.055,
+       "ambiguous": 0.66,
+       "incorrect": 0.285
+      },
+      "missing": {
+       "correct": 0.0,
+       "ambiguous": 0.11,
+       "incorrect": 0.89
+      },
+      "precision_correct": 1.0
+     }
+    ],
+    "single": [
+     {
+      "tau": 0.05,
+      "supportive_correct": 0.99,
+      "missing_correct": 0.755,
+      "precision_correct": 0.5673352435530086
+     },
+     {
+      "tau": 0.1,
+      "supportive_correct": 0.97,
+      "missing_correct": 0.55,
+      "precision_correct": 0.6381578947368421
+     },
+     {
+      "tau": 0.15,
+      "supportive_correct": 0.95,
+      "missing_correct": 0.465,
+      "precision_correct": 0.6713780918727915
+     },
+     {
+      "tau": 0.2,
+      "supportive_correct": 0.925,
+      "missing_correct": 0.36,
+      "precision_correct": 0.7198443579766537
+     },
+     {
+      "tau": 0.25,
+      "supportive_correct": 0.905,
+      "missing_correct": 0.305,
+      "precision_correct": 0.7479338842975206
+     },
+     {
+      "tau": 0.3,
+      "supportive_correct": 0.875,
+      "missing_correct": 0.27,
+      "precision_correct": 0.7641921397379913
+     },
+     {
+      "tau": 0.35,
+      "supportive_correct": 0.855,
+      "missing_correct": 0.205,
+      "precision_correct": 0.8066037735849056
+     },
+     {
+      "tau": 0.4,
+      "supportive_correct": 0.825,
+      "missing_correct": 0.195,
+      "precision_correct": 0.8088235294117647
+     },
+     {
+      "tau": 0.45,
+      "supportive_correct": 0.78,
+      "missing_correct": 0.16,
+      "precision_correct": 0.8297872340425532
+     },
+     {
+      "tau": 0.5,
+      "supportive_correct": 0.715,
+      "missing_correct": 0.11,
+      "precision_correct": 0.8666666666666667
+     },
+     {
+      "tau": 0.55,
+      "supportive_correct": 0.675,
+      "missing_correct": 0.08,
+      "precision_correct": 0.8940397350993378
+     },
+     {
+      "tau": 0.6,
+      "supportive_correct": 0.595,
+      "missing_correct": 0.06,
+      "precision_correct": 0.9083969465648855
+     },
+     {
+      "tau": 0.65,
+      "supportive_correct": 0.53,
+      "missing_correct": 0.04,
+      "precision_correct": 0.9298245614035088
+     },
+     {
+      "tau": 0.7,
+      "supportive_correct": 0.485,
+      "missing_correct": 0.025,
+      "precision_correct": 0.9509803921568627
+     },
+     {
+      "tau": 0.75,
+      "supportive_correct": 0.425,
+      "missing_correct": 0.02,
+      "precision_correct": 0.9550561797752809
+     },
+     {
+      "tau": 0.8,
+      "supportive_correct": 0.33,
+      "missing_correct": 0.005,
+      "precision_correct": 0.9850746268656716
+     },
+     {
+      "tau": 0.85,
+      "supportive_correct": 0.26,
+      "missing_correct": 0.0,
+      "precision_correct": 1.0
+     },
+     {
+      "tau": 0.9,
+      "supportive_correct": 0.16,
+      "missing_correct": 0.0,
+      "precision_correct": 1.0
+     },
+     {
+      "tau": 0.95,
+      "supportive_correct": 0.055,
+      "missing_correct": 0.0,
+      "precision_correct": 1.0
+     }
+    ]
+   },
+   "chunk_sweep": {
+    "rows": [
+     {
+      "tau_chunk": 0.01,
+      "top_k_context": 5,
+      "all_gold": 0.805,
+      "any_gold": 0.98,
+      "avg_selected": 4.5,
+      "avg_selected_missing": 3.84
+     },
+     {
+      "tau_chunk": 0.02,
+      "top_k_context": 5,
+      "all_gold": 0.775,
+      "any_gold": 0.975,
+      "avg_selected": 4.07,
+      "avg_selected_missing": 3.115
+     },
+     {
+      "tau_chunk": 0.03,
+      "top_k_context": 5,
+      "all_gold": 0.745,
+      "any_gold": 0.97,
+      "avg_selected": 3.72,
+      "avg_selected_missing": 2.55
+     },
+     {
+      "tau_chunk": 0.05,
+      "top_k_context": 5,
+      "all_gold": 0.705,
+      "any_gold": 0.96,
+      "avg_selected": 3.295,
+      "avg_selected_missing": 1.925
+     },
+     {
+      "tau_chunk": 0.08,
+      "top_k_context": 5,
+      "all_gold": 0.635,
+      "any_gold": 0.94,
+      "avg_selected": 2.77,
+      "avg_selected_missing": 1.35
+     },
+     {
+      "tau_chunk": 0.1,
+      "top_k_context": 5,
+      "all_gold": 0.595,
+      "any_gold": 0.94,
+      "avg_selected": 2.565,
+      "avg_selected_missing": 1.17
+     },
+     {
+      "tau_chunk": 0.15,
+      "top_k_context": 5,
+      "all_gold": 0.525,
+      "any_gold": 0.91,
+      "avg_selected": 2.255,
+      "avg_selected_missing": 0.915
+     },
+     {
+      "tau_chunk": 0.01,
+      "top_k_context": 8,
+      "all_gold": 0.875,
+      "any_gold": 0.99,
+      "avg_selected": 6.105,
+      "avg_selected_missing": 5.035
+     },
+     {
+      "tau_chunk": 0.02,
+      "top_k_context": 8,
+      "all_gold": 0.825,
+      "any_gold": 0.975,
+      "avg_selected": 5.075,
+      "avg_selected_missing": 3.715
+     },
+     {
+      "tau_chunk": 0.03,
+      "top_k_context": 8,
+      "all_gold": 0.79,
+      "any_gold": 0.97,
+      "avg_selected": 4.41,
+      "avg_selected_missing": 2.96
+     },
+     {
+      "tau_chunk": 0.05,
+      "top_k_context": 8,
+      "all_gold": 0.725,
+      "any_gold": 0.96,
+      "avg_selected": 3.675,
+      "avg_selected_missing": 2.165
+     },
+     {
+      "tau_chunk": 0.08,
+      "top_k_context": 8,
+      "all_gold": 0.65,
+      "any_gold": 0.94,
+      "avg_selected": 2.995,
+      "avg_selected_missing": 1.52
+     },
+     {
+      "tau_chunk": 0.1,
+      "top_k_context": 8,
+      "all_gold": 0.61,
+      "any_gold": 0.94,
+      "avg_selected": 2.75,
+      "avg_selected_missing": 1.3
+     },
+     {
+      "tau_chunk": 0.15,
+      "top_k_context": 8,
+      "all_gold": 0.535,
+      "any_gold": 0.91,
+      "avg_selected": 2.365,
+      "avg_selected_missing": 0.985
+     }
+    ],
+    "baseline": {
+     "tau_chunk": 0.15,
+     "top_k_context": 5,
+     "all_gold": 0.525,
+     "any_gold": 0.91,
+     "avg_selected": 2.255,
+     "avg_selected_missing": 0.915
+    }
+   },
+   "chunk_note": "no setting reaches all-gold recall 0.9; took the best at top_k 8",
+   "keep_sweep": [
+    {
+     "tau_keep": 0.05,
+     "uncapped": {
+      "recall": 0.8426966292134831,
+      "avg_kept": 5.78,
+      "all_facts_kept": 0.61,
+      "all_selected_facts_kept": 0.715
+     },
+     "capped": {
+      "recall": 0.8292134831460675,
+      "avg_kept": 5.435,
+      "all_facts_kept": 0.605,
+      "all_selected_facts_kept": 0.71
+     }
+    },
+    {
+     "tau_keep": 0.1,
+     "uncapped": {
+      "recall": 0.7235955056179775,
+      "avg_kept": 3.885,
+      "all_facts_kept": 0.475,
+      "all_selected_facts_kept": 0.56
+     },
+     "capped": {
+      "recall": 0.7235955056179775,
+      "avg_kept": 3.82,
+      "all_facts_kept": 0.475,
+      "all_selected_facts_kept": 0.56
+     }
+    },
+    {
+     "tau_keep": 0.2,
+     "uncapped": {
+      "recall": 0.5842696629213483,
+      "avg_kept": 2.35,
+      "all_facts_kept": 0.335,
+      "all_selected_facts_kept": 0.39
+     },
+     "capped": {
+      "recall": 0.5842696629213483,
+      "avg_kept": 2.345,
+      "all_facts_kept": 0.335,
+      "all_selected_facts_kept": 0.39
+     }
+    },
+    {
+     "tau_keep": 0.3,
+     "uncapped": {
+      "recall": 0.449438202247191,
+      "avg_kept": 1.56,
+      "all_facts_kept": 0.24,
+      "all_selected_facts_kept": 0.275
+     },
+     "capped": {
+      "recall": 0.449438202247191,
+      "avg_kept": 1.56,
+      "all_facts_kept": 0.24,
+      "all_selected_facts_kept": 0.275
+     }
+    },
+    {
+     "tau_keep": 0.4,
+     "uncapped": {
+      "recall": 0.31235955056179776,
+      "avg_kept": 0.95,
+      "all_facts_kept": 0.125,
+      "all_selected_facts_kept": 0.15
+     },
+     "capped": {
+      "recall": 0.31235955056179776,
+      "avg_kept": 0.95,
+      "all_facts_kept": 0.125,
+      "all_selected_facts_kept": 0.15
+     }
+    },
+    {
+     "tau_keep": 0.5,
+     "uncapped": {
+      "recall": 0.21123595505617979,
+      "avg_kept": 0.565,
+      "all_facts_kept": 0.08,
+      "all_selected_facts_kept": 0.1
+     },
+     "capped": {
+      "recall": 0.21123595505617979,
+      "avg_kept": 0.565,
+      "all_facts_kept": 0.08,
+      "all_selected_facts_kept": 0.1
+     }
+    },
+    {
+     "tau_keep": 0.6,
+     "uncapped": {
+      "recall": 0.1303370786516854,
+      "avg_kept": 0.335,
+      "all_facts_kept": 0.045,
+      "all_selected_facts_kept": 0.065
+     },
+     "capped": {
+      "recall": 0.1303370786516854,
+      "avg_kept": 0.335,
+      "all_facts_kept": 0.045,
+      "all_selected_facts_kept": 0.065
+     }
+    },
+    {
+     "tau_keep": 0.7,
+     "uncapped": {
+      "recall": 0.0651685393258427,
+      "avg_kept": 0.16,
+      "all_facts_kept": 0.01,
+      "all_selected_facts_kept": 0.025
+     },
+     "capped": {
+      "recall": 0.0651685393258427,
+      "avg_kept": 0.16,
+      "all_facts_kept": 0.01,
+      "all_selected_facts_kept": 0.025
+     }
+    }
+   ],
+   "fact_ceilings": {
+    "retrieved": 0.976890756302521,
+    "topk_unfiltered": 0.9411764705882353,
+    "selected": 0.9348739495798319,
+    "all_facts_selected": 0.875
+   }
+  }
+ }
+}
