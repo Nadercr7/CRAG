@@ -1783,3 +1783,107 @@ rect.lp-zp {
 .vrm-cmp .a {
   font-size: 15px;
 }
+
+/* ---------------------------------------------------------------- robustness: never wider or taller than the container, with any font */
+.vrm {
+  overflow: hidden;
+}
+.vrm-main > * {
+  min-width: 0;
+  min-height: 0;
+}
+.vrm-controls {
+  min-height: 0;
+  overflow: hidden;
+  gap: 9px;
+}
+.vrm-steps {
+  gap: 4px;
+}
+.vrm-step {
+  padding: 3px 10px 3px 3px;
+  font-size: 0.875rem;
+}
+.vrm[dir="rtl"] .vrm-step {
+  padding: 3px 3px 3px 10px;
+}
+.vrm-step .vrm-n {
+  width: 1.75em;
+  height: 1.75em;
+}
+.vrm-scnw {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+.vrm-scn button {
+  padding: 4px 8px;
+}
+.vrm-reset {
+  flex: none;
+  padding: 6px 10px;
+}
+.vrm-hint-t {
+  overflow-wrap: anywhere;
+}
+.vrm-lens-t {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vrm-lens-b,
+.vrm-lens-b * {
+  overflow-wrap: anywhere;
+}
+.lp-slips,
+.lp-rows,
+.lp-sents,
+.lp-tickets,
+.lp-ctx,
+.lp-cmp {
+  grid-template-columns: minmax(0, 1fr);
+}
+.lp-lamps {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.lp-lamp b {
+  text-align: center;
+}
+.lp-count,
+.lp-words {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.lp-slips li,
+.lp-tickets li,
+.lp-ctx li {
+  min-width: 0;
+}
+.lp-tickets li > span,
+.lp-ctx li > span {
+  min-width: 0;
+}
+@container vrm (max-width: 700px) {
+  .vrm-scnw {
+    overflow: visible;
+  }
+  .vrm-controls {
+    overflow: visible;
+  }
+}
+
+.vrm-lens,
+.vrm-controls {
+  align-self: stretch;
+}
+@container vrm (max-width: 899px) {
+  .vrm-lens {
+    align-self: start;
+  }
+}
+@container vrm (max-width: 700px) {
+  .vrm-controls {
+    align-self: start;
+  }
+}

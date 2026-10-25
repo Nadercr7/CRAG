@@ -682,7 +682,7 @@ function mount(el, opts) {
 
   /* ---------------------------------------------------------------- the player */
   const anchors = () => ({
-    0: iso([70, 117, 90], P), 1: iso([100, 117, 60], P), 2: iso([215, 100, 62], P), 3: iso([270, 70, 90], P), 4: iso([505, 112, 56], P), 5: iso([625, 92, 60], P), 6: iso([735, 100, 62], P),
+    0: iso([95, 117, 90], P), 1: iso([115, 117, 60], P), 2: iso([215, 100, 62], P), 3: iso([270, 70, 90], P), 4: iso([505, 112, 56], P), 5: iso([625, 92, 60], P), 6: iso([735, 100, 62], P),
   });
   let narrow = false, bw = L.W, bh = L.H;
   function metrics() {
@@ -705,7 +705,7 @@ function mount(el, opts) {
     let want = L.W; // visible width in drawing units
     if (narrow) {
       const base = sw < 560 ? 430 : clamp(sw / 1.2, 400, 600);
-      want = i === 3 ? Math.min(L.W, base * 1.3) : base;
+      want = i === 3 || (i >= 0 && i <= 1) ? Math.min(L.W, base * 1.3) : base;
     } else if (i >= 0) { want = Math.min(L.W, sw / 1.05); if (i === 3) want = Math.min(L.W, want * 1.35); }
     const z = Math.max(0.2, bw / want);
     const a = anchors()[Math.max(0, i)];
