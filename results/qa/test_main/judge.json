@@ -1,0 +1,14 @@
+{
+ "judge_model": "qwen/qwen3.8-27b",
+ "sampled": 100,
+ "judged": 100,
+ "unparsable": 0,
+ "complete": true,
+ "n": 100,
+ "agreement": 0.85,
+ "kappa": 0.7065727699530516,
+ "both_correct": 43,
+ "both_wrong": 42,
+ "judge_only_correct": 15,
+ "outcome_only_correct": 0
+}
