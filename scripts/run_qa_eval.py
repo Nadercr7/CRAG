@@ -719,6 +719,7 @@ def cmd_choose_tau(args: argparse.Namespace) -> int:
         ),
     ]
     out = cfg.paths.results_dir / "tuning" / f"tau_abstain_{res.name}.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
     print(f"\nwrote {out}", file=sys.stderr)

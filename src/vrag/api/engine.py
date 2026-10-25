@@ -86,10 +86,13 @@ class Engine:
         for label, path in (
             ("verifier model", v.model),
             ("passage calibration", v.calibration_passage),
+            ("sentence calibration", v.calibration_sentence),
             ("sufficiency model", v.sufficiency_model),
         ):
             if path and not Path(path).exists():
                 problems.append(f"{label} not found at {path}")
+        if not os.environ.get("GROQ_API_KEY"):
+            problems.append("GROQ_API_KEY is not set (put it in .env)")
         root = cfg.paths.data_dir / "indexes" / "hotpot"
         for name in ("bm25", "dense"):
             if not (root / name).exists():
@@ -166,20 +169,18 @@ class Engine:
                 return done.text
 
             start = time.perf_counter()
-            trace = rag.prepare(question)
             try:
+                trace = rag.prepare(question)  # may call the rewrite model
                 trace = rag.answer(trace, generate)
             except openai.APIError as e:
                 raise AnswerFailed(
-                    f"The answer model ({model}) could not be reached: {type(e).__name__}. "
+                    f"The LLM provider could not be reached: {type(e).__name__}. "
                     "Check GROQ_API_KEY in .env and the network."
                 ) from e
             except QuotaExhausted as e:
                 raise AnswerQuotaExhausted(
-                    f"The answer model ({model}) has no quota left right now "
-                    f"(retry in about {e.retry_after_s / 60:.0f} min). The retrieval, "
-                    "verification and abstain decision still ran; try again later or "
-                    "browse the examples."
+                    f"The LLM quota is used up right now (retry in about "
+                    f"{e.retry_after_s / 60:.0f} min). Try again later or browse the examples."
                 ) from e
             total = (time.perf_counter() - start) * 1000
         timings = {k: round(v, 1) for k, v in trace.timings_ms.items() if k != "prepare"}

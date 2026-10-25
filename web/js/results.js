@@ -503,15 +503,14 @@
     chartDefaults();
     const split = run.meta.split;
     const tau = run.meta.tau_abstain && run.meta.tau_abstain.F;
-    const headlineRun = runs.headline === run.run;
     const nq = SLICES.map((s) => run.aggregate.F[s] && s + " " + run.aggregate.F[s].n).filter(Boolean).join(", ");
     const pick = h("select", { id: "run-pick", "aria-label": "Evaluation run" },
       runs.runs.filter((r) => !r.dryrun).map((r) => h("option", { value: r.name }, r.name + " (" + r.split + " split)" + (r.headline ? ", headline" : ""))));
     pick.value = run.run;
     pick.addEventListener("change", () => load(pick.value));
 
-    const note = headlineRun
-      ? "Showing the " + split + " split: it was not used to tune any threshold, so it is the number to trust."
+    const note = split === "test"
+      ? "Showing the test split: it was not used to tune any threshold, so it is the number to trust."
       : split === "dev"
         ? "Showing the dev split. Thresholds were tuned on it, so these numbers are optimistic; the test split replaces them when it is available."
         : "Showing the " + split + " split.";

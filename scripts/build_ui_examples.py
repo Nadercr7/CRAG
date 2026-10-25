@@ -111,8 +111,8 @@ WANTS = [
         "F is wrong, A was right",
     ),
     ("supportive", lambda a, f: a == "correct" and f == "correct", 1, "Both right"),
-    ("supportive", lambda a, f: f == "hallucinate" and a != "correct", 1, "Both wrong"),
-    ("supportive", lambda a, f: f == "abstain" and a != "correct", 1, "Both fail to answer"),
+    ("supportive", lambda a, f: f == "hallucinate" and a == "hallucinate", 1, "Both wrong"),
+    ("supportive", lambda a, f: f == "abstain" and a == "abstain", 1, "Both abstain"),
     (
         "missing",
         lambda a, f: f == "abstain" and a == "hallucinate",
