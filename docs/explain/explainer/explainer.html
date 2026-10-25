@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Verified RAG Explained</title>
+<meta name="description" content="An illustrated explainer of the Verified RAG mini project, in English and in Egyptian Arabic.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<script>try{var t=localStorage.getItem("vrag-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../machine/machine.css">
+<link rel="stylesheet" href="explainer.css">
+</head>
+<body>
+<a class="skip" href="#en-top">Skip to content</a>
+<header class="top">
+  <a class="brand" href="#en-top" data-go="en"><svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22a11 11 0 0 1 22 0"/><path d="M16 22l5-8"/><circle cx="16" cy="22" r="1.6" fill="currentColor"/><path d="M4 27h24"/></svg><span>Verified RAG</span></a>
+  <nav class="langswitch" aria-label="Language / اللغة">
+    <a href="#en" data-go="en" lang="en" aria-current="true">English</a>
+    <a href="#ar" data-go="ar" lang="ar">مصري</a>
+  </nav>
+  <button class="theme" type="button" aria-label="Switch between light and dark theme / بدّل بين الفاتح والغامق"><svg class="i-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg><svg class="i-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg></button>
+</header>
+
+<main id="en" class="part" lang="en" dir="ltr" data-lang="en">
+
+<section class="hero" id="en-top" aria-labelledby="en-title">
+  <div class="wrap">
+    <div class="hero-text">
+      <h1 id="en-title">Verified RAG</h1>
+      <p class="idea">Check the evidence before you answer. Say “I don't know” when it isn't there.</p>
+      <p class="lede">An AI assistant that looks things up will often trust whatever it finds. This project puts an inspector between the search and the answer. This page explains how it works from zero, with real questions and parts you can click.</p>
+    </div>
+    <div class="hero-strip" data-hero aria-hidden="true"></div>
+  </div>
+</section>
+<section class="machine-sec" id="en-machine" aria-labelledby="en-machine-h">
+  <div class="wrap">
+    <h2 id="en-machine-h">The whole system, as one machine</h2>
+    <p class="prose">Here is the project as a machine on a bench. Press the button to send a real question through it, one station at a time. You do not need to understand it yet. The rest of the page takes each part slowly.</p>
+    <div class="machine-frame">
+      <div class="machine-mount" data-machine></div>
+    </div>
+  </div>
+</section>
+<nav class="map" aria-label="Sections of this page">
+  <div class="wrap">
+    <ol><li><a href="#en-zero"><span class="map-t">Starting from zero</span><span class="map-d">What a language model is, why it makes things up, what RAG adds</span></a></li><li><a href="#en-wrong"><span class="map-t">Where plain RAG fails</span><span class="map-d">Three real questions it got wrong</span></a></li><li><a href="#en-fix"><span class="map-t">Our fix, station by station</span><span class="map-d">Seven stations, each one you can play with</span></a></li><li><a href="#en-train"><span class="map-t">Teaching the inspector</span><span class="map-d">What broke, and the simple trick that fixed it</span></a></li><li><a href="#en-test"><span class="map-t">How we tested it fairly</span><span class="map-d">Conditions, a fixed exam, and what a confidence interval says</span></a></li><li><a href="#en-results"><span class="map-t">What we found</span><span class="map-d">What got better and what it cost</span></a></li><li><a href="#en-limits"><span class="map-t">What it can't do yet</span><span class="map-d">Honest limits and what comes next</span></a></li><li><a href="#en-gloss"><span class="map-t">Glossary</span><span class="map-d">Short definitions</span></a></li></ol>
+  </div>
+</nav>
+
+<section class="sec" id="en-zero" aria-labelledby="en-zero-h">
+  <div class="wrap">
+    <h2 id="en-zero-h">Starting from zero</h2>
+
+    <div class="block">
+      <h3>A language model is a very good autocomplete</h3>
+      <div class="two">
+        <div class="prose">
+          <p>Your phone suggests the next word while you type. A language model does the same thing on a much bigger scale. It has read a huge amount of text and learned which words tend to follow which. When you ask it something, it writes the answer one likely word at a time.</p>
+          <p>That works well for things it has seen many times. It has one catch. It always produces something that sounds right, because sounding right is what it was trained to do. Whether the sentence is true is a separate question, and it never checks.</p>
+          <p>Making up a confident answer is called a <strong>hallucination</strong>.</p>
+        </div>
+        <figure class="fig fig-guesser" data-fig="guesser"><div class="fig-body" role="group" aria-label="Two questions put to a language model"></div><figcaption>Both answers come out in the same calm voice. The second question is invented for this demo, and so is the name.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>RAG: let the model look it up first</h3>
+      <div class="two">
+        <div class="prose">
+          <p>RAG stands for <em>retrieval-augmented generation</em>. It is an open-book exam. Before the model writes anything, a search step fetches pages that might help, and the model writes its answer from those pages.</p>
+          <p>Think of a librarian and a writer. You ask a question. The librarian runs to the shelves and comes back with a pile of pages. The writer reads the pile and writes your answer. Each page the librarian brings is called a <strong>passage</strong>.</p>
+          <p>This is a real improvement, and most assistants that work with your own documents are built this way. It also has a weak spot. Look at the last step in the picture: nobody checks the pile.</p>
+        </div>
+        <figure class="fig fig-librarian" data-fig="librarian"><div class="fig-body" role="group" aria-label="The librarian and the writer, in four steps"></div><figcaption>Step through the picture. The dashed gap is where plain RAG has no check.</figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt" id="en-wrong" aria-labelledby="en-wrong-h">
+  <div class="wrap">
+    <h2 id="en-wrong-h">Three ways plain RAG goes wrong</h2>
+    <p class="prose">In plain RAG, whatever the search brings back goes straight to the writer. We ran real questions through it and watched. Each card is one real run from our test set. The questions are in English because the data is.</p>
+    <figure class="fig fig-cases" data-fig="cases"><div class="fig-body" role="group" aria-label="Three real failures of plain RAG"></div><figcaption>The pile is the 8 passages plain RAG sent to the writer. A star marks a passage that really holds the answer. Titles and answers are copied from the real run.</figcaption></figure>
+    <div class="two rates">
+      <div class="prose">
+        <p>These failures are common. Over our 300 test questions, plain RAG gave a wrong answer on about <b class="num" data-n="test.aggregate.A.supportive.hallucinate" data-f="pct1">24.7%</b> of the questions where the right pages were in the pile. With the right pages removed it still gave a wrong answer on <b class="num" data-n="test.aggregate.A.missing.hallucinate" data-f="pct1">8.0%</b>. On the questions where we planted a wrong answer, it repeated the planted one <b class="num" data-n="test.aggregate.A.misleading.planted" data-f="pct1">30.5%</b> of the time.</p>
+        <p>The cause is the same each time. The writer cannot tell a good pile from a bad one, so it never says “I don't know”.</p>
+      </div>
+      <figure class="fig fig-plainrates" data-fig="plainrates"><div class="fig-body" role="group" aria-label="Wrong answer rate of plain RAG"></div><figcaption>Wrong answers from plain RAG, out of every 100 questions, in each of the three conditions (explained in the testing section).</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="en-fix" aria-labelledby="en-fix-h">
+  <div class="wrap">
+    <h2 id="en-fix-h">Our fix: an inspection line</h2>
+    <div class="prose">
+      <p>We put a quality-control line between the librarian and the writer. Pages arrive like parts on a bench. Each one is measured, sorted, trimmed and weighed before anything reaches the writer. If the line decides there is not enough good material, it stops and stamps “I don't know”.</p>
+      <p>Plain RAG is the same bench with every station switched off. The seven stations below are the same ones you pressed through in the machine at the top.</p>
+    </div>
+    <ol class="rail" aria-label="The seven stations">
+      <li><a href="#en-s1"><span class="plate" aria-hidden="true">1</span>Search</a></li>
+      <li><a href="#en-s2"><span class="plate" aria-hidden="true">2</span>Inspect</a></li>
+      <li><a href="#en-s3"><span class="plate" aria-hidden="true">3</span>Decide</a></li>
+      <li><a href="#en-s4"><span class="plate" aria-hidden="true">4</span>Search again</a></li>
+      <li><a href="#en-s5"><span class="plate" aria-hidden="true">5</span>Trim</a></li>
+      <li><a href="#en-s6"><span class="plate" aria-hidden="true">6</span>Weigh</a></li>
+      <li><a href="#en-s7"><span class="plate" aria-hidden="true">7</span>Answer</a></li>
+    </ol>
+
+    
+<article class="station" id="en-s1" aria-labelledby="en-s1-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">1</span><h3 id="en-s1-h">Search: gather a pile</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>In everyday terms:</strong> two librarians. One matches the exact words you used. The other matches the meaning. You ask both and merge their lists, so a page that either one likes gets a chance.</p>
+      <p>Searching by words alone misses a page that says the same thing in other words. Searching by meaning alone can bring back pages that are only loosely related. Using both and merging the lists is more forgiving than either one.</p>
+      <p class="tech"><strong>What it really does:</strong> Word matching is BM25. Meaning matching uses a small embedding model (bge-small). The two rankings are merged with a rule called RRF, and the top 20 pages go on to the next station.</p>
+    </div>
+    <figure class="fig fig-matching" data-fig="matching"><div class="fig-body" role="group" aria-label="Search by words, by meaning, or both"></div><figcaption>The pages in this demo are made up to show the idea. The count underneath comes from a real run.</figcaption></figure>
+  </div>
+</article>
+
+    
+<article class="station" id="en-s2" aria-labelledby="en-s2-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">2</span><h3 id="en-s2-h">Inspect: put a number on each page</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>In everyday terms:</strong> an inspector with a gauge. She holds your question next to each page and reads off a number between 0 and 1: how likely is this page to help answer the question?</p>
+      <p>The number is called the <strong>verifier score</strong>. A page that talks about the right thing scores high. A page that only shares a few words with the question scores low. Pick a scenario and click a page to move the needle.</p>
+      <p>The number is also made honest, which is called calibration: a score of 0.6 should mean that about 60% of pages with that score really help. The training section explains how.</p>
+      <p class="tech"><strong>What it really does:</strong> The inspector is a small cross-encoder (a MiniLM model). It reads the question and the page together, side by side, which is why it can notice details that a plain search score misses. It runs on an ordinary CPU.</p>
+    </div>
+    <figure class="fig fig-gauge" data-fig="gauge"><div class="fig-body" role="group" aria-label="Verifier score for each page"></div><figcaption>Scores and titles are from the real run of the chosen question. The star marks a page that really holds the answer.</figcaption></figure>
+  </div>
+</article>
+
+    
+<article class="station" id="en-s3" aria-labelledby="en-s3-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">3</span><h3 id="en-s3-h">Decide: two lines, three verdicts</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>In everyday terms:</strong> marking an exam with two lines. Above the top line the answer is clearly good. Below the bottom line it is clearly bad. In between you say: let me look again.</p>
+      <p>We take the best score in the pile and compare it with two lines. Above the upper line the verdict is <strong>Correct</strong> and the pile moves on. Below the lower line it is <strong>Incorrect</strong> and the pile is thrown away. In between it is <strong>Ambiguous</strong>: keep what we have and also search again.</p>
+      <p>All five example questions on this page landed in the middle band. Drag the marker to see where each verdict begins.</p>
+      <p class="tech"><strong>What it really does:</strong> The lines are <b class="num" data-n="thresholds.tau_hi" data-f="num2">0.65</b> and <b class="num" data-n="thresholds.tau_lo" data-f="num2">0.15</b>, tuned on the dev questions. A version with only one line gave results within 1 point of this one, but almost never searched again.</p>
+    </div>
+    <figure class="fig fig-band" data-fig="band"><div class="fig-body" role="group" aria-label="Decision band with two thresholds"></div><figcaption>The five ticks are the best scores of the five real example questions. Pick one to jump to it.</figcaption></figure>
+  </div>
+</article>
+
+    
+<article class="station" id="en-s4" aria-labelledby="en-s4-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">4</span><h3 id="en-s4-h">Search again: ask in other words</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>In everyday terms:</strong> the librarian comes back with a thin pile, so you rephrase. Instead of asking which film is oldest, you ask for the release date of each film.</p>
+      <p>When the verdict is not Correct, a language model writes two new search queries. The line searches again, inspects the new pages too, and merges them with the first pile. It does this once only.</p>
+      <p><strong>Honest note.</strong> We measured this station and it made no measurable difference to the final results. Every change was within about 1 point and none was significant. It costs an extra model call on about half of the questions. With this collection and a small rewriter, it could be removed.</p>
+      <p class="tech"><strong>What it really does:</strong> The rewriter is the same small model that writes the answers (Qwen3-4B-Instruct). It was called 0.45 times per supportive question and 0.96 times per missing-evidence question.</p>
+    </div>
+    <figure class="fig fig-rewrite" data-fig="rewrite"><div class="fig-body" role="group" aria-label="Rewritten search queries"></div><figcaption>The queries are the ones the real run used.</figcaption></figure>
+  </div>
+</article>
+
+    
+<article class="station" id="en-s5" aria-labelledby="en-s5-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">5</span><h3 id="en-s5-h">Trim: keep the sentences that matter</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>In everyday terms:</strong> a highlighter. Before an exam you do not reread the whole textbook. You mark the sentences that matter and read only those.</p>
+      <p>Each page is split into sentences and the inspector scores every sentence. Sentences above the cut-off stay, in their original order. The rest are dropped. The writer then reads a few lines instead of a few pages, so there is less to get distracted by.</p>
+      <p>The price is that the highlighter can miss a line you needed. Move the cut-off and switch on the stars to see it happen.</p>
+      <p class="tech"><strong>What it really does:</strong> The cut-off is <b class="num" data-n="thresholds.tau_keep" data-f="num2">0.05</b>. Across the test, the text sent to the writer shrank from about <b class="num" data-n="test.aggregate.A.supportive.context_tokens" data-f="round10">1,070</b> tokens to about <b class="num" data-n="test.aggregate.F.supportive.context_tokens" data-f="int">217</b>. After trimming, all the supporting facts were still present for only about 57% of supportive questions.</p>
+    </div>
+    <figure class="fig fig-trim" data-fig="trim"><div class="fig-body" role="group" aria-label="Sentence trimming with an adjustable cut-off"></div><figcaption>Sentences and scores are from the real run. The default cut-off of 0.05 is marked on the slider.</figcaption></figure>
+  </div>
+</article>
+
+    
+<article class="station" id="en-s6" aria-labelledby="en-s6-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">6</span><h3 id="en-s6-h">Weigh: is this enough to answer?</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>In everyday terms:</strong> checking the fridge before you cook. You do not start the recipe and hope. You check that you have the ingredients, and if you do not, you order food instead.</p>
+      <p>A second small model reads the question and the trimmed context together and gives one number: how likely is this to be enough to answer? If the number is below <strong>0.90</strong>, the line stops. Move the line yourself and watch which questions would still get an answer.</p>
+      <p>We picked 0.90 on the dev questions, using a rule we wrote down before any dev answers existed: choose the value with the best score of correct answers minus wrong answers.</p>
+      <p class="tech"><strong>What it really does:</strong> The sufficiency model is a MiniLM-L12 trained on 270k examples. It is covered in the training section.</p>
+    </div>
+    <figure class="fig fig-scale" data-fig="scale"><div class="fig-body" role="group" aria-label="Sufficiency scale with an adjustable threshold"></div><figcaption>Sufficiency scores are from the real runs. The table shows what the line would do at the threshold you set, next to what really happened at 0.90.</figcaption></figure>
+  </div>
+</article>
+
+    
+<article class="station" id="en-s7" aria-labelledby="en-s7-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">7</span><h3 id="en-s7-h">Answer: cite it, or say you don't know</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>In everyday terms:</strong> a good report with footnotes. Every claim points to the line it came from, so you can check it yourself. If the sources are thin, the honest report says so.</p>
+      <p>If the evidence is enough, the writer answers and must cite the numbered lines it used. If it is not, the line stamps <strong>I don't know</strong> and no answer goes out. Abstaining is a decision, not an error.</p>
+      <p>Click a citation number to see the line behind it. Try each scenario, including the one where the line gets fooled.</p>
+      <p class="tech"><strong>What it really does:</strong> The writer is Qwen3-4B-Instruct-2507, the same model that plain RAG uses, so any difference comes from the line.</p>
+    </div>
+    <figure class="fig fig-answer" data-fig="answer"><div class="fig-body" role="group" aria-label="Final answer or abstention"></div><figcaption>Answers, citations and scores are from the real run of the chosen question.</figcaption></figure>
+  </div>
+</article>
+
+    <div class="block">
+      <h3>Five real questions, side by side</h3>
+      <p class="prose">Here is what plain RAG and the full line did on the five example questions. Three went our way, one went wrong, and one shows the price we pay. Five questions illustrate the idea. They are not the evidence, and the results section has all 839.</p>
+      <figure class="fig fig-compare" data-fig="compare"><div class="fig-body" role="group" aria-label="Plain RAG versus the full line on five questions"></div><figcaption>Outcomes are labelled by what the real run produced.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt" id="en-train" aria-labelledby="en-train-h">
+  <div class="wrap">
+    <h2 id="en-train-h">Teaching the inspector, and what went wrong</h2>
+    <div class="prose">
+      <p>The inspector did not start from nothing. We began with a model that already ranks web search results (MiniLM-L6, trained on a data set called MS MARCO) and gave it extra practice on our kind of question, using examples from HotpotQA and MS MARCO. This extra practice is called <strong>fine-tuning</strong>.</p>
+    </div>
+
+    <div class="block">
+      <h3>The fine-tune that broke on other text</h3>
+      <div class="two">
+        <div class="prose">
+          <p>It worked, on the topic it practised. On HotpotQA, the ranking score rose from 0.897 to 0.953. On everything else it got much worse. On SciFact, a test of ranking scientific papers, the score fell from 69.6 to 53.3.</p>
+          <p>Think of a student who crams one textbook, aces that exam and then fails the other subjects.</p>
+          <p>We tried a lower learning rate and training without any other-domain examples, and it fell just as far, so it was not ordinary forgetting. A probe showed the cause. HotpotQA picks its wrong pages because they share many words with the question, while the right second-step pages often share almost none. The model learned a bad rule: sharing words means not relevant. It scored a nonsense question against medical abstracts at +0.6, where the original model gave −9.6.</p>
+          <p>The fix was <strong>weight averaging</strong> (called WiSE-FT). A model is a big table of numbers. We blended the table of the original with the table of the tuned model. At a blend of 0.7, which means 70% tuned and 30% original, SciFact came back to 68.0 and HotpotQA kept most of its gain. Slide the blend to see the trade.</p>
+        </div>
+        <figure class="fig fig-wise" data-fig="wise"><div class="fig-body" role="group" aria-label="Weight averaging trade-off"></div><figcaption>Top: the blend on dev samples, from the real tuning run. Bottom: the final check on the SciFact test.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Making the score honest</h3>
+      <div class="two">
+        <div class="prose">
+          <p>A raw model score is not a probability. A score of 0.6 does not promise that 60% of such pages help. <strong>Calibration</strong> is a final small adjustment that fixes that. We measure the mismatch with the expected calibration error. Lower is better.</p>
+          <p>Calibration took the error on passages from 0.085 to 0.005, and on sentences from 0.156 to 0.006. That matters because the two decision lines in station 3 only mean something if the scores mean what they say.</p>
+        </div>
+        <figure class="fig fig-calib" data-fig="calib"><div class="fig-body" role="group" aria-label="Calibration error before and after"></div><figcaption>Expected calibration error on the dev split, before and after. Quoted from the results report.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Teaching the scale (the sufficiency model)</h3>
+      <div class="two">
+        <div class="prose">
+          <p>For station 6 we needed examples of “enough” and “not enough”. We built them from HotpotQA's marked supporting facts, with no language-model labels. There are three kinds. <em>Enough</em>: all supporting sentences are present among distractors. <em>Missing a step</em>: the sentences for one of the two reasoning steps are removed. <em>No evidence</em>: none are present.</p>
+          <p>We score it with a number called AUC. 1.0 means the model always ranks an enough-context above a not-enough one. 0.5 is a coin flip. The final model, trained on 270k examples, reached 0.978 against missing-step contexts and 0.998 against no-evidence ones.</p>
+          <p><strong>A caution.</strong> These examples are built the same way as the training data, so the numbers measure that practice task. They do not prove the model spots weak evidence in general. The planted-answer failure later on is the clearest sign of that.</p>
+        </div>
+        <figure class="fig fig-suff" data-fig="suff"><div class="fig-body" role="group" aria-label="Sufficiency model accuracy"></div><figcaption>ROC AUC on 600 dev examples, from the real tuning run. The axis starts at 0.5, which is chance.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Other bumps that changed the design</h3>
+      <ul class="bumps">
+        <li><strong>The check was measuring the wrong thing.</strong> An early dev check made the broken model look better than the original. We rebuilt it to follow exactly the same steps as the real test, and then dev and test agreed.</li>
+        <li><strong>One threshold was doing two jobs.</strong> The same lower line decided “Incorrect” and also filtered pages, and it threw away too many second-step pages. With a separate page cut-off, the share of dev questions keeping all supporting facts went from 56% to 89%.</li>
+        <li><strong>The teacher filter threw away most of the data.</strong> A first version dropped 57% of the training candidates. The fixed version drops 1 to 4%.</li>
+        <li><strong>The free quota ran out.</strong> The free tier of the hosted model service allows 200,000 tokens a day per model, which would have taken close to four weeks. Bulk generation moved to an open model on Kaggle, and the hosted service stayed for the live demo and the judge.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="en-test" aria-labelledby="en-test-h">
+  <div class="wrap">
+    <h2 id="en-test-h">How we tested it fairly</h2>
+    <div class="prose">
+      <p>A claim like “it hallucinates less” is easy to fake by accident. These are the rules that keep our test honest.</p>
+    </div>
+
+    <div class="block">
+      <h3>Three kinds of evidence, for the same questions</h3>
+      <div class="two">
+        <div class="prose">
+          <p>We used HotpotQA, questions that need two pages to answer, with a pool of <b class="num" data-n="counts.pool_paragraphs" data-f="int">4,969</b> paragraphs. We then built three versions of every question, so we could see how the system behaves when the evidence is good, absent or tampered with.</p>
+          <p><strong>Supportive:</strong> the right paragraphs are in the pool. <strong>Missing:</strong> the right paragraphs are removed, so the only honest answer is “I don't know”. <strong>Misleading:</strong> in the right paragraph, the answer is swapped for another answer of the same type. Repeating the swapped one counts as a <strong>planted</strong> answer.</p>
+          <p>That gives 300, 300 and 239 questions. Only 239 of the 300 got a valid swap.</p>
+        </div>
+        <figure class="fig fig-conditions" data-fig="conditions"><div class="fig-body" role="group" aria-label="The three evidence conditions"></div><figcaption>One real question shown under all three conditions.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>The same writer for every setup</h3>
+      <div class="two">
+        <div class="prose">
+          <p>We compared seven setups, A to G, each one adding a station to the one before. Every setup used the same writer model, so any difference comes from the line and not from a smarter writer. Identical prompts were generated once and reused.</p>
+        </div>
+        <ol class="ladder" aria-label="The seven setups">
+          <li><b>A</b><span>Plain RAG, top 8 pages</span></li>
+          <li><b>B</b><span>A, with an off-the-shelf reranker</span></li>
+          <li><b>C</b><span>A, with our inspector as a filter</span></li>
+          <li><b>D</b><span>C, plus trimming to sentences</span></li>
+          <li><b>E</b><span>D, plus the Correct / Ambiguous / Incorrect decision and search again</span></li>
+          <li><b>F</b><span>E, plus the sufficiency check: the full system</span></li>
+          <li><b>G</b><span>F with one threshold instead of two</span></li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>A practice exam and a final exam</h3>
+      <div class="two">
+        <div class="prose">
+          <p>We split the questions into <strong>dev</strong> (200) and <strong>test</strong> (300). Every knob was set on dev: the thresholds, the cut-offs, the choice of 0.90. The rule for choosing each knob was written in the plan before the dev answers existed. The 300 test questions were run once, at the end.</p>
+          <p>It is the difference between a practice exam you can learn from and a final exam you only sit once.</p>
+        </div>
+        <div class="split" aria-hidden="true">
+          <div class="split-a"><b>dev</b><span>200 questions</span><i>Tune every knob here</i></div>
+          <div class="split-b"><b>test</b><span>300 questions</span><i>Sealed until the end. Run once.</i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>What a confidence interval says</h3>
+      <div class="two">
+        <div class="prose">
+          <p>A result from 300 questions is not exact. If we had picked another 300, we would get slightly different numbers. A <strong>95% confidence interval</strong> gives the range of values that the true difference plausibly sits in.</p>
+          <p>We computed ours by redrawing the questions with replacement 10,000 times and measuring the difference each time. This is a paired bootstrap, and “paired” means both systems are compared on the same questions.</p>
+          <p>How to read it: if the whole range is on one side of zero, the difference is very unlikely to be luck. If the range touches zero, we cannot say. The unit is <strong>pp</strong>, percentage points: going from 24.7% to 18.3% is a drop of 6.3 pp.</p>
+        </div>
+        <figure class="fig fig-forest" data-fig="forest"><div class="fig-body" role="group" aria-label="Confidence intervals for the main comparisons"></div><figcaption>Full system (F) minus plain RAG (A), from the test run. Each row shows the change in percentage points and its 95% interval.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Four possible outcomes</h3>
+      <ul class="outcomes">
+        <li data-k="pass"><b>Correct</b> The answer matches the gold answer.</li>
+        <li data-k="abstain"><b>I don't know</b> The system declined to answer.</li>
+        <li data-k="plant"><b>Planted</b> It repeated the swapped answer.</li>
+        <li data-k="reject"><b>Wrong</b> Any other answer. The reports call this hallucination.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt" id="en-results" aria-labelledby="en-results-h">
+  <div class="wrap">
+    <h2 id="en-results-h">What we found</h2>
+    <div class="prose">
+      <p>The comparison that matters is the full system (F) against plain RAG (A), on 839 question and condition pairs from the test set. Use the chips to add one station at a time and see what each one changes.</p>
+    </div>
+    <figure class="fig fig-outcomes" data-fig="outcomes"><div class="fig-body" role="group" aria-label="Outcomes by setup and condition"></div><figcaption>Each bar is 100% of the questions in that condition. Data from the test run.</figcaption></figure>
+
+    <div class="block">
+      <h3>What improved</h3>
+      <div class="two">
+        <div class="prose">
+          <p>The full system gave fewer wrong answers in all three conditions. On supportive questions the rate fell from <b class="num" data-n="test.aggregate.A.supportive.hallucinate" data-f="pct1">24.7%</b> to <b class="num" data-n="test.aggregate.F.supportive.hallucinate" data-f="pct1">18.3%</b>. On missing-evidence questions it fell from <b class="num" data-n="test.aggregate.A.missing.hallucinate" data-f="pct1">8.0%</b> to <b class="num" data-n="test.aggregate.F.missing.hallucinate" data-f="pct1">0.7%</b>. On misleading questions it fell from <b class="num" data-n="test.aggregate.A.misleading.hallucinate" data-f="pct1">24.7%</b> to <b class="num" data-n="test.aggregate.F.misleading.hallucinate" data-f="pct1">17.2%</b>. The paired drops are 6.3, 7.3 and 7.5 pp, and every confidence interval excludes zero.</p>
+          <p>It also sends the writer far less to read. The text shrinks to about a fifth.</p>
+        </div>
+        <figure class="fig fig-tokens" data-fig="tokens"><div class="fig-body" role="group" aria-label="Context size, plain RAG against the full system"></div><figcaption>Average tokens sent to the writer. A token is a piece of a word, roughly three quarters of a word.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>What it cost</h3>
+      <div class="two">
+        <div class="prose">
+          <p>The line says “I don't know” more often, and some of those cases would have been right. On supportive questions the share answered fell from <b class="num" data-n="test.aggregate.A.supportive.coverage" data-f="pct0">73%</b> to <b class="num" data-n="test.aggregate.F.supportive.coverage" data-f="pct0">62%</b>, and the correct rate fell by 5.0 pp (the interval just touches zero, p = 0.06).</p>
+          <p>It also did not solve tampered evidence. The planted-answer rate went from <b class="num" data-n="test.aggregate.A.misleading.planted" data-f="pct1">30.5%</b> to <b class="num" data-n="test.aggregate.F.misleading.planted" data-f="pct1">27.6%</b>, which is not a significant change. A fluent paragraph with one fact swapped looks fine to the inspector. The Sun Valley example earlier shows exactly that.</p>
+          <p>One more caution. The writer model already says “I don't know” by itself on 85% of the missing-evidence questions, which leaves less room for the line to help than a more confident writer would.</p>
+        </div>
+        <figure class="fig fig-costcard" data-fig="costcard"><div class="fig-body" role="group" aria-label="A question where the line cost a correct answer"></div><figcaption>One real question where plain RAG was right and the full line held back.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Does the strict marking hide something?</h3>
+      <div class="two">
+        <div class="prose">
+          <p>Our scoring is strict. “Chris Pine” does not match “Christopher Whitelaw Pine”. To see how much that matters, a judge model from a different family read 100 answers and graded them.</p>
+          <p>It agreed with the strict scoring on 85 of the 100 (Cohen's kappa 0.71, which is a good level of agreement). All 15 disagreements went the same way: the judge accepted a name variant that our scoring rejected. So our numbers overstate hallucination for every setup. They also mean that part of the full system's gain may come from answering less, not only from answering better.</p>
+        </div>
+        <figure class="fig fig-judge" data-fig="judge"><div class="fig-body" role="group" aria-label="Agreement between the judge and the strict scoring"></div><figcaption>One square per answer in the 100-answer sample. The sample was stratified, so these shares are not population rates.</figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="en-limits" aria-labelledby="en-limits-h">
+  <div class="wrap">
+    <h2 id="en-limits-h">What it can't do yet, and what's next</h2>
+    <div class="two limits">
+      <div>
+        <h3>Limits</h3>
+        <ul class="lim">
+          <li><strong>Tampered evidence slips through.</strong> A fluent paragraph with a swapped fact still scores well. Most planted answers survive every setup.</li>
+          <li><strong>Everything was built from HotpotQA.</strong> The sufficiency labels, the misleading condition and most of the inspector's training data all come from it. The results say little about other kinds of text, and the inspector is slightly worse than its base model out of domain.</li>
+          <li><strong>Trimming can cut what you need.</strong> After trimming, all supporting facts survive for only about 57% of supportive questions.</li>
+          <li><strong>The marking is strict.</strong> Absolute hallucination numbers are too high for every setup.</li>
+          <li><strong>The search-again station did not help</strong> in this setting.</li>
+          <li><strong>Smaller shortcuts.</strong> One training seed instead of three, and no human check of the sufficiency labels.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>What comes next</h3>
+        <ul class="lim next">
+          <li>A way to catch a fluent paragraph that was altered, for example by checking whether independent sources agree, or by training on such edits.</li>
+          <li>Testing on other kinds of text than HotpotQA.</li>
+          <li>Marking that accepts name variants, so absolute numbers are fairer.</li>
+          <li>Keeping more of the needed sentences when trimming.</li>
+          <li>Dropping the search-again station, or testing it with a stronger rewriter.</li>
+          <li>Repeating the training with several seeds.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="glossary" id="en-gloss" aria-labelledby="en-gloss-h">
+  <div class="wrap">
+    <h2 id="en-gloss-h">Glossary</h2>
+    <dl class="gloss"><div><dt>RAG</dt><dd>Retrieval-augmented generation. A search step fetches pages first, and the model writes its answer from them.</dd></div><div><dt>Passage</dt><dd>One page or paragraph that the search brings back.</dd></div><div><dt>Verifier / cross-encoder</dt><dd>A small model that reads a question and a page together and gives a score from 0 to 1 for how much the page helps.</dd></div><div><dt>Threshold</dt><dd>A line on a scale. Above it one thing happens, below it another.</dd></div><div><dt>Calibration</dt><dd>Adjusting scores so that they mean what they say: a score of 0.6 should be right about 60% of the time.</dd></div><div><dt>Hallucination</dt><dd>A confident answer that is wrong or made up.</dd></div><div><dt>Abstain</dt><dd>Decline to answer and say “I don't know”. It is a deliberate decision.</dd></div><div><dt>Confidence interval</dt><dd>The range in which the true difference plausibly sits. If it touches zero, the difference may be luck.</dd></div><div><dt>Dev / test split</dt><dd>Dev questions are for tuning every knob. Test questions are the final exam, run once.</dd></div><div><dt>Planted answer</dt><dd>A swapped answer that we put into the evidence on purpose, to see whether the system repeats it.</dd></div><div><dt>Fine-tuning</dt><dd>Extra practice that adjusts an existing model for a specific kind of task.</dd></div><div><dt>Token</dt><dd>A piece of a word. A model reads and writes in tokens.</dd></div></dl>
+    <p class="source-note">Every number on this page is loaded from the project's data file, which is generated from <code>results/</code>, or is quoted from <code>results/report.md</code>.</p>
+  </div>
+</section>
+</main>
+
+<aside class="bridge to-ar" id="bridge-to-ar" aria-label="End of the English part. The same page follows in Egyptian Arabic.">
+  <div class="wrap"><p lang="en" dir="ltr">End of the English part. The same page follows in Egyptian Arabic. <a href="#ar" data-go="ar">Jump to the Arabic part</a></p></div>
+</aside>
+
+<main id="ar" class="part" lang="ar" dir="rtl" data-lang="ar">
+
+<section class="hero" id="ar-top" aria-labelledby="ar-title">
+  <div class="wrap">
+    <div class="hero-text">
+      <h1 id="ar-title">Verified RAG</h1>
+      <p class="idea">اتأكد من الدليل قبل ما تجاوب. ولو مفيش دليل قول «مش عارف».</p>
+      <p class="lede">المساعد الذكي اللي بيدوّر على المعلومة غالبًا بيصدّق أي حاجة بيلاقيها. المشروع ده حاطط مفتّش بين البحث والإجابة. الصفحة دي بتشرح الشغل كله من الصفر، بأسئلة حقيقية وحاجات تقدر تدوس عليها وتجرّبها.</p>
+    </div>
+    <div class="hero-strip" data-hero aria-hidden="true"></div>
+  </div>
+</section>
+<section class="machine-sec" id="ar-machine" aria-labelledby="ar-machine-h">
+  <div class="wrap">
+    <h2 id="ar-machine-h">المشروع كله في ماكينة واحدة</h2>
+    <p class="prose">دي صورة المشروع كأنه ماكينة على ترابيزة شغل. دوس على الزرار وهتشوف سؤال حقيقي بيعدّي عليها محطة ورا محطة. مش لازم تفهم كل حاجة دلوقتي. باقي الصفحة هتاخد كل جزء بالراحة.</p>
+    <div class="machine-frame">
+      <div class="machine-mount" data-machine></div>
+    </div>
+  </div>
+</section>
+<nav class="map" aria-label="أقسام الصفحة">
+  <div class="wrap">
+    <ol><li><a href="#ar-zero"><span class="map-t">من الصفر</span><span class="map-d">يعني إيه language model، وليه بيألّف، وRAG بيزوّد إيه</span></a></li><li><a href="#ar-wrong"><span class="map-t">الـ RAG العادي بيغلط فين</span><span class="map-d">تلات أسئلة حقيقية جاوب عليها غلط</span></a></li><li><a href="#ar-fix"><span class="map-t">الحل بتاعنا، محطة محطة</span><span class="map-d">سبع محطات، وكل واحدة تجرّبها بإيدك</span></a></li><li><a href="#ar-train"><span class="map-t">تدريب المفتّش</span><span class="map-d">إيه اللي باظ، والحيلة البسيطة اللي صلّحته</span></a></li><li><a href="#ar-test"><span class="map-t">اختبرناه بنزاهة إزاي</span><span class="map-d">الحالات، امتحان ثابت، وفترة الثقة معناها إيه</span></a></li><li><a href="#ar-results"><span class="map-t">طلع بإيه</span><span class="map-d">إيه اللي اتحسّن وإيه التمن</span></a></li><li><a href="#ar-limits"><span class="map-t">مش قادر يعمل إيه لسه</span><span class="map-d">حدود بصراحة، والخطوة الجاية</span></a></li><li><a href="#ar-gloss"><span class="map-t">قاموس صغير</span><span class="map-d">تعريفات قصيرة</span></a></li></ol>
+  </div>
+</nav>
+
+<section class="sec" id="ar-zero" aria-labelledby="ar-zero-h">
+  <div class="wrap">
+    <h2 id="ar-zero-h">من الصفر</h2>
+
+    <div class="block">
+      <h3>الـ language model هو autocomplete شاطر أوي</h3>
+      <div class="two">
+        <div class="prose">
+          <p>موبايلك بيقترح الكلمة الجاية وإنت بتكتب. الـ language model بيعمل نفس الحاجة بس على نطاق أكبر بكتير. هو قرا كمية ضخمة من الكلام وعرف إيه الكلمات اللي غالبًا بتيجي ورا بعض. فلما تسأله، بيكتب الإجابة كلمة ورا كلمة، وكل مرة بيختار الكلمة الأقرب للاحتمال.</p>
+          <p>ده بيشتغل كويس في الحاجات اللي شافها مرات كتير. بس فيه مشكلة. هو دايمًا بيطلّع كلام شكله صح، لأن ده اللي اتدرّب عليه. هل الكلام ده حقيقي ولا لأ؟ ده سؤال تاني، وهو عمره ما بيراجع عليه.</p>
+          <p>لما الـ model يألّف إجابة بثقة، ده اسمه <strong>هلوسة (hallucination)</strong>.</p>
+        </div>
+        <figure class="fig fig-guesser" data-fig="guesser"><div class="fig-body" role="group" aria-label="سؤالين اتسألوا لـ language model"></div><figcaption>الإجابتين طالعين بنفس الهدوء والثقة. السؤال التاني متألّف للشرح، والاسم كمان.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>RAG: خلّي الـ model يدوّر الأول</h3>
+      <div class="two">
+        <div class="prose">
+          <p>RAG اختصار <em>retrieval-augmented generation</em>. فكّر فيه زي امتحان الكتاب المفتوح. قبل ما الـ model يكتب أي حاجة، خطوة بحث بتجيب صفحات ممكن تفيد، والـ model بيكتب إجابته من الصفحات دي.</p>
+          <p>تخيّل أمينة مكتبة وكاتب. إنت بتسأل. أمينة المكتبة بتجري على الرفوف وترجع بكومة ورق. الكاتب بيقرا الكومة ويكتبلك الإجابة. وكل صفحة أمينة المكتبة بتجيبها اسمها <strong>فقرة (passage)</strong>.</p>
+          <p>ده تحسين حقيقي، ومعظم المساعدين اللي بتشتغل على ملفاتك مبنيين كده. بس فيه نقطة ضعف. بص على آخر خطوة في الصورة: محدّش بيراجع الكومة.</p>
+        </div>
+        <figure class="fig fig-librarian" data-fig="librarian"><div class="fig-body" role="group" aria-label="أمينة المكتبة والكاتب في أربع خطوات"></div><figcaption>عدّي على الصورة خطوة خطوة. الفجوة المقطّعة هي المكان اللي مفيش فيه أي فحص في الـ RAG العادي.</figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt" id="ar-wrong" aria-labelledby="ar-wrong-h">
+  <div class="wrap">
+    <h2 id="ar-wrong-h">تلات طرق الـ RAG العادي بيغلط بيهم</h2>
+    <p class="prose">في الـ RAG العادي، أي حاجة البحث يجيبها بتروح على طول للكاتب. شغّلنا أسئلة حقيقية عليه وراقبنا. كل كارت تحت ده تشغيل حقيقي من الاختبار بتاعنا. الأسئلة بالإنجليزي لأن الداتا كده، وأنا حاطط لك ملخص بالعربي فوق كل سؤال.</p>
+    <figure class="fig fig-cases" data-fig="cases"><div class="fig-body" role="group" aria-label="تلات أغلاط حقيقية في الـ RAG العادي"></div><figcaption>الكومة هي الـ 8 فقرات اللي الـ RAG العادي بعتها للكاتب. النجمة معناها إن الفقرة دي فعلًا فيها الإجابة. العناوين والإجابات منسوخة من التشغيل الحقيقي.</figcaption></figure>
+    <div class="two rates">
+      <div class="prose">
+        <p>الغلطات دي مش نادرة. على الـ 300 سؤال بتوع الاختبار، الـ RAG العادي جاوب غلط على حوالي <b class="num" data-n="test.aggregate.A.supportive.hallucinate" data-f="pct1">24.7%</b> من الأسئلة اللي الصفحات الصح كانت موجودة فيها. ولما شلنا الصفحات الصح، لسه جاوب غلط في <b class="num" data-n="test.aggregate.A.missing.hallucinate" data-f="pct1">8.0%</b>. وفي الأسئلة اللي زرعنا فيها إجابة غلط، كرّر الإجابة المزروعة في <b class="num" data-n="test.aggregate.A.misleading.planted" data-f="pct1">30.5%</b> من المرات.</p>
+        <p>السبب واحد في كل مرة. الكاتب مش عارف يفرّق بين كومة كويسة وكومة وحشة، فعمره ما بيقول «مش عارف».</p>
+      </div>
+      <figure class="fig fig-plainrates" data-fig="plainrates"><div class="fig-body" role="group" aria-label="نسبة الإجابات الغلط في الـ RAG العادي"></div><figcaption>إجابات غلط من الـ RAG العادي، من كل 100 سؤال، في كل حالة من التلات حالات (هنشرحها في قسم الاختبار).</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="ar-fix" aria-labelledby="ar-fix-h">
+  <div class="wrap">
+    <h2 id="ar-fix-h">الحل بتاعنا: خط فحص</h2>
+    <div class="prose">
+      <p>حطينا خط مراقبة جودة بين أمينة المكتبة والكاتب. الصفحات بتوصل زي قطع على ترابيزة المصنع. كل واحدة بتتقاس وتتصنّف وتتقصّ وتتوزن قبل ما أي حاجة توصل للكاتب. ولو الخط شاف إن مفيش مادة كويسة كفاية، بيقف ويختم «مش عارف».</p>
+      <p>الـ RAG العادي هو نفس الترابيزة بس كل المحطات مقفولة. المحطات السبعة اللي تحت هي نفسها اللي دوست عليها في الماكينة فوق.</p>
+    </div>
+    <ol class="rail" aria-label="المحطات السبعة">
+      <li><a href="#ar-s1"><span class="plate" aria-hidden="true">1</span>البحث</a></li>
+      <li><a href="#ar-s2"><span class="plate" aria-hidden="true">2</span>الفحص</a></li>
+      <li><a href="#ar-s3"><span class="plate" aria-hidden="true">3</span>القرار</a></li>
+      <li><a href="#ar-s4"><span class="plate" aria-hidden="true">4</span>بحث تاني</a></li>
+      <li><a href="#ar-s5"><span class="plate" aria-hidden="true">5</span>القص</a></li>
+      <li><a href="#ar-s6"><span class="plate" aria-hidden="true">6</span>الوزن</a></li>
+      <li><a href="#ar-s7"><span class="plate" aria-hidden="true">7</span>الإجابة</a></li>
+    </ol>
+
+    
+<article class="station" id="ar-s1" aria-labelledby="ar-s1-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">1</span><h3 id="ar-s1-h">البحث: نجمّع كومة</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>تشبيه من الحياة:</strong> تخيّل أمينتين مكتبة. واحدة بتدوّر على نفس الكلمات اللي قلتها بالظبط. والتانية بتدوّر على المعنى. بتسألهم الاتنين وبتدمج القوايم، فأي صفحة واحدة منهم عجبتها بياخد فرصة.</p>
+      <p>لو دوّرنا بالكلمات بس، هنفوّت صفحة قايلة نفس الكلام بكلمات تانية. ولو دوّرنا بالمعنى بس، ممكن يجيب صفحات قريبة من بعيد. استخدام الاتنين مع بعض ودمج القوايم أرحم من أي واحد لوحده.</p>
+      <p class="tech"><strong>اللي بيحصل فعلًا:</strong> البحث بالكلمات اسمه BM25. والبحث بالمعنى بيستخدم model صغير للـ embedding (اسمه bge-small). الترتيبين بيتدمجوا بقاعدة اسمها RRF، وأعلى 20 صفحة بتكمّل للمحطة اللي بعدها.</p>
+    </div>
+    <figure class="fig fig-matching" data-fig="matching"><div class="fig-body" role="group" aria-label="بحث بالكلمات أو بالمعنى أو بالاتنين"></div><figcaption>الصفحات في المثال ده متألّفة للشرح بس. العدّاد اللي تحتها من تشغيل حقيقي.</figcaption></figure>
+  </div>
+</article>
+
+    
+<article class="station" id="ar-s2" aria-labelledby="ar-s2-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">2</span><h3 id="ar-s2-h">الفحص: رقم لكل صفحة</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>تشبيه من الحياة:</strong> مفتّش معاه عدّاد. بيحط سؤالك جنب كل صفحة ويقرا رقم من 0 لـ 1: الصفحة دي احتمال تفيد في الإجابة قد إيه؟</p>
+      <p>الرقم ده اسمه <strong>verifier score</strong>. الصفحة اللي بتتكلم عن الموضوع الصح بتاخد رقم عالي. والصفحة اللي بتشارك السؤال في كلمتين بس بتاخد رقم واطي. اختار سؤال وإدوس على صفحة وشوف العقرب بيتحرك.</p>
+      <p>والرقم ده كمان بنخليه صادق، وده اسمه calibration: لما الرقم يبقى 0.6 يبقى المفروض حوالي 60% من الصفحات اللي ليها الرقم ده تفيد فعلًا. قسم التدريب بيشرح إزاي.</p>
+      <p class="tech"><strong>اللي بيحصل فعلًا:</strong> المفتّش ده cross-encoder صغير (model من نوع MiniLM). بيقرا السؤال والصفحة مع بعض جنب بعض، وعشان كده بيلاحظ تفاصيل البحث العادي بيفوّتها. وبيشتغل على CPU عادي.</p>
+    </div>
+    <figure class="fig fig-gauge" data-fig="gauge"><div class="fig-body" role="group" aria-label="الـ verifier score لكل صفحة"></div><figcaption>الأرقام والعناوين من التشغيل الحقيقي للسؤال اللي اخترته. النجمة معناها إن الصفحة دي فعلًا فيها الإجابة.</figcaption></figure>
+  </div>
+</article>
+
+    
+<article class="station" id="ar-s3" aria-labelledby="ar-s3-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">3</span><h3 id="ar-s3-h">القرار: خطين وتلات أحكام</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>تشبيه من الحياة:</strong> تصحيح امتحان بخطين. فوق الخط العالي الإجابة واضح إنها كويسة. تحت الخط الواطي واضح إنها وحشة. وفي النص بتقول: خليني أبص تاني.</p>
+      <p>بناخد أحسن رقم في الكومة ونقارنه بالخطين. فوق الخط العالي الحكم <strong>Correct</strong> والكومة تكمّل. تحت الخط الواطي الحكم <strong>Incorrect</strong> والكومة بتتشال. وفي النص الحكم <strong>Ambiguous</strong>: خلّي اللي معانا وابحث تاني برضه.</p>
+      <p>الخمس أسئلة اللي في الصفحة كلهم وقعوا في النص. اسحب العلامة وشوف كل حكم بيبدأ منين.</p>
+      <p class="tech"><strong>اللي بيحصل فعلًا:</strong> الخطين هما <b class="num" data-n="thresholds.tau_hi" data-f="num2">0.65</b> و <b class="num" data-n="thresholds.tau_lo" data-f="num2">0.15</b>، واتظبطوا على أسئلة الـ dev. جرّبنا نسخة بخط واحد بس، ونتيجتها كانت قريبة من دي في حدود نقطة، بس كانت نادرًا أوي بتبحث تاني.</p>
+    </div>
+    <figure class="fig fig-band" data-fig="band"><div class="fig-body" role="group" aria-label="نطاق القرار بخطين (threshold)"></div><figcaption>العلامات الخمسة هي أحسن رقم في كل سؤال من الخمس أسئلة الحقيقيين. اختار واحد عشان تروحله.</figcaption></figure>
+  </div>
+</article>
+
+    
+<article class="station" id="ar-s4" aria-labelledby="ar-s4-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">4</span><h3 id="ar-s4-h">بحث تاني: اسأل بكلام تاني</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>تشبيه من الحياة:</strong> أمينة المكتبة رجعت بكومة خفيفة، فبتسأل بصياغة تانية. بدل ما تسأل أنهي فيلم أقدم، بتسأل عن تاريخ نزول كل فيلم.</p>
+      <p>لما الحكم مايبقاش Correct، model لغوي بيكتب جملتين بحث جداد. الخط بيدوّر تاني، ويفحص الصفحات الجديدة كمان، ويدمجها مع الكومة الأولانية. ومرة واحدة بس.</p>
+      <p><strong>ملحوظة بصراحة.</strong> قسنا المحطة دي وطلع إنها ما عملتش فرق ملحوظ في النتيجة النهائية. كل التغييرات كانت في حدود نقطة تقريبًا ولا واحدة منها معنوية. وهي بتكلّف نداء زيادة للـ model في حوالي نص الأسئلة. مع المجموعة دي ومع rewriter صغير، ممكن نشيلها.</p>
+      <p class="tech"><strong>اللي بيحصل فعلًا:</strong> الـ rewriter هو نفس الـ model الصغير اللي بيكتب الإجابات (Qwen3-4B-Instruct). اتندهله 0.45 مرة لكل سؤال supportive، و0.96 مرة لكل سؤال الدليل فيه ناقص.</p>
+    </div>
+    <figure class="fig fig-rewrite" data-fig="rewrite"><div class="fig-body" role="group" aria-label="جمل البحث بعد إعادة الصياغة"></div><figcaption>الجمل هي اللي استخدمها التشغيل الحقيقي.</figcaption></figure>
+  </div>
+</article>
+
+    
+<article class="station" id="ar-s5" aria-labelledby="ar-s5-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">5</span><h3 id="ar-s5-h">القص: سيب الجمل المهمة بس</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>تشبيه من الحياة:</strong> قلم الهايلايت. قبل الامتحان مش بتعيد قراية الكتاب كله. بتعلّم الجمل المهمة وتقرا دي بس.</p>
+      <p>كل صفحة بتتقسّم لجمل، والمفتّش بيدّي كل جملة رقم. الجمل اللي فوق حد القص بتفضل بنفس ترتيبها، والباقي بيتشال. وبكده الكاتب بيقرا كام سطر بدل كام صفحة، فبيتشتت أقل.</p>
+      <p>التمن إن الهايلايت ممكن يفوّت سطر كنت محتاجه. حرّك الحد وشغّل النجوم وشوف ده بيحصل إزاي.</p>
+      <p class="tech"><strong>اللي بيحصل فعلًا:</strong> حد القص هو <b class="num" data-n="thresholds.tau_keep" data-f="num2">0.05</b>. على الاختبار كله، الكلام اللي بيروح للكاتب صغر من حوالي <b class="num" data-n="test.aggregate.A.supportive.context_tokens" data-f="round10">1,070</b> token لحوالي <b class="num" data-n="test.aggregate.F.supportive.context_tokens" data-f="int">217</b>. بعد القص، كل الحقايق اللي بتدعم الإجابة فضلت موجودة في حوالي 57% بس من الأسئلة الـ supportive.</p>
+    </div>
+    <figure class="fig fig-trim" data-fig="trim"><div class="fig-body" role="group" aria-label="قص الجمل بحد تقدر تغيّره"></div><figcaption>الجمل والأرقام من التشغيل الحقيقي. الحد الأصلي 0.05 معلّم على السلايدر.</figcaption></figure>
+  </div>
+</article>
+
+    
+<article class="station" id="ar-s6" aria-labelledby="ar-s6-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">6</span><h3 id="ar-s6-h">الوزن: هل ده كفاية نجاوب؟</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>تشبيه من الحياة:</strong> تبص في التلاجة قبل ما تطبخ. مش بتبدأ الوصفة وتتمنى. بتتأكد إن المكونات موجودة، ولو مش موجودة بتطلب أكل جاهز.</p>
+      <p>model صغير تاني بيقرا السؤال والكلام المقصوص مع بعض ويدّي رقم واحد: احتمال إن ده يكفي للإجابة قد إيه؟ لو الرقم أقل من <strong>0.90</strong> الخط بيقف. حرّك الخط بنفسك وشوف أنهي أسئلة كانت هتتجاوب.</p>
+      <p>اخترنا 0.90 على أسئلة الـ dev بقاعدة كاتبينها قبل ما أي إجابات dev تتولّد: اختار القيمة اللي بتدّي أحسن (إجابات صح ناقص إجابات غلط).</p>
+      <p class="tech"><strong>اللي بيحصل فعلًا:</strong> الـ sufficiency model ده MiniLM-L12 اتدرّب على 270 ألف مثال. وبنحكي عنه في قسم التدريب.</p>
+    </div>
+    <figure class="fig fig-scale" data-fig="scale"><div class="fig-body" role="group" aria-label="ميزان الكفاية بحد تقدر تحرّكه"></div><figcaption>أرقام الكفاية من التشغيلات الحقيقية. الجدول بيوريك الخط كان هيعمل إيه عند الحد اللي إنت حاطه، جنب اللي حصل فعلًا عند 0.90.</figcaption></figure>
+  </div>
+</article>
+
+    
+<article class="station" id="ar-s7" aria-labelledby="ar-s7-h">
+  <header class="station-head"><span class="plate" aria-hidden="true">7</span><h3 id="ar-s7-h">الإجابة: مع المصدر، أو «مش عارف»</h3></header>
+  <div class="station-body">
+    <div class="label">
+      <p class="analogy"><strong>تشبيه من الحياة:</strong> تقرير كويس فيه هوامش. كل جملة بتشاور على السطر اللي جت منه، فتقدر تتأكد بنفسك. ولو المصادر قليلة، التقرير الأمين بيقول كده.</p>
+      <p>لو الدليل كفاية، الكاتب بيجاوب ولازم يذكر أرقام السطور اللي استخدمها. ولو مش كفاية، الخط بيختم <strong>مش عارف</strong> ومفيش أي إجابة بتخرج. الامتناع عن الإجابة قرار، مش غلطة.</p>
+      <p>دوس على رقم المصدر وشوف السطر اللي وراه. جرّب كل سؤال، حتى السؤال اللي الخط اتضحك عليه فيه.</p>
+      <p class="tech"><strong>اللي بيحصل فعلًا:</strong> الكاتب هو Qwen3-4B-Instruct-2507، نفس الـ model اللي بيستخدمه الـ RAG العادي، فأي فرق جاي من الخط.</p>
+    </div>
+    <figure class="fig fig-answer" data-fig="answer"><div class="fig-body" role="group" aria-label="الإجابة النهائية أو الامتناع"></div><figcaption>الإجابات والمصادر والأرقام من التشغيل الحقيقي للسؤال اللي اخترته.</figcaption></figure>
+  </div>
+</article>
+
+    <div class="block">
+      <h3>خمس أسئلة حقيقية جنب بعض</h3>
+      <p class="prose">دي نتيجة الـ RAG العادي والخط الكامل على الخمس أسئلة. تلاتة طلعوا لصالحنا، وواحد غلط، وواحد بيوريك التمن اللي بندفعه. خمس أسئلة بيشرحوا الفكرة بس، مش هما الدليل. الدليل في قسم النتايج وفيه الـ 839 كلهم.</p>
+      <figure class="fig fig-compare" data-fig="compare"><div class="fig-body" role="group" aria-label="الـ RAG العادي قصاد الخط الكامل في خمس أسئلة"></div><figcaption>النتيجة مكتوبة زي ما التشغيل الحقيقي طلّعها.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt" id="ar-train" aria-labelledby="ar-train-h">
+  <div class="wrap">
+    <h2 id="ar-train-h">تدريب المفتّش، وإيه اللي باظ</h2>
+    <div class="prose">
+      <p>المفتّش ماجاش من الصفر. بدأنا بـ model بيرتّب نتايج البحث على النت (MiniLM-L6، اتدرّب على داتا اسمها MS MARCO) وإدّيناه تمرين زيادة على نوع أسئلتنا، بأمثلة من HotpotQA وMS MARCO. التمرين الزيادة ده اسمه <strong>fine-tuning</strong>.</p>
+    </div>
+
+    <div class="block">
+      <h3>الـ fine-tune اللي باظ على أي كلام تاني</h3>
+      <div class="two">
+        <div class="prose">
+          <p>نجح في الموضوع اللي اتمرّن عليه. على HotpotQA الدرجة طلعت من 0.897 لـ 0.953. بس في أي حاجة تانية ساء أوي. على SciFact، وده اختبار لترتيب أبحاث علمية، الدرجة نزلت من 69.6 لـ 53.3.</p>
+          <p>زي طالب حفظ كتاب واحد، جاب فيه الدرجة النهائية، وبعدين سقط في باقي المواد.</p>
+          <p>جرّبنا learning rate أقل، وجرّبنا من غير أي أمثلة من مجالات تانية، ونزل برضه بنفس القدر، يعني ده مش نسيان عادي. وفيه اختبار صغير كشف السبب. HotpotQA بتختار فقراتها الغلط لأنها بتشارك السؤال في كلمات كتير، في حين إن الفقرات الصح بتاعة الخطوة التانية كتير منها مابتشاركش تقريبًا أي كلمة. فالـ model اتعلّم قاعدة غلط: لو في كلمات مشتركة يبقى مش مفيد. حتى إنه إدّى سؤال ملوش معنى قصاد ملخصات طبية درجة +0.6، في حين إن الـ model الأصلي إدّاه −9.6.</p>
+          <p>الحل كان <strong>weight averaging</strong> (واسمه WiSE-FT). الـ model في الآخر جدول أرقام كبير. مزجنا جدول الأصلي مع جدول المتمرّن. عند خلطة 0.7، يعني 70% متمرّن و30% أصلي، SciFact رجع 68.0 وHotpotQA فضل محتفظ بأغلب مكسبه. حرّك الخلطة وشوف المقايضة.</p>
+        </div>
+        <figure class="fig fig-wise" data-fig="wise"><div class="fig-body" role="group" aria-label="مقايضة الـ weight averaging"></div><figcaption>فوق: الخلطة على عيّنات dev من جولة الضبط الحقيقية. تحت: الفحص النهائي على اختبار SciFact.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>نخلّي الرقم صادق</h3>
+      <div class="two">
+        <div class="prose">
+          <p>الرقم الخام اللي بيطلع من الـ model مش احتمال حقيقي. لما الرقم يبقى 0.6 ده مش وعد إن 60% من الصفحات دي بتفيد. الـ <strong>calibration</strong> هو تعديل صغير في الآخر بيصلّح ده. بنقيس الفرق بحاجة اسمها expected calibration error. كل ما قلّ كان أحسن.</p>
+          <p>الـ calibration نزّل الخطأ في الفقرات من 0.085 لـ 0.005، وفي الجمل من 0.156 لـ 0.006. وده مهم لأن الخطين في المحطة 3 ليهم معنى بس لو الأرقام بتقول الحقيقة.</p>
+        </div>
+        <figure class="fig fig-calib" data-fig="calib"><div class="fig-body" role="group" aria-label="خطأ الـ calibration قبل وبعد"></div><figcaption>expected calibration error على الـ dev، قبل وبعد. منقول من تقرير النتايج.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>تدريب الميزان (الـ sufficiency model)</h3>
+      <div class="two">
+        <div class="prose">
+          <p>للمحطة 6 كنا محتاجين أمثلة على «كفاية» و«مش كفاية». عملناها من الحقايق الداعمة اللي HotpotQA معلّماها، من غير أي تعليم بـ language model. وهي تلات أنواع. <em>كفاية</em>: كل الجمل الداعمة موجودة وسط جمل مشتتة. <em>خطوة ناقصة</em>: شلنا جمل واحدة من الخطوتين. <em>مفيش دليل</em>: ولا واحدة موجودة.</p>
+          <p>بنقيسه برقم اسمه AUC. لو 1.0 يبقى الـ model دايمًا بيحط سياق الكفاية فوق سياق عدم الكفاية. ولو 0.5 يبقى زي رمي العملة. الـ model النهائي، اللي اتدرّب على 270 ألف مثال، وصل 0.978 قصاد السياقات اللي فيها خطوة ناقصة، و0.998 قصاد اللي مفيهاش دليل.</p>
+          <p><strong>تحذير.</strong> الأمثلة دي متعملة بنفس طريقة بيانات التدريب، فالأرقام دي بتقيس مهمة التمرين نفسها. مش دليل إن الـ model بيكشف الدليل الضعيف في أي مكان. وفشله مع الإجابة المزروعة بعد كده هو أوضح علامة على ده.</p>
+        </div>
+        <figure class="fig fig-suff" data-fig="suff"><div class="fig-body" role="group" aria-label="دقة الـ sufficiency model"></div><figcaption>ROC AUC على 600 مثال dev من جولة الضبط الحقيقية. المحور بيبدأ من 0.5 وده معناه صدفة.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>مطبّات تانية غيّرت التصميم</h3>
+      <ul class="bumps">
+        <li><strong>الفحص كان بيقيس حاجة غلط.</strong> فحص dev بدري خلّى الـ model المعطّل شكله أحسن من الأصلي. أعدنا بناءه ليمشي بنفس خطوات الاختبار الحقيقي، وبعدها الـ dev والـ test اتفقوا.</li>
+        <li><strong>threshold واحد كان بيعمل شغلتين.</strong> نفس الخط الواطي كان بيحكم بـ «Incorrect» وكمان بيفلتر الصفحات، وكان بيرمي فقرات الخطوة التانية أكتر من اللازم. لما عملنا cut-off منفصل للصفحات، نسبة أسئلة الـ dev اللي بتحتفظ بكل الحقايق الداعمة طلعت من 56% لـ 89%.</li>
+        <li><strong>فلتر المعلّم رمى أغلب الداتا.</strong> أول نسخة شالت 57% من أمثلة التدريب. النسخة المصلّحة بتشيل من 1 لـ 4%.</li>
+        <li><strong>الكوتا المجانية خلصت.</strong> الخدمة المجانية للـ model المستضاف بتسمح بـ 200,000 token في اليوم لكل model، وده كان هيخدنا قرب أربع أسابيع. فنقلنا التوليد الكبير لـ model مفتوح على Kaggle، وسبنا الخدمة المستضافة للـ demo الحي وللحَكَم.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="ar-test" aria-labelledby="ar-test-h">
+  <div class="wrap">
+    <h2 id="ar-test-h">اختبرناه بنزاهة إزاي</h2>
+    <div class="prose">
+      <p>جملة زي «بيهلوس أقل» سهل نخدع نفسنا فيها من غير ما نقصد. دي القواعد اللي بتخلّي اختبارنا أمين.</p>
+    </div>
+
+    <div class="block">
+      <h3>تلات أنواع دليل لنفس الأسئلة</h3>
+      <div class="two">
+        <div class="prose">
+          <p>استخدمنا HotpotQA، وهي أسئلة محتاجة صفحتين عشان تتجاوب، ومعاها مجموعة فيها <b class="num" data-n="counts.pool_paragraphs" data-f="int">4,969</b> فقرة. وبعدين عملنا تلات نسخ من كل سؤال، عشان نشوف النظام بيتصرف إزاي لما الدليل يبقى كويس أو مش موجود أو متلاعب فيه.</p>
+          <p><strong>Supportive:</strong> الفقرات الصح موجودة. <strong>Missing:</strong> الفقرات الصح اتشالت، فالإجابة الأمينة الوحيدة هي «مش عارف». <strong>Misleading:</strong> في الفقرة الصح، الإجابة اتبدّلت بإجابة تانية من نفس النوع. وتكرار الإجابة المبدّلة بيتحسب إجابة <strong>مزروعة (planted)</strong>.</p>
+          <p>وده بيدّي 300 و300 و239 سؤال. 239 بس من الـ 300 جابوا بديل مظبوط.</p>
+        </div>
+        <figure class="fig fig-conditions" data-fig="conditions"><div class="fig-body" role="group" aria-label="حالات الدليل التلاتة"></div><figcaption>سؤال حقيقي واحد في الحالات التلاتة.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>نفس الكاتب لكل الإعدادات</h3>
+      <div class="two">
+        <div class="prose">
+          <p>قارنّا سبع إعدادات من A لـ G، كل واحد بيزوّد محطة على اللي قبله. كل الإعدادات استخدمت نفس الـ model الكاتب، فأي فرق جاي من الخط مش من كاتب أذكى. والـ prompts المتطابقة اتولّدت مرة واحدة واتستخدمت تاني.</p>
+        </div>
+        <ol class="ladder" aria-label="الإعدادات السبعة">
+          <li><b>A</b><span>RAG عادي، أعلى 8 صفحات</span></li>
+          <li><b>B</b><span>A مع reranker جاهز</span></li>
+          <li><b>C</b><span>A مع المفتّش بتاعنا كفلتر</span></li>
+          <li><b>D</b><span>C مع القص لجمل</span></li>
+          <li><b>E</b><span>D مع قرار Correct / Ambiguous / Incorrect والبحث التاني</span></li>
+          <li><b>F</b><span>E مع فحص الكفاية: النظام الكامل</span></li>
+          <li><b>G</b><span>F بخط واحد بدل اتنين</span></li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>امتحان تجريبي وامتحان نهائي</h3>
+      <div class="two">
+        <div class="prose">
+          <p>قسمنا الأسئلة لـ <strong>dev</strong> (200) و<strong>test</strong> (300). كل knob اتظبط على الـ dev: الـ thresholds وحدود القص واختيار 0.90. وقاعدة اختيار كل knob كانت مكتوبة في الخطة قبل ما إجابات الـ dev تتولّد. والـ 300 سؤال بتوع الـ test اتشغّلوا مرة واحدة، في الآخر.</p>
+          <p>الفرق زي امتحان تجريبي تتعلّم منه، وامتحان نهائي بتدخله مرة واحدة.</p>
+        </div>
+        <div class="split" aria-hidden="true">
+          <div class="split-a"><b>dev</b><span>200 سؤال</span><i>اظبط كل knob هنا</i></div>
+          <div class="split-b"><b>test</b><span>300 سؤال</span><i>مقفول لحد الآخر. بيتشغّل مرة.</i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>فترة الثقة بتقول إيه</h3>
+      <div class="two">
+        <div class="prose">
+          <p>النتيجة من 300 سؤال مش دقيقة بالظبط. لو كنا اخترنا 300 تانيين كانت الأرقام هتطلع مختلفة شوية. الـ <strong>confidence interval 95%</strong> بيدّيك المدى اللي الفرق الحقيقي غالبًا واقع فيه.</p>
+          <p>حسبناه بإننا سحبنا الأسئلة تاني مع الإرجاع 10,000 مرة وقسنا الفرق كل مرة. ده اسمه paired bootstrap، و«paired» معناها إن النظامين اتقارنوا على نفس الأسئلة.</p>
+          <p>تقراه إزاي: لو المدى كله في ناحية واحدة من الصفر، يبقى الفرق مستبعد جدًا يكون صدفة. ولو المدى لمس الصفر، مش هنقدر نحكم. والوحدة هي <strong>pp</strong>، يعني نقط مئوية: النزول من 24.7% لـ 18.3% يبقى 6.3 pp.</p>
+        </div>
+        <figure class="fig fig-forest" data-fig="forest"><div class="fig-body" role="group" aria-label="فترات الثقة للمقارنات الأساسية"></div><figcaption>النظام الكامل (F) ناقص الـ RAG العادي (A)، من تشغيل الـ test. كل صف بيوري التغيير بالنقط المئوية وفترة الثقة 95% بتاعته.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>أربع نتايج ممكنة</h3>
+      <ul class="outcomes">
+        <li data-k="pass"><b>صح</b> الإجابة بتطابق الإجابة الصحيحة.</li>
+        <li data-k="abstain"><b>مش عارف</b> النظام رفض يجاوب.</li>
+        <li data-k="plant"><b>مزروعة</b> كرّر الإجابة المبدّلة.</li>
+        <li data-k="reject"><b>غلط</b> أي إجابة تانية. التقارير بتسميها hallucination.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt" id="ar-results" aria-labelledby="ar-results-h">
+  <div class="wrap">
+    <h2 id="ar-results-h">طلع بإيه</h2>
+    <div class="prose">
+      <p>المقارنة المهمة هي النظام الكامل (F) قصاد الـ RAG العادي (A)، على 839 زوج سؤال وحالة من الـ test. استخدم الأزرار عشان تزوّد محطة محطة وتشوف كل واحدة غيّرت إيه.</p>
+    </div>
+    <figure class="fig fig-outcomes" data-fig="outcomes"><div class="fig-body" role="group" aria-label="النتايج حسب الإعداد والحالة"></div><figcaption>كل شريط هو 100% من الأسئلة في الحالة دي. الداتا من تشغيل الـ test.</figcaption></figure>
+
+    <div class="block">
+      <h3>إيه اللي اتحسّن</h3>
+      <div class="two">
+        <div class="prose">
+          <p>النظام الكامل غلط أقل في الحالات التلاتة. في الأسئلة الـ supportive النسبة نزلت من <b class="num" data-n="test.aggregate.A.supportive.hallucinate" data-f="pct1">24.7%</b> لـ <b class="num" data-n="test.aggregate.F.supportive.hallucinate" data-f="pct1">18.3%</b>. وفي أسئلة الدليل الناقص نزلت من <b class="num" data-n="test.aggregate.A.missing.hallucinate" data-f="pct1">8.0%</b> لـ <b class="num" data-n="test.aggregate.F.missing.hallucinate" data-f="pct1">0.7%</b>. وفي الـ misleading نزلت من <b class="num" data-n="test.aggregate.A.misleading.hallucinate" data-f="pct1">24.7%</b> لـ <b class="num" data-n="test.aggregate.F.misleading.hallucinate" data-f="pct1">17.2%</b>. الانخفاضات المقارنة هي 6.3 و7.3 و7.5 pp، وكل فترات الثقة بتستبعد الصفر.</p>
+          <p>وكمان بيبعت للكاتب كلام أقل بكتير. الكلام بيصغر لحوالي الخُمس.</p>
+        </div>
+        <figure class="fig fig-tokens" data-fig="tokens"><div class="fig-body" role="group" aria-label="حجم السياق، الـ RAG العادي قصاد النظام الكامل"></div><figcaption>متوسط الـ tokens اللي بتتبعت للكاتب. الـ token هو حتة من كلمة، تقريبًا تلات أرباع كلمة.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>التمن</h3>
+      <div class="two">
+        <div class="prose">
+          <p>الخط بيقول «مش عارف» أكتر، وفي حالات منها كانت الإجابة هتبقى صح. في الأسئلة الـ supportive نسبة اللي اتجاوبت نزلت من <b class="num" data-n="test.aggregate.A.supportive.coverage" data-f="pct0">73%</b> لـ <b class="num" data-n="test.aggregate.F.supportive.coverage" data-f="pct0">62%</b>، ونسبة الصح نزلت 5.0 pp (الفترة لسه بتلمس الصفر، p = 0.06).</p>
+          <p>وكمان ماحلّش مشكلة الدليل المتلاعب فيه. نسبة الإجابة المزروعة راحت من <b class="num" data-n="test.aggregate.A.misleading.planted" data-f="pct1">30.5%</b> لـ <b class="num" data-n="test.aggregate.F.misleading.planted" data-f="pct1">27.6%</b>، وده تغيير مش معنوي. فقرة مكتوبة كويس وفيها حقيقة واحدة مبدّلة شكلها سليم للمفتّش. مثال Sun Valley اللي فات بيوريك ده بالظبط.</p>
+          <p>ملحوظة كمان. الـ model الكاتب أصلًا بيقول «مش عارف» من نفسه في 85% من أسئلة الدليل الناقص، وده بيسيب مساحة أقل للخط يفيد فيها مقارنة بكاتب أكتر ثقة.</p>
+        </div>
+        <figure class="fig fig-costcard" data-fig="costcard"><div class="fig-body" role="group" aria-label="سؤال الخط كلّفنا فيه إجابة صح"></div><figcaption>سؤال حقيقي الـ RAG العادي جاوبه صح، والخط الكامل رجع خطوة ورا.</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>هل التصحيح الصارم بيخبّي حاجة؟</h3>
+      <div class="two">
+        <div class="prose">
+          <p>تصحيحنا صارم. «Chris Pine» مش بتطابق «Christopher Whitelaw Pine». عشان نشوف ده فارق قد إيه، model حكم من عيلة تانية قرا 100 إجابة وصحّحها.</p>
+          <p>اتفق مع التصحيح الصارم في 85 من الـ 100 (Cohen's kappa 0.71، وده مستوى اتفاق كويس). والـ 15 اللي اختلفوا كلهم في اتجاه واحد: الحَكَم قبل صيغة تانية للاسم والتصحيح بتاعنا رفضها. يعني أرقامنا بتبالغ في الـ hallucination لكل الإعدادات. وكمان ممكن جزء من مكسب النظام الكامل جاي من إنه بيجاوب أقل، مش بس من إنه بيجاوب أحسن.</p>
+        </div>
+        <figure class="fig fig-judge" data-fig="judge"><div class="fig-body" role="group" aria-label="الاتفاق بين الحَكَم والتصحيح الصارم"></div><figcaption>مربع لكل إجابة في عيّنة الـ 100. العيّنة موزّعة بالطبقات، فالنسب دي مش نسب المجتمع كله.</figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="ar-limits" aria-labelledby="ar-limits-h">
+  <div class="wrap">
+    <h2 id="ar-limits-h">مش قادر يعمل إيه لسه، والخطوة الجاية</h2>
+    <div class="two limits">
+      <div>
+        <h3>الحدود</h3>
+        <ul class="lim">
+          <li><strong>الدليل المتلاعب فيه بيعدّي.</strong> فقرة مكتوبة كويس فيها حقيقة مبدّلة لسه بتاخد درجة عالية. أغلب الإجابات المزروعة بتعدّي في كل الإعدادات.</li>
+          <li><strong>كل حاجة اتبنت من HotpotQA.</strong> تعليم الكفاية وحالة الـ misleading وأغلب داتا تدريب المفتّش كلها منها. النتايج بتقول قليل عن أنواع كلام تانية، والمفتّش أضعف شوية من الـ model الأصلي برّه مجاله.</li>
+          <li><strong>القص ممكن يقص اللي محتاجه.</strong> بعد القص، كل الحقايق الداعمة بتفضل في حوالي 57% بس من الأسئلة الـ supportive.</li>
+          <li><strong>التصحيح صارم.</strong> أرقام الـ hallucination المطلقة أعلى من الحقيقة في كل الإعدادات.</li>
+          <li><strong>محطة البحث التاني ماساعدتش</strong> في الإعداد ده.</li>
+          <li><strong>اختصارات أصغر.</strong> seed تدريب واحد بدل تلاتة، ومفيش مراجعة بشرية لتعليم الكفاية.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>الخطوة الجاية</h3>
+        <ul class="lim next">
+          <li>طريقة تمسك الفقرة المكتوبة كويس واللي اتغيّرت، مثلًا بإننا نشوف مصادر مستقلة متفقة ولا لأ، أو نتدرّب على تعديلات زي دي.</li>
+          <li>نجرّب على أنواع كلام غير HotpotQA.</li>
+          <li>تصحيح يقبل صيغ الأسماء المختلفة، عشان الأرقام المطلقة تبقى أعدل.</li>
+          <li>نحتفظ بجمل مطلوبة أكتر لما نقص.</li>
+          <li>نشيل محطة البحث التاني، أو نجرّبها مع rewriter أقوى.</li>
+          <li>نكرّر التدريب بكذا seed.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="glossary" id="ar-gloss" aria-labelledby="ar-gloss-h">
+  <div class="wrap">
+    <h2 id="ar-gloss-h">قاموس صغير</h2>
+    <dl class="gloss"><div><dt>RAG</dt><dd>Retrieval-augmented generation. خطوة بحث بتجيب الصفحات الأول، والـ model بيكتب إجابته منها.</dd></div><div><dt>الفقرة (Passage)</dt><dd>صفحة أو فقرة واحدة البحث بيجيبها.</dd></div><div><dt>Verifier / cross-encoder</dt><dd>model صغير بيقرا السؤال والصفحة مع بعض ويدّي رقم من 0 لـ 1 يقول الصفحة بتفيد قد إيه.</dd></div><div><dt>Threshold</dt><dd>خط على مقياس. فوقه حاجة بتحصل وتحته حاجة تانية.</dd></div><div><dt>Calibration</dt><dd>تظبيط الأرقام عشان تقول الحقيقة: الرقم 0.6 المفروض يطلع صح حوالي 60% من المرات.</dd></div><div><dt>الهلوسة (Hallucination)</dt><dd>إجابة واثقة بس غلط أو متألّفة.</dd></div><div><dt>Abstain</dt><dd>إنك ترفض تجاوب وتقول «مش عارف». ده قرار مقصود.</dd></div><div><dt>Confidence interval</dt><dd>المدى اللي الفرق الحقيقي غالبًا واقع فيه. لو لمس الصفر، ممكن الفرق يكون صدفة.</dd></div><div><dt>تقسيم dev / test</dt><dd>أسئلة الـ dev لضبط كل knob. أسئلة الـ test هي الامتحان النهائي، وبتتشغّل مرة واحدة.</dd></div><div><dt>الإجابة المزروعة (Planted)</dt><dd>إجابة مبدّلة حطيناها في الدليل قصدًا، عشان نشوف النظام هيكررها ولا لأ.</dd></div><div><dt>Fine-tuning</dt><dd>تمرين زيادة بيعدّل model موجود لنوع شغل معيّن.</dd></div><div><dt>Token</dt><dd>حتة من كلمة. الـ model بيقرا ويكتب بالـ tokens.</dd></div></dl>
+    <p class="source-note">كل رقم في الصفحة دي بيتحمّل من ملف الداتا بتاع المشروع، اللي متولّد من <code>results/</code>، أو منقول من <code>results/report.md</code>.</p>
+  </div>
+</section>
+</main>
+
+<aside class="bridge to-en" id="bridge-to-en" aria-label="ده آخر الصفحة بالمصري. لو عايز تقراها بالإنجليزي:">
+  <div class="wrap"><p lang="ar" dir="rtl">ده آخر الصفحة بالمصري. لو عايز تقراها بالإنجليزي: <a href="#en" data-go="en">ارجع للنسخة الإنجليزي</a></p></div>
+</aside>
+<script src="../data.js"></script>
+<script src="../machine/machine.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="explainer.js"></script>
+</body>
+</html>

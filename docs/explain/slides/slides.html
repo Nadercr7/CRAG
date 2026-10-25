@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verified RAG: the talk</title>
+<meta name="description" content="Verified RAG: a small inspector between search and answer. Slides for the mini project.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../machine/machine.css">
+<link rel="stylesheet" href="slides.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-hold" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.4v.1"/></symbol>
+<symbol id="i-plant" viewBox="0 0 24 24"><path d="M6 8h12l-3.2-3.2M18 16H6l3.2 3.2"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></symbol>
+<symbol id="i-ask" viewBox="0 0 24 24"><path d="M4 5h16v11h-9l-4 4v-4H4z"/><path d="M10 9.6c0-1.2 1-2 2-2s2 .8 2 1.8c0 1.4-2 1.4-2 3M12 14v.01"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/></symbol>
+<symbol id="i-inspect" viewBox="0 0 24 24"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4-5M3 19.5h18"/></symbol>
+<symbol id="i-decide" viewBox="0 0 24 24"><path d="M12 21v-8M12 13L5.5 6M12 13l6.5-7"/><circle cx="5.5" cy="5" r="1.6"/><circle cx="18.5" cy="5" r="1.6"/><circle cx="12" cy="21" r="1.2"/></symbol>
+<symbol id="i-trim" viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.6"/><circle cx="6" cy="17" r="2.6"/><path d="M8 8.6L20 17M8 15.4L20 7"/></symbol>
+<symbol id="i-weigh" viewBox="0 0 24 24"><path d="M12 4v15M7 19.5h10M5 7.5h14"/><path d="M5 7.5l-3 6.5h6zM19 7.5l-3 6.5h6z"/></symbol>
+<symbol id="i-answer" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 14.5l2.2 2.2 4-4.4"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 15.5h7"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+</defs></svg>
+<div id="viewport">
+  <main id="stage" aria-live="off">
+    <div id="slides">
+<section class="slide s-title" data-id="title" data-title="Verified RAG">
+  <div class="marker"><b>1</b><span>The problem</span></div>
+  <div class="content" data-mount></div>
+  <aside class="notes">Open with the question card travelling into the bench. One sentence: we put a small inspector between search and the answer, so the model stops guessing from bad evidence. Mention the test size: 300 held-out HotpotQA questions.</aside>
+</section>
+<section class="slide" data-id="rag" data-title="RAG: a librarian fetches, a model answers">
+  <div class="marker"><b>1</b><span>The problem</span></div>
+  <h2 class="title">RAG: a librarian fetches, a model answers</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Retrieval-augmented generation in one picture. A librarian (search) pulls the top paragraphs from a large shelf. The language model writes its answer from those paragraphs only. Press once to fetch, once to answer.</aside>
+</section>
+<section class="slide" data-id="fails" data-title="Plain RAG answers confidently, and wrongly">
+  <div class="marker"><b>1</b><span>The problem</span></div>
+  <h2 class="title">Plain RAG answers confidently, and wrongly</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Three real answers from plain RAG on our test set, same generator everywhere. Left: the right paragraphs were there, it still said 3. Middle: we removed the evidence and it still said no. Right: we swapped the answer inside the evidence and it repeated the swap. Reveal one at a time.</aside>
+</section>
+<section class="slide" data-id="rates" data-title="How often plain RAG is wrong">
+  <div class="marker"><b>1</b><span>The problem</span></div>
+  <h2 class="title">How often plain RAG is wrong</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Plain RAG hallucination rate on the 300 test questions. Even with the right evidence it is wrong about a quarter of the time. With a swapped answer, another 30.5% of answers repeat the planted entity. The generator is Qwen3-4B, which abstains on its own a lot, so this is a fair baseline, not a weak one.</aside>
+</section>
+<section class="slide" data-id="idea" data-title="Put an inspector between search and answer">
+  <div class="marker"><b>2</b><span>The idea</span></div>
+  <h2 class="title">Put an inspector between search and answer</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Plain RAG sends whatever search returns straight to the model. Our idea: an inspector in the middle that measures the evidence, trims it, and can stop the line. Press once to drop the inspector in. Press again for the two papers we build on: CRAG (Yan et al. 2024) and Sufficient Context (Joren et al., ICLR 2025).</aside>
+</section>
+<section class="slide" data-id="stations" data-title="Seven stations between question and answer">
+  <div class="marker"><b>2</b><span>The idea</span></div>
+  <h2 class="title">Seven stations between question and answer</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Build the line one station at a time. Stations 3 to 6 are new. Plain RAG is the same line with those four switched off. Mention the loop: an ambiguous decision sends two rewritten queries back to search, once.</aside>
+</section>
+<section class="slide s-live" data-id="live" data-title="Walk one question through the line">
+  <div class="marker"><b>3</b><span>How it works</span></div>
+  <h2 class="title">Walk one question through the line</h2>
+  <div class="content tall" data-mount></div>
+  <aside class="notes">Live walk-through. Use the scenario switch to pick a real example. In manual mode only the next step is clickable. Say what each station does as you press it. Start with the support example, then show the Guildford one where the line stops.</aside>
+</section>
+<section class="slide" data-id="verifier" data-title="The verifier reads question and paragraph together">
+  <div class="marker"><b>3</b><span>How it works</span></div>
+  <h2 class="title">The verifier reads question and paragraph together</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">One small cross-encoder, MiniLM-L6. It sees the question and one paragraph as a single input and returns a probability. Bars are real scores for the top eight paragraphs of the documentary question: the two gold paragraphs score 0.595 and 0.441, the distractors are near zero. Press for calibration: expected calibration error falls from 0.085 to 0.005, so a score means roughly what it says.</aside>
+</section>
+<section class="slide" data-id="band" data-title="Two thresholds sort every question">
+  <div class="marker"><b>3</b><span>How it works</span></div>
+  <h2 class="title">Two thresholds sort every question</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">The decision uses the best paragraph score. Above 0.65 the evidence is correct, below 0.15 it is incorrect, in between it is ambiguous. Ambiguous and incorrect both trigger a rewrite and one more search. Press to see the other four example questions: none reached 0.65, so each one triggered a rewrite.</aside>
+</section>
+<section class="slide" data-id="trim" data-title="Trimming sends about a fifth of the words">
+  <div class="marker"><b>3</b><span>How it works</span></div>
+  <h2 class="title">Trimming sends about a fifth of the words</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Each paragraph is split into sentences and the verifier scores each one. Sentences at 0.05 or above stay, the rest go. In this example, 599 words become 99. Over the whole test set, context falls from about 1,070 to about 217 tokens. Be ready for the cost slide later: trimming sometimes cuts the sentence that held the answer.</aside>
+</section>
+<section class="slide" data-id="gate" data-title="The scale decides: enough to answer, or stop">
+  <div class="marker"><b>3</b><span>How it works</span></div>
+  <h2 class="title">The scale decides: enough to answer, or stop</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">A second small model, MiniLM-L12, reads the question and the trimmed context and returns the probability that it is sufficient. Below 0.90 the system abstains. On its dev proxy task it separates sufficient from missing-hop at AUC 0.978 and from no-evidence at 0.998. Press for the Guildford example: 0.618, so the line stops. Press again for the AUC numbers. Note the caveat: AUC measures the proxy task, not insufficiency in general.</aside>
+</section>
+<section class="slide" data-id="bug" data-title="Fine-tuning broke ranking outside HotpotQA">
+  <div class="marker"><b>4</b><span>Building the verifier</span></div>
+  <h2 class="title">Fine-tuning broke ranking outside HotpotQA</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Training data: HotpotQA passages and sentences plus MS MARCO pairs, starting from a MiniLM-L6 cross-encoder. HotpotQA ranking improved, but SciFact nDCG@10 fell from 69.6 to 53.3. A nonsense query against medical abstracts scored +0.6 where the base model gave -9.6. Cause: HotpotQA distractors share words with the question, and real second-hop paragraphs share almost none. The model learned that word overlap means irrelevant.</aside>
+</section>
+<section class="slide" data-id="fix" data-title="Averaging the weights brought it back">
+  <div class="marker"><b>4</b><span>Building the verifier</span></div>
+  <h2 class="title">Averaging the weights brought it back</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">WiSE-FT: average the fine-tuned weights with the base weights. Alpha 0 is the base model, alpha 1 is the full fine-tune. We fixed the rule before reading the table: the largest alpha whose out-of-domain dev mean stays within 0.01 of the base. That is 0.7. It keeps most of the HotpotQA gain and brings SciFact back to 68.0. You can click the alpha buttons.</aside>
+</section>
+<section class="slide" data-id="lessons" data-title="Three more things that went wrong">
+  <div class="marker"><b>4</b><span>Building the verifier</span></div>
+  <h2 class="title">Three more things that went wrong</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Three lessons from the report. One: our dev check compared the wrong candidates and made the broken model look better, so we rebuilt it to match the test protocol. Two: one threshold was doing two jobs, which cost us supporting facts. Three: the teacher filter threw away most of the training data. Each one changed the design.</aside>
+</section>
+<section class="slide" data-id="conditions" data-title="One question, three kinds of evidence">
+  <div class="marker"><b>5</b><span>How we tested it fairly</span></div>
+  <h2 class="title">One question, three kinds of evidence</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Every test question is run three ways. Supportive: the gold paragraphs are in the pool. Missing: they are removed, so saying I don&#x27;t know is the right behaviour. Misleading: the answer entity inside the gold text is swapped for another of the same type, and repeating it counts as planted. 300 plus 300 plus 239 gives 839 pairs.</aside>
+</section>
+<section class="slide" data-id="discipline" data-title="Dev to choose, test to judge, once">
+  <div class="marker"><b>5</b><span>How we tested it fairly</span></div>
+  <h2 class="title">Dev to choose, test to judge, once</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Questions come from one HotpotQA pool of 4,969 paragraphs: 200 dev, 300 test, sampled with seed 13. Every choice was made on dev. The abstain threshold followed a rule written into PLAN.md before the dev answers existed. Test ran once at the end, with paired bootstrap over questions, 10,000 resamples.</aside>
+</section>
+<section class="slide" data-id="arms" data-title="Seven arms, one station added at a time">
+  <div class="marker"><b>5</b><span>How we tested it fairly</span></div>
+  <h2 class="title">Seven arms, one station added at a time</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">The ablation ladder. A is plain hybrid RAG. Each arm adds one thing, so we can see what every station buys. F is the full system. G is F with a single threshold. Same generator, same prompts for every arm.</aside>
+</section>
+<section class="slide" data-id="pivot" data-title="The free tier ran out, so generation moved">
+  <div class="marker"><b>5</b><span>How we tested it fairly</span></div>
+  <h2 class="title">The free tier ran out, so generation moved</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Groq&#x27;s free tier caps each model at 200,000 tokens a day. At about 1,000 tokens per call, the 5,419 distinct dev and test prompts would have taken close to four weeks. We moved generation to Kaggle with vLLM and an open model. Identical prompts are generated once: 5,873 test traces became 3,267 prompts.</aside>
+</section>
+<section class="slide" data-id="headline" data-title="Hallucination fell in all three conditions">
+  <div class="marker"><b>6</b><span>Results</span></div>
+  <h2 class="title">Hallucination fell in all three conditions</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">The headline. Plain RAG against the full system on 300 test questions. Bars grow to the true rates. Press once for the paired differences with 95% intervals: minus 6.3, minus 7.3 and minus 7.5 points, all intervals exclude zero.</aside>
+</section>
+<section class="slide" data-id="ladder" data-title="What each station adds and removes">
+  <div class="marker"><b>6</b><span>Results</span></div>
+  <h2 class="title">What each station adds and removes</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Context shrinks at trimming and stays small. Hallucination falls at trimming, and again at the sufficiency gate. The rewrite step shows nothing. Press to switch between the three conditions.</aside>
+</section>
+<section class="slide" data-id="tradeoff" data-title="Abstaining costs some correct answers">
+  <div class="marker"><b>6</b><span>Results</span></div>
+  <h2 class="title">Abstaining costs some correct answers</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">The price. On supportive questions the full system answers 62% of the time against 73%, and its correct rate falls by 5 points, with an interval that touches zero. The curve shows selective accuracy as the abstain threshold sweeps. Plain RAG sits to the right and lower. Our operating point is at 0.90.</aside>
+</section>
+<section class="slide" data-id="cost" data-title="A case where the gate cost us the answer">
+  <div class="marker"><b>6</b><span>Results</span></div>
+  <h2 class="title">A case where the gate cost us the answer</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">A real loss. Plain RAG answered Geraldine Page correctly. In our system the sentence that holds the answer scored 0.049, just under the 0.05 cut, so the context was thin, sufficiency came out at 0.002, and the system said I don&#x27;t know. This is the same effect as the 57% of supportive questions where trimming keeps every supporting fact.</aside>
+</section>
+<section class="slide" data-id="judge" data-title="A second model checked our metric">
+  <div class="marker"><b>6</b><span>Results</span></div>
+  <h2 class="title">A second model checked our metric</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">An LLM from another family graded 100 answered test questions. It agreed with our strict metric on 85, kappa 0.71. All 15 disagreements went one way: the judge accepted an alias that the metric rejected. So our hallucination rates are overstated for every arm.</aside>
+</section>
+<section class="slide" data-id="limits" data-title="What it does not do">
+  <div class="marker"><b>7</b><span>Limits and next</span></div>
+  <h2 class="title">What it does not do</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Four honest limits. Planted answers mostly get through. The rewrite step did nothing measurable. Everything is trained on HotpotQA, and the verifier is slightly worse out of domain than its base. The metric is strict, so absolute hallucination rates are overstated.</aside>
+</section>
+<section class="slide" data-id="ui" data-title="It ships with a UI that shows every decision">
+  <div class="marker"><b>7</b><span>Limits and next</span></div>
+  <h2 class="title">It ships with a UI that shows every decision</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">The product side. The pipeline explorer shows 22 real traces with plain RAG next to the full system, and a live box. The results dashboard reads the metrics files. Every request produces a trace with scores, decision, kept and dropped sentences and timings.</aside>
+</section>
+<section class="slide" data-id="next" data-title="What we would do next">
+  <div class="marker"><b>7</b><span>Limits and next</span></div>
+  <h2 class="title">What we would do next</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Each next step answers one limit. Detect fluent but altered paragraphs with a different signal. Drop or rework the rewrite step. Train and test beyond HotpotQA, with more seeds. Replace the strict metric with an alias-aware one and add a claim-level faithfulness check.</aside>
+</section>
+<section class="slide s-close" data-id="close" data-title="Check the evidence before you answer.">
+  <div class="marker"><b>7</b><span>Limits and next</span></div>
+  <div class="content tall" data-mount></div>
+  <aside class="notes">Close on the line. Recap: fewer hallucinations in all three conditions, about a fifth of the context, and a price of about 5 points of correct answers. Then open for questions.</aside>
+</section>
+<section class="slide" data-id="a-arms" data-title="Appendix: every arm, every condition">
+  <div class="marker"><b>A</b><span>Appendix</span></div>
+  <h2 class="title">Appendix: every arm, every condition</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Full arm table from the test run. Hallucination is answered and wrong. Correct uses exact match or contained gold answer. Context tokens are the average sent to the generator.</aside>
+</section>
+<section class="slide" data-id="a-beir" data-title="Appendix: ranking outside HotpotQA">
+  <div class="marker"><b>A</b><span>Appendix</span></div>
+  <h2 class="title">Appendix: ranking outside HotpotQA</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">BEIR test nDCG@10 times 100 when reranking the hybrid top 50. None of the off-the-shelf rerankers beat hybrid retrieval on SciFact or NFCorpus, so out-of-domain reranking was weak from the start.</aside>
+</section>
+<section class="slide" data-id="a-thr" data-title="Appendix: thresholds and how each was chosen">
+  <div class="marker"><b>A</b><span>Appendix</span></div>
+  <h2 class="title">Appendix: thresholds and how each was chosen</h2>
+  <div class="content" data-mount></div>
+  <aside class="notes">Every threshold was set on dev. The two grid-edge fallbacks are honest: no setting reached the 90% recall target, so we took the best available.</aside>
+</section>
+    </div>
+    <div id="foot"><span class="brand">Verified RAG</span><span class="num" id="num"></span></div>
+    <div id="bar"></div>
+  </main>
+</div>
+<div id="notes" role="region" aria-label="Presenter notes"><h4></h4><p></p></div>
+<div id="grid" role="dialog" aria-label="Slide overview"><div class="gh">Slide overview<span>Click a slide, or press G or Esc to close</span></div><div class="gg"></div></div>
+<div id="tools">
+  <button data-act="grid" title="Overview (G)" aria-label="Overview"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/></svg></button>
+  <button data-act="notes" title="Presenter notes (N)" aria-label="Presenter notes"><svg viewBox="0 0 24 24"><path d="M5 4h14v13H9l-4 4z"/><path d="M8.5 9h7M8.5 12.5h5"/></svg></button>
+  <button data-act="theme" title="Light or dark (T)" aria-label="Toggle theme"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v16" /><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
+  <button data-act="full" title="Fullscreen (F)" aria-label="Fullscreen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="../data.js"></script>
+<script src="../machine/machine.js"></script>
+<script src="slides.js"></script>
+<script src="slides-content.js"></script>
+</body>
+</html>
