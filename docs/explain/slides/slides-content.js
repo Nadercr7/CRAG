@@ -1260,10 +1260,10 @@
   def("ui", {
     mount: function (el) {
       var c = C(el), row = document.createElement("div"); row.className = "shots";
-      [["explorer-desktop-light.png", "Pipeline explorer", "22 real traces: plain RAG next to the full system, plus a live box."],
-       ["results-desktop-light.png", "Results dashboard", "Reads the metrics files, test split when it exists."]].forEach(function (s) {
+      [["../assets/explorer-desktop-light.jpg", "Pipeline explorer", "22 real traces: plain RAG next to the full system, plus a live box."],
+       ["../assets/results-desktop-light.jpg", "Results dashboard", "Reads the metrics files, test split when it exists."]].forEach(function (s) {
         var d = document.createElement("div"); d.className = "shotcol";
-        d.innerHTML = '<div class="shot"><div class="bar"><i></i><i></i><i></i></div><div class="view"><img src="../../screenshots/' + s[0] + '" alt="' + s[1] + ' screenshot"></div></div><h3>' + s[1] + "</h3><p>" + s[2] + "</p>";
+        d.innerHTML = '<div class="shot"><div class="bar"><i></i><i></i><i></i></div><div class="view"><img src="' + s[0] + '" alt="' + s[1] + ' screenshot"></div></div><h3>' + s[1] + "</h3><p>" + s[2] + "</p>";
         row.appendChild(d);
       });
       c.appendChild(row);

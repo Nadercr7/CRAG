@@ -39,6 +39,13 @@ function inline(srcPath) {
     const b64 = readFileSync(file).toString("base64");
     return `${pre}data:${MIME[extname(file)] || "application/octet-stream"};base64,${b64}${post}`;
   });
+  // asset paths written as string literals in scripts (e.g. '../assets/x.jpg')
+  html = html.replace(/(["'])(\.\.\/assets\/[^"']+\.(?:png|jpg|svg|webp))\1/g, (m, q, src) => {
+    const file = resolve(base, src);
+    if (!existsSync(file)) return m;
+    const b64 = readFileSync(file).toString("base64");
+    return `${q}data:${MIME[extname(file)]};base64,${b64}${q}`;
+  });
   return html;
 }
 

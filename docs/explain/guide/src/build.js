@@ -100,7 +100,7 @@ C.sections.forEach((sec) => {
   </header>`);
   nums.forEach((n) => {
     const s = C.slides[n];
-    const img = `../slides/shots/${pad(n)}-${s.id}-1920-light.png`;
+    const img = `../assets/thumbs/${pad(n)}-${s.id}.jpg`;
     a(`
   <article class="slide" id="s-${n}">
     <div class="s-top">
