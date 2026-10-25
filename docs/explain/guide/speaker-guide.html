@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verified RAG: دليل المتحدث</title>
+<meta name="description" content="دليل بالعامية المصرية لتقديم شرايح Verified RAG: إيه على كل شريحة، تقول إيه، وأسئلة ممكن تتسأل.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="guide.css">
+</head>
+<body>
+<a class="skip" href="#intro">تخطّى للمحتوى</a>
+<header class="bar" id="bar">
+  <div class="bar-in">
+    <button class="theme" id="theme" type="button" aria-label="تبديل الوضع بين فاتح وغامق" title="فاتح / غامق"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v16"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
+    <nav class="toc" aria-label="أقسام الدليل">
+      <a href="#intro" data-t="intro"><b>مقدمة</b></a>
+      <a href="#sec-1" data-t="sec-1"><b>1</b><span lang="en" dir="ltr">The problem</span></a>
+      <a href="#sec-2" data-t="sec-2"><b>2</b><span lang="en" dir="ltr">The idea</span></a>
+      <a href="#sec-3" data-t="sec-3"><b>3</b><span lang="en" dir="ltr">How it works</span></a>
+      <a href="#sec-4" data-t="sec-4"><b>4</b><span lang="en" dir="ltr">Building the verifier</span></a>
+      <a href="#sec-5" data-t="sec-5"><b>5</b><span lang="en" dir="ltr">How we tested it fairly</span></a>
+      <a href="#sec-6" data-t="sec-6"><b>6</b><span lang="en" dir="ltr">Results</span></a>
+      <a href="#sec-7" data-t="sec-7"><b>7</b><span lang="en" dir="ltr">Limits and next</span></a>
+      <a href="#sec-a" data-t="sec-a"><b>ملحق</b></a>
+      <a href="#tough" data-t="tough"><b>أسئلة صعبة</b></a>
+      <a href="#glossary" data-t="glossary"><b>مصطلحات</b></a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+<section class="intro" id="intro">
+  <p class="kicker">دليل المتحدث</p>
+  <h1><bdi lang="en">Verified RAG</bdi></h1>
+  <p class="lede">الصفحة دي بتشرح اللي في الشرايح بشكل أبسط، عشان كل واحد يفهم هيطلع يقدّم إيه. كل شريحة: اللي عليها، وتقول إيه، وإيه اللي بيظهر لما تدوس Next، وسؤال ممكن يتسأل. في الآخر أسئلة صعبة من الدكتور ومعاها ردود صريحة، وقاموس صغير.</p>
+
+  <h2>المشروع في <bdi class="n" dir="ltr">5</bdi> سطور</h2>
+  <ol class="five">
+    <li>الـ <bdi class="en" lang="en" dir="ltr">RAG</bdi> معناه إن فيه search بتجيب فقرات، وبعدين model بيكتب الإجابة منها هي بس.</li>
+    <li>المشكلة إن الـ model بيجاوب بثقة حتى لو الفقرات ناقصة أو غلط. على الـ <bdi class="n" dir="ltr">300</bdi> سؤال بتوعنا، حوالي إجابة من كل أربعة غلط حتى والفقرات الصح موجودة (<bdi class="n" dir="ltr">24.7%</bdi>).</li>
+    <li>الحل بتاعنا مفتش صغير بين الـ search والـ model. بيقيس كل فقرة، وبيقص الجمل اللي ملهاش لازمة، وبيوزن اللي فضل.</li>
+    <li>لو اللي فضل مش كفاية، النظام يقول “مش عارف” بدل ما الـ model يخمّن.</li>
+    <li>النتيجة: الـ hallucination قلّت في الحالات التلاتة (من <bdi class="n" dir="ltr">−6.3</bdi> لـ <bdi class="n" dir="ltr">−7.5</bdi> نقطة)، والـ context بقى حوالي خمس الحجم، والتمن حوالي <bdi class="n" dir="ltr">5</bdi> نقط إجابات صح أقل.</li>
+  </ol>
+
+  <h2>الشرايح متقسّمة على <bdi class="n" dir="ltr">7</bdi> متحدثين</h2>
+  <p class="note">القسم بتاع كل متحدث في الجدول. متحدث <bdi class="n" dir="ltr">1</bdi> بيبدأ، ومتحدث <bdi class="n" dir="ltr">7</bdi> بيقفّل ويفتح الأسئلة. الملحق مفيش متحدث له.</p>
+  <ul class="split">
+    <li><a href="#sec-1"><span class="who">متحدث <bdi class="n" dir="ltr">1</bdi></span><span class="en" lang="en" dir="ltr">The problem</span><span class="rng">شرايح <bdi class="n" dir="ltr">1</bdi> إلى <bdi class="n" dir="ltr">4</bdi></span><span class="wh">ليه plain RAG بيغلط</span></a></li>
+    <li><a href="#sec-2"><span class="who">متحدث <bdi class="n" dir="ltr">2</bdi></span><span class="en" lang="en" dir="ltr">The idea</span><span class="rng">شرايح <bdi class="n" dir="ltr">5</bdi> و<bdi class="n" dir="ltr">6</bdi></span><span class="wh">المفتش، والخط بمحطاته السبعة</span></a></li>
+    <li><a href="#sec-3"><span class="who">متحدث <bdi class="n" dir="ltr">3</bdi></span><span class="en" lang="en" dir="ltr">How it works</span><span class="rng">شرايح <bdi class="n" dir="ltr">7</bdi> إلى <bdi class="n" dir="ltr">11</bdi></span><span class="wh">ماكينة حية، verifier، thresholds، trimming، sufficiency</span></a></li>
+    <li><a href="#sec-4"><span class="who">متحدث <bdi class="n" dir="ltr">4</bdi></span><span class="en" lang="en" dir="ltr">Building the verifier</span><span class="rng">شرايح <bdi class="n" dir="ltr">12</bdi> إلى <bdi class="n" dir="ltr">14</bdi></span><span class="wh">اللي اتكسر وإزاي اتصلّح</span></a></li>
+    <li><a href="#sec-5"><span class="who">متحدث <bdi class="n" dir="ltr">5</bdi></span><span class="en" lang="en" dir="ltr">How we tested it fairly</span><span class="rng">شرايح <bdi class="n" dir="ltr">15</bdi> إلى <bdi class="n" dir="ltr">18</bdi></span><span class="wh">الحالات التلاتة، dev وtest، الـ arms، Kaggle</span></a></li>
+    <li><a href="#sec-6"><span class="who">متحدث <bdi class="n" dir="ltr">6</bdi></span><span class="en" lang="en" dir="ltr">Results</span><span class="rng">شرايح <bdi class="n" dir="ltr">19</bdi> إلى <bdi class="n" dir="ltr">23</bdi></span><span class="wh">الأرقام، التمن، مثال خسارة، الـ judge</span></a></li>
+    <li><a href="#sec-7"><span class="who">متحدث <bdi class="n" dir="ltr">7</bdi></span><span class="en" lang="en" dir="ltr">Limits and next</span><span class="rng">شرايح <bdi class="n" dir="ltr">24</bdi> إلى <bdi class="n" dir="ltr">27</bdi></span><span class="wh">الحدود، الـ UI، الخطوة الجاية، الخاتمة</span></a></li>
+    <li><a href="#sec-a"><span class="who">الملحق</span><span class="en" lang="en" dir="ltr">Appendix</span><span class="rng">شرايح <bdi class="n" dir="ltr">28</bdi> إلى <bdi class="n" dir="ltr">30</bdi></span><span class="wh">جداول للرجوع لها وقت الأسئلة. محدش بيقدمها</span></a></li>
+  </ul>
+
+  <h2>اختصارات الـ deck</h2>
+  <dl class="keys">
+    <div><dt><kbd>→</kbd> <kbd>Space</kbd></dt><dd>الخطوة اللي بعدها. كل ضغطة بتكشف جزء من الشريحة (build step)، ولما الأجزاء تخلص بتروح للشريحة التالية.</dd></div>
+    <div><dt><kbd>←</kbd> <kbd>Backspace</kbd></dt><dd>ترجع خطوة.</dd></div>
+    <div><dt><kbd>N</kbd></dt><dd>تفتح ملاحظات المتحدث. هتلاقي فيها جملة أو اتنين تفكّرك بالشريحة.</dd></div>
+    <div><dt><kbd>G</kbd></dt><dd>Overview: كل الشرايح قدامك. دوس على أي واحدة تروحلها. <bdi class="en" lang="en" dir="ltr">Esc</bdi> أو <bdi class="en" lang="en" dir="ltr">G</bdi> تقفلها.</dd></div>
+    <div><dt><kbd>T</kbd></dt><dd>تبدّل بين الـ light والـ dark.</dd></div>
+    <div><dt><kbd>F</kbd></dt><dd>Fullscreen.</dd></div>
+    <div><dt><kbd>Home</kbd> <kbd>End</kbd></dt><dd>أول شريحة وآخر شريحة.</dd></div>
+  </dl>
+  <p class="note">تقدر تفتح شريحة معينة من الرابط: ضيف <bdi class="en" lang="en" dir="ltr">#s-12</bdi> في آخره عشان تروح لشريحة <bdi class="en" lang="en" dir="ltr">12</bdi>. مفيد وقت الأسئلة لو عايز تروح للملحق. وعلى الموبايل السحب يمين وشمال بيمشي الشرايح.</p>
+
+  <h2>الأرقام الخمسة اللي كل واحد لازم يحفظها</h2>
+  <div class="five-num">
+    <div class="fn"><span class="idx">1</span><b class="mono" dir="ltr">300</b><p>سؤال في الـ test. كل واحد اتجرّب بـ <bdi class="n" dir="ltr">3</bdi> حالات دليل، يعني <bdi class="n" dir="ltr">839</bdi> زوج سؤال وحالة.</p></div>
+    <div class="fn"><span class="idx">2</span><b class="mono" dir="ltr">24.7% → 18.3%</b><p>الـ hallucination على supportive، من plain RAG للنظام الكامل. الفرق في الحالات التلاتة: <bdi class="n" dir="ltr">−6.3</bdi> و<bdi class="n" dir="ltr">−7.3</bdi> و<bdi class="n" dir="ltr">−7.5</bdi> نقطة.</p></div>
+    <div class="fn"><span class="idx">3</span><b class="mono" dir="ltr">1,070 → 217</b><p>متوسط الـ tokens اللي رايحة للـ model. حوالي الخمس.</p></div>
+    <div class="fn"><span class="idx">4</span><b class="mono" dir="ltr">−5.0</b><p>نقط الإجابات الصح اللي خسرناها على supportive (<bdi class="n" dir="ltr">48.7%</bdi> لـ <bdi class="n" dir="ltr">43.7%</bdi>، <bdi class="en" lang="en" dir="ltr">p = 0.06</bdi>). ده التمن. وبيجاوب <bdi class="n" dir="ltr">62%</bdi> من الأسئلة بدل <bdi class="n" dir="ltr">73%</bdi>.</p></div>
+    <div class="fn"><span class="idx">5</span><b class="mono" dir="ltr">0.65 · 0.15 · 0.90</b><p>الـ thresholds. <bdi class="n" dir="ltr">0.65</bdi> و<bdi class="n" dir="ltr">0.15</bdi> للقرار صح/غامض/غلط، و<bdi class="n" dir="ltr">0.90</bdi> للـ sufficiency: تحتها نقول “مش عارف”.</p></div>
+  </div>
+</section>
+
+<section class="sec" id="sec-1" aria-labelledby="sec-1-h">
+  <header class="sec-head">
+    <span class="mark"><b>1</b></span>
+    <div>
+      <p class="who">متحدث <bdi class="n" dir="ltr">1</bdi> · شرايح <bdi class="n" dir="ltr">1</bdi> إلى <bdi class="n" dir="ltr">4</bdi></p>
+      <h2 id="sec-1-h"><span lang="en" dir="ltr">The problem</span></h2>
+      <p class="ar">المشكلة: plain RAG بيجاوب بثقة وبيغلط</p>
+    </div>
+  </header>
+
+  <article class="slide" id="s-1">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">01</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Verified RAG</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 1"><img src="../slides/shots/01-title-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 1: Verified RAG"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>عنوان المشروع كبير، وتحته جملة بتقول إن النظام مفتش صغير بيراجع الدليل قبل ما الـ language model يجاوب، وإنه اتجرّب على <bdi class="n" dir="ltr">300</bdi> سؤال من <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi>. تحت على اليمين جهاز بعدّاد عليه <bdi class="n" dir="ltr">0.595</bdi>، وكارت سؤال بيتحرك على سير لحد ما يوصل له. في الآخر بتظهر الإجابة <bdi class="en" lang="en" dir="ltr">The Private Life of Plants</bdi> على شريحة خضرا. الحركة دي بتشتغل لوحدها.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>السلام عليكم. إحنا هنعرض مشروع اسمه <bdi class="en" lang="en" dir="ltr">Verified RAG</bdi>.</li><li>فكرته ببساطة إننا حطينا مفتش صغير بين الـ search والإجابة، عشان الـ model يبطّل يخمّن من دليل وحش.</li><li>الكارت اللي بيتحرك ده سؤال حقيقي. الجهاز قاس الفقرة اللي جات له، والعدّاد وقف على <bdi class="n" dir="ltr">0.595</bdi>.</li><li>جرّبنا النظام على <bdi class="n" dir="ltr">300</bdi> سؤال من <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi>، ومحدش ضبط حاجة عليهم.</li></ul>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">الرقم <bdi class="en" lang="en" dir="ltr">0.595</bdi> ده إيه؟</p><p class="a">درجة الـ verifier: احتمال إن الفقرة دي بتجاوب السؤال. بنشرحه في الشريحة <bdi class="n" dir="ltr">8</bdi>.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-2">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">02</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">RAG: a librarian fetches, a model answers</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 2"><img src="../slides/shots/02-rag-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 2: RAG: a librarian fetches, a model answers"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>رف فيه <bdi class="en" lang="en" dir="ltr">4,969</bdi> فقرة، وكارت السؤال، وأمينة مكتبة بتمثل الـ search. الأمينة بتجيب أول <bdi class="n" dir="ltr">8</bdi> فقرات، وبعدها مربع <bdi class="en" lang="en" dir="ltr">Language model</bdi> ومربع <bdi class="en" lang="en" dir="ltr">Answer</bdi>. وفوق على اليمين جملة بتقول إن الـ model بيجاوب من الفقرات اللي اتدّتله بس.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>الـ <bdi class="en" lang="en" dir="ltr">RAG</bdi> اختصار <bdi class="en" lang="en" dir="ltr">retrieval-augmented generation</bdi>. الفكرة سهلة.</li><li>عندنا رف فيه <bdi class="n" dir="ltr">4,969</bdi> فقرة. السؤال بيروح لأمينة المكتبة، وهي الـ search، وهي بتجيب أول <bdi class="n" dir="ltr">8</bdi> فقرات.</li><li>الفقرات دي بتتحط قدام الـ language model، وهو بيكتب الإجابة منها هي بس.</li><li>يعني الـ model مش بيدوّر بنفسه. بيجاوب من اللي اتدّاله.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>الفقرات التمانية بتنزل من الرف على المكتب، وسهم بيظهر.</li><li>بيظهر مربع الـ <bdi class="en" lang="en" dir="ltr">Language model</bdi> وسهم لمربع <bdi class="en" lang="en" dir="ltr">Answer</bdi>.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">ليه <bdi class="n" dir="ltr">8</bdi> فقرات بس؟</p><p class="a">ده إعداد plain RAG في التجربة: <bdi class="en" lang="en" dir="ltr">top 8 paragraphs</bdi>. ده الـ arm <bdi class="en" lang="en" dir="ltr">A</bdi>، وبنقارن بيه كل حاجة.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-3">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">03</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Plain RAG answers confidently, and wrongly</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 3"><img src="../slides/shots/03-fails-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 3: Plain RAG answers confidently, and wrongly"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>تلات كروت، كل كارت إجابة حقيقية من plain RAG. الأول <bdi class="en" lang="en" dir="ltr">supportive</bdi>: الدليل موجود، والـ model جاوب “3” على سؤال عن اسم فيلم. التاني <bdi class="en" lang="en" dir="ltr">missing</bdi>: شلنا الدليل، فقال “no” والصح “مش عارف”. التالت <bdi class="en" lang="en" dir="ltr">misleading</bdi>: بدّلنا الإجابة بـ <bdi class="en" lang="en" dir="ltr">Lake Tahoe</bdi> جوه الدليل، وهو كررها، والصح <bdi class="en" lang="en" dir="ltr">Sun Valley, Idaho</bdi>. نفس الـ generator في التلاتة.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>دي تلات إجابات حقيقية من plain RAG، ونفس الـ model في التلاتة.</li><li>الأولى: الفقرتين الصح كانوا قدامه، ومع كده جاوب “3” على سؤال عن اسم فيلم.</li><li>التانية: إحنا شلنا الدليل، فالإجابة الصح “مش عارف”. هو قال “no” بكل ثقة.</li><li>التالتة: بدّلنا الإجابة جوه الفقرة بـ <bdi class="en" lang="en" dir="ltr">Lake Tahoe</bdi>، وهو كررها. الإجابة الصح <bdi class="en" lang="en" dir="ltr">Sun Valley, Idaho</bdi>.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>الكارت الأول بيظهر (supportive).</li><li>الكارت التاني (missing).</li><li>الكارت التالت (misleading) ومعاه الإجابة المبدّلة.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">يعني إيه planted؟</p><p class="a">إجابة إحنا بدّلناها جوه الدليل، والـ model كررها. هنشرح الحالة دي في الشريحة <bdi class="n" dir="ltr">15</bdi>.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-4">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">04</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">How often plain RAG is wrong</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 4"><img src="../slides/shots/04-rates-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 4: How often plain RAG is wrong"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>تلات أعمدة لمعدل غلط plain RAG: <bdi class="n" dir="ltr">24.7%</bdi> لما الدليل موجود، و<bdi class="n" dir="ltr">8.0%</bdi> لما اتشال، و<bdi class="n" dir="ltr">24.7%</bdi> لما الإجابة اتبدّلت. في العمود الأخير فوق الأحمر جزء بنفسجي <bdi class="n" dir="ltr">30.5%</bdi> للإجابات اللي كررت البديل. وعلى اليمين مفتاح: الأحمر <bdi class="en" lang="en" dir="ltr">hallucinated</bdi> يعني جاوب وغلط، والبنفسجي <bdi class="en" lang="en" dir="ltr">planted</bdi> يعني كرر الإجابة المبدّلة.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>ده معدل الغلط في plain RAG على الـ <bdi class="n" dir="ltr">300</bdi> سؤال.</li><li>حتى لما الدليل الصح موجود: <bdi class="n" dir="ltr">24.7%</bdi> من الإجابات غلط. تقريباً إجابة من كل أربعة.</li><li>لما الدليل مش موجود: <bdi class="n" dir="ltr">8.0%</bdi>. الـ model بيرفض كتير لوحده، عشان كده الرقم مش كبير. لكن لسه بيجاوب غلط أحياناً.</li><li>ولما بدّلنا الإجابة جوه الدليل: <bdi class="n" dir="ltr">24.7%</bdi> غلط، وكمان <bdi class="n" dir="ltr">30.5%</bdi> كرروا الإجابة المبدّلة نفسها.</li><li>الـ generator هنا <bdi class="en" lang="en" dir="ltr">Qwen3-4B</bdi> وبيرفض كتير بنفسه. يعني ده baseline عادل مش ضعيف.</li></ul>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">ليه الـ missing فيها <bdi class="n" dir="ltr">8%</bdi> بس؟</p><p class="a">لأن plain RAG بيرفض في <bdi class="n" dir="ltr">85%</bdi> من أسئلة missing لوحده. فالحيّز اللي النظام بتاعنا يحسّنه هناك صغير.</p></div>
+    </div>
+  </article>
+  <div class="handoff"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6"/></svg><p><b>تسليم لـمتحدث 2</b>كده عرفنا إن plain RAG بيغلط حتى والدليل قدامه. زميلي هيقول فكرتنا في الحل.</p></div>
+</section>
+
+<section class="sec" id="sec-2" aria-labelledby="sec-2-h">
+  <header class="sec-head">
+    <span class="mark"><b>2</b></span>
+    <div>
+      <p class="who">متحدث <bdi class="n" dir="ltr">2</bdi> · شرايح <bdi class="n" dir="ltr">5</bdi> إلى <bdi class="n" dir="ltr">6</bdi></p>
+      <h2 id="sec-2-h"><span lang="en" dir="ltr">The idea</span></h2>
+      <p class="ar">الفكرة: مفتش بين الـ search والإجابة</p>
+    </div>
+  </header>
+
+  <article class="slide" id="s-5">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">05</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Put an inspector between search and answer</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 5"><img src="../slides/shots/05-idea-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 5: Put an inspector between search and answer"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p><bdi class="en" lang="en" dir="ltr">Search</bdi> على الشمال و<bdi class="en" lang="en" dir="ltr">Answer model</bdi> على اليمين وخط بينهم. أول ما تفتح الشريحة الجملة بتقول إن plain RAG بيبعت أي حاجة الـ search ترجّعها علطول. بعد الدوسة الأولى بينزل صندوق <bdi class="en" lang="en" dir="ltr">Inspector</bdi> في النص، ومعاه فرع “مش عارف”. تحت كارتين للورقتين اللي بنينا عليهم: <bdi class="en" lang="en" dir="ltr">CRAG</bdi> و<bdi class="en" lang="en" dir="ltr">Sufficient Context</bdi>.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>Plain RAG بيبعت اللي الـ search جابه علطول للـ model، ومحدش بيبص عليه.</li><li>فكرتنا إننا نحط مفتش في النص. بيقيس الفقرات، وبيقص اللي ملوش لازمة، وممكن يوقف الخط خالص.</li><li>ولو الدليل مش كفاية، الإجابة بتبقى “مش عارف”.</li><li>الفكرة بنيناها على ورقتين: <bdi class="en" lang="en" dir="ltr">CRAG</bdi> بتاعة <bdi class="en" lang="en" dir="ltr">Yan</bdi> وزمايله سنة <bdi class="n" dir="ltr">2024</bdi>، و<bdi class="en" lang="en" dir="ltr">Sufficient Context</bdi> بتاعة <bdi class="en" lang="en" dir="ltr">Joren</bdi> وزمايله في <bdi class="en" lang="en" dir="ltr">ICLR 2025</bdi>.</li><li>الأولى بتقول صنّف اللي رجع من الـ search صح ولا غامض ولا غلط. التانية بتقول اسأل: الـ context ده كفاية للإجابة؟</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>المفتش بينزل في النص، والجملة اللي فوق بتتغيّر لـ Verified RAG، ويظهر فرع “مش عارف”.</li><li>بيظهروا كارتين الورقتين: <bdi class="en" lang="en" dir="ltr">CRAG</bdi> و<bdi class="en" lang="en" dir="ltr">Sufficient Context</bdi>.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">إيه الجديد عندكم عن الورقتين؟</p><p class="a">جمعنا الفكرتين في خط واحد، ودرّبنا verifier صغير بنفسنا، وجرّبنا كل محطة لوحدها (<bdi class="n" dir="ltr">7</bdi> arms) عشان نعرف كل واحدة بتضيف إيه. ما بنقولش إننا اخترعنا الفكرة.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-6">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">06</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Seven stations between question and answer</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 6"><img src="../slides/shots/06-stations-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 6: Seven stations between question and answer"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>سبع محطات في صف: <bdi class="en" lang="en" dir="ltr">Ask</bdi> و<bdi class="en" lang="en" dir="ltr">Search</bdi> و<bdi class="en" lang="en" dir="ltr">Inspect</bdi> و<bdi class="en" lang="en" dir="ltr">Decide</bdi> و<bdi class="en" lang="en" dir="ltr">Trim</bdi> و<bdi class="en" lang="en" dir="ltr">Weigh</bdi> و<bdi class="en" lang="en" dir="ltr">Answer</bdi>. المحطات من <bdi class="n" dir="ltr">3</bdi> لـ <bdi class="n" dir="ltr">6</bdi> هي الجديدة. سهم برتقالي بيرجع من <bdi class="en" lang="en" dir="ltr">Decide</bdi> لـ <bdi class="en" lang="en" dir="ltr">Search</bdi> للـ rewrite. وتحتها قوس بيقول إن plain RAG هو نفس الخط والأربع محطات دي مطفية.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>الخط فيه <bdi class="n" dir="ltr">7</bdi> محطات. هنبنيه واحدة واحدة.</li><li><bdi class="en" lang="en" dir="ltr">Ask</bdi>: السؤال بيدخل. <bdi class="en" lang="en" dir="ltr">Search</bdi>: بيجيب أول <bdi class="n" dir="ltr">20</bdi> فقرة، بـ keyword search وmeaning search مدموجين.</li><li><bdi class="en" lang="en" dir="ltr">Inspect</bdi>: model صغير بيدّي كل فقرة درجة من <bdi class="n" dir="ltr">0</bdi> لـ <bdi class="n" dir="ltr">1</bdi>.</li><li><bdi class="en" lang="en" dir="ltr">Decide</bdi>: صح ولا غامض ولا غلط. لو الدليل ضعيف بيكتب سؤالين جداد ويرجع يدوّر، مرة واحدة بس.</li><li><bdi class="en" lang="en" dir="ltr">Trim</bdi> بيقص الجمل. <bdi class="en" lang="en" dir="ltr">Weigh</bdi> بيسأل: اللي فضل كفاية؟ و<bdi class="en" lang="en" dir="ltr">Answer</bdi> بيجاوب مع الـ citations أو يقول “مش عارف”.</li><li>المحطات من <bdi class="n" dir="ltr">3</bdi> لـ <bdi class="n" dir="ltr">6</bdi> هي الجديدة. Plain RAG هو نفس الخط والأربع محطات دي مطفية.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>محطة <bdi class="en" lang="en" dir="ltr">Ask</bdi> بتنوّر: السؤال بيدخل.</li><li><bdi class="en" lang="en" dir="ltr">Search</bdi>: keyword وmeaning search (<bdi class="en" lang="en" dir="ltr">BM25</bdi> و<bdi class="en" lang="en" dir="ltr">bge-small</bdi>)، ويتدمجوا بـ reciprocal rank fusion.</li><li><bdi class="en" lang="en" dir="ltr">Inspect</bdi>: الـ verifier بيقرا السؤال والفقرة مع بعض.</li><li><bdi class="en" lang="en" dir="ltr">Decide</bdi>: بيظهر السهم البرتقالي بتاع الـ rewrite: لو الدليل ضعيف يرجع يبحث تاني.</li><li><bdi class="en" lang="en" dir="ltr">Trim</bdi>: كل جملة بتتقيّم لوحدها.</li><li><bdi class="en" lang="en" dir="ltr">Weigh</bdi>: model تاني بيدّي درجة sufficiency.</li><li><bdi class="en" lang="en" dir="ltr">Answer</bdi>: الـ generator مابيشوفش غير اللي فضل. وبيظهر القوس بتاع plain RAG تحت.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">ليه الـ rewrite مرة واحدة بس؟</p><p class="a">ده قرار التصميم: جولة واحدة زيادة. ومن النتايج الخطوة دي ما أثّرتش (شوف الشريحة <bdi class="n" dir="ltr">24</bdi>).</p></div>
+    </div>
+  </article>
+  <div class="handoff"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6"/></svg><p><b>تسليم لـمتحدث 3</b>اتفقنا على الخط ومحطاته. زميلي هيمشّي سؤال حقيقي جواه ويفتح كل محطة.</p></div>
+</section>
+
+<section class="sec" id="sec-3" aria-labelledby="sec-3-h">
+  <header class="sec-head">
+    <span class="mark"><b>3</b></span>
+    <div>
+      <p class="who">متحدث <bdi class="n" dir="ltr">3</bdi> · شرايح <bdi class="n" dir="ltr">7</bdi> إلى <bdi class="n" dir="ltr">11</bdi></p>
+      <h2 id="sec-3-h"><span lang="en" dir="ltr">How it works</span></h2>
+      <p class="ar">إزاي بيشتغل: الخط محطة محطة</p>
+    </div>
+  </header>
+
+  <article class="slide" id="s-7">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">07</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Walk one question through the line</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 7"><img src="../slides/shots/07-live-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 7: Walk one question through the line"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>ماكينة ثلاثية الأبعاد بتمثل الخط. على الشمال قايمة الخطوات من <bdi class="en" lang="en" dir="ltr">Ask</bdi> لـ <bdi class="en" lang="en" dir="ltr">Answer</bdi>، وتحتها اختيار <bdi class="en" lang="en" dir="ltr">Manual</bdi> أو <bdi class="en" lang="en" dir="ltr">Auto</bdi>، وخمس أمثلة: <bdi class="en" lang="en" dir="ltr">Good evidence</bdi> و<bdi class="en" lang="en" dir="ltr">Evidence missing</bdi> و<bdi class="en" lang="en" dir="ltr">Planted answer, caught</bdi> و<bdi class="en" lang="en" dir="ltr">Planted answer, missed</bdi> و<bdi class="en" lang="en" dir="ltr">Too careful</bdi>، وزرار <bdi class="en" lang="en" dir="ltr">Start over</bdi>.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>دي الماكينة نفسها. هندوس على الخطوة المظللة، واحدة واحدة.</li><li>هنبدأ بمثال <bdi class="en" lang="en" dir="ltr">Good evidence</bdi>: سؤال الفيلم الوثائقي. بعد <bdi class="en" lang="en" dir="ltr">Search</bdi> و<bdi class="en" lang="en" dir="ltr">Inspect</bdi> هنشوف الدرجة <bdi class="n" dir="ltr">0.595</bdi>، وده في المنطقة الغامضة، يعني الخط هيجرّب بحث تاني.</li><li>في <bdi class="en" lang="en" dir="ltr">Trim</bdi> الكلام بينزل من <bdi class="n" dir="ltr">599</bdi> كلمة لـ <bdi class="n" dir="ltr">99</bdi>.</li><li><bdi class="en" lang="en" dir="ltr">Weigh</bdi> بيقرا الـ sufficiency، وبعدها <bdi class="en" lang="en" dir="ltr">Answer</bdi> بيطلّع الإجابة: <bdi class="en" lang="en" dir="ltr">The Private Life of Plants</bdi>.</li><li>بعد كده نغيّر المثال لـ <bdi class="en" lang="en" dir="ltr">Evidence missing</bdi>، سؤال <bdi class="en" lang="en" dir="ltr">Guildford</bdi>. هنا الخط بيقف والإجابة “مش عارف”.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>الخطوات على الشريحة دي بتتدس من جوه الماكينة نفسها بالماوس، مش من Next. ابدأ بالخطوة المظللة. جرّب ده قبل العرض.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">لو الماكينة ما اشتغلتش؟</p><p class="a">الشريحة بتعرض نفس الـ trace كأرقام بسيطة: عدد الفقرات، أعلى درجة، القرار، الكلمات قبل وبعد، الـ sufficiency، والإجابة. اقرا منها.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-8">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">08</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">The verifier reads question and paragraph together</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 8"><img src="../slides/shots/08-verifier-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 8: The verifier reads question and paragraph together"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>على الشمال السؤال والفقرة داخلين في صندوق <bdi class="en" lang="en" dir="ltr">Verifier</bdi>، وتحتهم الدرجة <bdi class="n" dir="ltr">0.595</bdi>. على اليمين درجات الـ <bdi class="n" dir="ltr">8</bdi> فقرات: الفقرتين اللي فيهم الإجابة أزرق (<bdi class="n" dir="ltr">0.595</bdi> و<bdi class="n" dir="ltr">0.441</bdi>)، والباقي رمادي وقريب من صفر. وتحت الشمال عمودين للـ calibration: <bdi class="n" dir="ltr">0.085</bdi> قبل و<bdi class="n" dir="ltr">0.005</bdi> بعد.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>الـ verifier هو cross-encoder صغير اسمه <bdi class="en" lang="en" dir="ltr">MiniLM-L6</bdi>.</li><li>بيقرا السؤال والفقرة مع بعض كمدخل واحد، ويطلّع احتمال إن الفقرة دي بتجاوب السؤال.</li><li>على اليمين درجات الـ <bdi class="n" dir="ltr">8</bdi> فقرات اللي رجعت. الفقرتين اللي فيهم الإجابة: <bdi class="n" dir="ltr">0.595</bdi> و<bdi class="n" dir="ltr">0.441</bdi>. الباقي قريب من صفر.</li><li>وبنعمل calibration عشان الدرجة تبقى معناها قد كلامها. الـ expected calibration error نزل من <bdi class="n" dir="ltr">0.085</bdi> لـ <bdi class="n" dir="ltr">0.005</bdi>.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>بيظهر كارت الـ calibration: عمودين <bdi class="en" lang="en" dir="ltr">before</bdi> <bdi class="n" dir="ltr">0.085</bdi> و<bdi class="en" lang="en" dir="ltr">after</bdi> <bdi class="n" dir="ltr">0.005</bdi>.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">يعني إيه cross-encoder؟</p><p class="a">model بيقرا السؤال والفقرة جوه نفس الـ input. مش بيحوّل كل واحد لوحده لـ vector ويقارنهم.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-9">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">09</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Two thresholds sort every question</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 9"><img src="../slides/shots/09-band-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 9: Two thresholds sort every question"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>شريط من <bdi class="n" dir="ltr">0</bdi> لـ <bdi class="n" dir="ltr">1</bdi> فيه تلات مناطق: <bdi class="en" lang="en" dir="ltr">Incorrect</bdi> لحد <bdi class="n" dir="ltr">0.15</bdi>، و<bdi class="en" lang="en" dir="ltr">Ambiguous</bdi> من <bdi class="n" dir="ltr">0.15</bdi> لـ <bdi class="n" dir="ltr">0.65</bdi>، و<bdi class="en" lang="en" dir="ltr">Correct</bdi> من <bdi class="n" dir="ltr">0.65</bdi>. سهم نازل على <bdi class="n" dir="ltr">0.595</bdi>، سؤال الفيلم. وتحت تلات كروت بتقول إيه اللي بيحصل في كل منطقة.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>القرار بياخد أعلى درجة فقرة. لو <bdi class="n" dir="ltr">0.65</bdi> أو أكتر: <bdi class="en" lang="en" dir="ltr">Correct</bdi>، نكمّل على الـ trim.</li><li>لو أقل من <bdi class="n" dir="ltr">0.15</bdi>: <bdi class="en" lang="en" dir="ltr">Incorrect</bdi>. مش هنثق في الفقرات دي، نكتب queries جديدة ونبحث تاني.</li><li>وبينهم <bdi class="en" lang="en" dir="ltr">Ambiguous</bdi>: الدليل ضعيف. برضو نكتب سؤالين جداد، ونبحث، ونراجع.</li><li>سؤال الفيلم أعلى درجة ليه <bdi class="n" dir="ltr">0.595</bdi>، يعني لسه ambiguous. مفيش مثال من الخمسة وصل <bdi class="n" dir="ltr">0.65</bdi>.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>بتظهر أربع نقط للأسئلة التانية: <bdi class="en" lang="en" dir="ltr">Guildford</bdi> <bdi class="n" dir="ltr">0.215</bdi>، <bdi class="en" lang="en" dir="ltr">Geraldine Page</bdi> <bdi class="n" dir="ltr">0.218</bdi>، <bdi class="en" lang="en" dir="ltr">Sun Valley</bdi> <bdi class="n" dir="ltr">0.396</bdi>، <bdi class="en" lang="en" dir="ltr">Uyoku dantai</bdi> <bdi class="n" dir="ltr">0.475</bdi>. كلهم ambiguous.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">ليه threshold-ين؟</p><p class="a">عشان نفرّق بين “واثقين إنه صح” و“واثقين إنه غلط” و“مش واثقين”. وبصراحة: arm <bdi class="en" lang="en" dir="ltr">G</bdi> بـ threshold واحد طلّع نتايج في حدود نقطة من <bdi class="en" lang="en" dir="ltr">F</bdi> (الملحق، شريحة <bdi class="n" dir="ltr">28</bdi>). يعني الاتنين ما فرقوش فرق نقدر نقيسه.</p></div><div class="qa-i"><p class="q">ازاي اخترتوا <bdi class="n" dir="ltr">0.65</bdi> و<bdi class="n" dir="ltr">0.15</bdi>؟</p><p class="a">على الـ dev بقاعدة مكتوبة. التفاصيل في شريحة الملحق <bdi class="n" dir="ltr">30</bdi>.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-10">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">10</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Trimming sends about a fifth of the words</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 10"><img src="../slides/shots/10-trim-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 10: Trimming sends about a fifth of the words"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>على الشمال <bdi class="n" dir="ltr">7</bdi> جمل ودرجة كل واحدة. اللي <bdi class="n" dir="ltr">0.05</bdi> أو أكتر أخضر، والباقي مشطوب أحمر، وتحتهم: فضلت <bdi class="n" dir="ltr">3</bdi> من <bdi class="n" dir="ltr">7</bdi>. على اليمين الكلمات اللي رايحة للـ model: <bdi class="en" lang="en" dir="ltr">Plain RAG</bdi> <bdi class="n" dir="ltr">599</bdi> و<bdi class="en" lang="en" dir="ltr">Verified</bdi> <bdi class="n" dir="ltr">99</bdi>. وتحتها المتوسط على الـ <bdi class="n" dir="ltr">300</bdi> سؤال: <bdi class="n" dir="ltr">1,070</bdi> مقابل <bdi class="n" dir="ltr">217</bdi> token.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>بعد ما اخترنا الفقرات، بنقسمها لجمل. الـ verifier بيدّي كل جملة درجتها.</li><li>الجملة اللي درجتها <bdi class="n" dir="ltr">0.05</bdi> أو أكتر بتفضل. الباقي بيتشال.</li><li>في السؤال ده فضلت <bdi class="n" dir="ltr">3</bdi> جمل من <bdi class="n" dir="ltr">7</bdi>. الكلمات اللي رايحة للـ model نزلت من <bdi class="n" dir="ltr">599</bdi> لـ <bdi class="n" dir="ltr">99</bdi>.</li><li>وعلى الـ <bdi class="n" dir="ltr">300</bdi> سؤال كلهم، الـ context نزل من حوالي <bdi class="n" dir="ltr">1,070</bdi> token لحوالي <bdi class="n" dir="ltr">217</bdi>. يعني تقريباً الخمس.</li><li>وفيه ملاحظة هنرجع لها: أحياناً القص بيشيل الجملة اللي فيها الإجابة نفسها.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>الشريط الأزرق بيتقلّص ورقم الكلمات بينزل من <bdi class="n" dir="ltr">599</bdi> لـ <bdi class="n" dir="ltr">99</bdi>.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">ليه حد الـ keep واطي كده، <bdi class="n" dir="ltr">0.05</bdi>؟</p><p class="a">ده أعلى قيمة قدرنا نوصلها وما حققناش هدف الـ recall اللي هو <bdi class="n" dir="ltr">90%</bdi>. فالقص بيحتفظ بكل الـ supporting facts في حوالي <bdi class="n" dir="ltr">57%</bdi> بس من أسئلة supportive. وده أحد أسباب إن الـ correct نزل.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-11">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">11</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">The scale decides: enough to answer, or stop</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 11"><img src="../slides/shots/11-gate-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 11: The scale decides: enough to answer, or stop"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>خط من <bdi class="n" dir="ltr">0</bdi> لـ <bdi class="n" dir="ltr">1</bdi> للـ sufficiency، وعليه خط أزرق عند <bdi class="n" dir="ltr">0.90</bdi>. تحته “مش عارف” وفوقه إجابة. الأمثلة الخمسة نقط على الخط: <bdi class="en" lang="en" dir="ltr">Geraldine Page</bdi> <bdi class="n" dir="ltr">0.002</bdi>، و<bdi class="en" lang="en" dir="ltr">Uyoku dantai</bdi> <bdi class="n" dir="ltr">0.543</bdi>، و<bdi class="en" lang="en" dir="ltr">Guildford</bdi> <bdi class="n" dir="ltr">0.618</bdi>، و<bdi class="en" lang="en" dir="ltr">Sun Valley</bdi> <bdi class="n" dir="ltr">0.981</bdi>، و<bdi class="en" lang="en" dir="ltr">Documentary</bdi> <bdi class="n" dir="ltr">0.984</bdi>. تحت: سؤال <bdi class="en" lang="en" dir="ltr">Guildford</bdi> ومقارنة الإجابتين، وأعمدة الـ <bdi class="en" lang="en" dir="ltr">AUC</bdi>: <bdi class="n" dir="ltr">0.978</bdi> و<bdi class="n" dir="ltr">0.998</bdi>.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>دي المحطة الأخيرة قبل الإجابة. model تاني صغير، <bdi class="en" lang="en" dir="ltr">MiniLM-L12</bdi>، بيقرا السؤال والـ context اللي فضل.</li><li>بيطلّع احتمال إن الـ context كفاية للإجابة. لو أقل من <bdi class="n" dir="ltr">0.90</bdi>، النظام يقول “مش عارف”.</li><li><bdi class="en" lang="en" dir="ltr">Guildford</bdi> طلع <bdi class="n" dir="ltr">0.618</bdi>، فالخط وقف. plain RAG جاوب “no” وخلاص.</li><li><bdi class="en" lang="en" dir="ltr">Documentary</bdi> طلع <bdi class="n" dir="ltr">0.984</bdi> فجاوب. و<bdi class="en" lang="en" dir="ltr">Sun Valley</bdi> طلع <bdi class="n" dir="ltr">0.981</bdi> فجاوب برضو، وده كان غلط. هنرجع له في الحدود.</li><li>وعن قدرة الـ model: الـ <bdi class="en" lang="en" dir="ltr">AUC</bdi> <bdi class="n" dir="ltr">0.978</bdi> لما بيكون ناقص خطوة، و<bdi class="n" dir="ltr">0.998</bdi> لما مفيش دليل خالص.</li><li>تنبيه: الأرقام دي على مهمة proxy اتعملت بنفس طريقة بناء بيانات التدريب. مش إثبات إنه بيكشف أي سياق ناقص.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>بيظهر سؤال <bdi class="en" lang="en" dir="ltr">Guildford</bdi> بالمقارنة: النظام يقول “مش عارف” وplain RAG يقول “no”. باقي النقط بتهدى.</li><li>بتظهر أعمدة الـ <bdi class="en" lang="en" dir="ltr">AUC</bdi>: <bdi class="n" dir="ltr">0.978</bdi> و<bdi class="n" dir="ltr">0.998</bdi>.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">يعني إيه AUC؟</p><p class="a">بنسأل: الـ model بيرتّب الحالة الكافية فوق الحالة الغير كافية ولا لأ؟ <bdi class="en" lang="en" dir="ltr">0.5</bdi> يعني صدفة، و<bdi class="en" lang="en" dir="ltr">1</bdi> يعني مثالي.</p></div>
+    </div>
+  </article>
+  <div class="handoff"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6"/></svg><p><b>تسليم لـمتحدث 4</b>الخط اشتغل. زميلي هيحكي إزاي بنينا الـ verifier وإيه اللي اتكسر في الطريق.</p></div>
+</section>
+
+<section class="sec" id="sec-4" aria-labelledby="sec-4-h">
+  <header class="sec-head">
+    <span class="mark"><b>4</b></span>
+    <div>
+      <p class="who">متحدث <bdi class="n" dir="ltr">4</bdi> · شرايح <bdi class="n" dir="ltr">12</bdi> إلى <bdi class="n" dir="ltr">14</bdi></p>
+      <h2 id="sec-4-h"><span lang="en" dir="ltr">Building the verifier</span></h2>
+      <p class="ar">بناء الـ verifier: اللي اتكسر وإزاي اتصلّح</p>
+    </div>
+  </header>
+
+  <article class="slide" id="s-12">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">12</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Fine-tuning broke ranking outside HotpotQA</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 12"><img src="../slides/shots/12-bug-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 12: Fine-tuning broke ranking outside HotpotQA"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>شمال عمودين لـ <bdi class="en" lang="en" dir="ltr">SciFact</bdi>: الـ base <bdi class="n" dir="ltr">69.6</bdi> وبعد الـ fine-tuning <bdi class="n" dir="ltr">53.3</bdi>، يعني نزل <bdi class="n" dir="ltr">16.3</bdi>. يمين الـ probe: سؤال كلام فاضي على abstracts طبية، الـ base ادّى <bdi class="n" dir="ltr">−9.6</bdi> والمدرَّب ادّى <bdi class="n" dir="ltr">+0.6</bdi>. وتحت جملتين بيفسّروا السبب، وصندوق أحمر: الـ model اتعلّم إن تشابه الكلمات معناه إن الفقرة مش مهمة.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>درّبنا الـ verifier على <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi> و<bdi class="en" lang="en" dir="ltr">MS MARCO</bdi>، وبدأنا من <bdi class="en" lang="en" dir="ltr">MiniLM-L6</bdi>.</li><li>على <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi> اتحسّن. لكن على <bdi class="en" lang="en" dir="ltr">SciFact</bdi>، وده dataset طبي، نزل من <bdi class="n" dir="ltr">69.6</bdi> لـ <bdi class="n" dir="ltr">53.3</bdi>. يعني <bdi class="n" dir="ltr">16.3</bdi> نقطة.</li><li>عملنا probe: سؤال كلام فاضي على abstracts طبية. المفروض الدرجة تبقى واطية جداً. الـ base ادّى <bdi class="n" dir="ltr">−9.6</bdi> والمدرَّب ادّى <bdi class="n" dir="ltr">+0.6</bdi>.</li><li>السبب إن الـ distractors في <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi> بتشارك السؤال في كلمات، وفقرة الخطوة التانية الحقيقية تقريباً ما بتشاركوش.</li><li>فالـ model اتعلّم إن تشابه الكلمات معناه إن الفقرة مش مهمة.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>بيظهر الـ probe: النقطتين <bdi class="n" dir="ltr">−9.6</bdi> و<bdi class="n" dir="ltr">+0.6</bdi> على المحور.</li><li>بيظهر التفسير: ليه ده حصل، وإيه اللي اتعلّمه الـ model غلط.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">يعني إيه nDCG@10؟</p><p class="a">مقياس ترتيب. كل ما الفقرات المهمة تكون أعلى في أول <bdi class="n" dir="ltr">10</bdi> نتايج، الرقم بيعلى. هنا مضروب في <bdi class="n" dir="ltr">100</bdi>.</p></div><div class="qa-i"><p class="q">يعني إيه second-hop؟</p><p class="a">سؤال محتاج فقرتين: الأولى توصّلك للتانية، والتانية فيها الإجابة. الفقرة التانية غالباً مبتشاركش السؤال كلمات.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-13">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">13</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Averaging the weights brought it back</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 13"><img src="../slides/shots/13-fix-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 13: Averaging the weights brought it back"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>شمال رسم بتلات خطوط (<bdi class="en" lang="en" dir="ltr">HotpotQA</bdi> و<bdi class="en" lang="en" dir="ltr">NFCorpus</bdi> و<bdi class="en" lang="en" dir="ltr">FiQA</bdi>) على محور alpha من <bdi class="n" dir="ltr">0</bdi> لـ <bdi class="n" dir="ltr">1</bdi>، وخط منقّط عند <bdi class="n" dir="ltr">0.7</bdi>. يمين المعادلة، وأزرار alpha، والقيم عند الـ alpha المختارة. وتحتهم <bdi class="en" lang="en" dir="ltr">SciFact</bdi>: <bdi class="en" lang="en" dir="ltr">base</bdi> <bdi class="n" dir="ltr">69.6</bdi>، و<bdi class="en" lang="en" dir="ltr">fine-tuned</bdi> <bdi class="n" dir="ltr">53.3</bdi>، و<bdi class="en" lang="en" dir="ltr">α = 0.7</bdi> <bdi class="n" dir="ltr">68.0</bdi>.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>الحل اسمه <bdi class="en" lang="en" dir="ltr">WiSE-FT</bdi>. بنعمل متوسط بين أوزان الـ model المدرَّب وأوزان الـ base.</li><li><bdi class="en" lang="en" dir="ltr">alpha</bdi> صفر يعني الـ base. <bdi class="en" lang="en" dir="ltr">alpha</bdi> واحد يعني الـ fine-tune كامل.</li><li>حدّدنا القاعدة قبل ما نشوف الجدول: أكبر alpha يخلّي متوسط الـ out-of-domain على dev في حدود <bdi class="n" dir="ltr">0.01</bdi> من الـ base. طلع <bdi class="n" dir="ltr">0.7</bdi>.</li><li>عند <bdi class="n" dir="ltr">0.7</bdi> الـ <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi> فضل عالي: <bdi class="n" dir="ltr">0.941</bdi> على dev. و<bdi class="en" lang="en" dir="ltr">SciFact</bdi> رجع <bdi class="n" dir="ltr">68.0</bdi> بعد ما كان <bdi class="n" dir="ltr">53.3</bdi>.</li><li>تقدر تدوس على الأزرار وتشوف الأرقام بتتغير.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>العلامة بتتحرك من <bdi class="n" dir="ltr">1</bdi> (الـ fine-tune الكامل) لـ <bdi class="n" dir="ltr">0.7</bdi>، والأرقام اللي على اليمين بتتغير. وتقدر تدوس على أي زرار <bdi class="en" lang="en" dir="ltr">alpha</bdi> بالماوس.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">هل <bdi class="n" dir="ltr">0.7</bdi> يعني دقة <bdi class="n" dir="ltr">70%</bdi>؟</p><p class="a">لأ. <bdi class="n" dir="ltr">0.7</bdi> هي alpha: نسبة أوزان الـ fine-tuned في الخلطة. <bdi class="n" dir="ltr">70%</bdi> من الأوزان المدرَّبة و<bdi class="n" dir="ltr">30%</bdi> من الأصلية.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-14">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">14</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Three more things that went wrong</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 14"><img src="../slides/shots/14-lessons-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 14: Three more things that went wrong"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>تلات كروت. <bdi class="en" lang="en" dir="ltr">The dev check lied</bdi>: <bdi class="n" dir="ltr">0.575</bdi> مقابل <bdi class="n" dir="ltr">0.479</bdi> في الـ dev check، و<bdi class="n" dir="ltr">0.280</bdi> مقابل <bdi class="n" dir="ltr">0.681</bdi> في الترتيب الحقيقي. <bdi class="en" lang="en" dir="ltr">One threshold, two jobs</bdi>: من <bdi class="n" dir="ltr">56%</bdi> لـ <bdi class="n" dir="ltr">89%</bdi>. <bdi class="en" lang="en" dir="ltr">The filter ate the data</bdi>: من <bdi class="n" dir="ltr">57%</bdi> لـ <bdi class="n" dir="ltr">1</bdi> إلى <bdi class="n" dir="ltr">4%</bdi>.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>فيه تلات حاجات تانية اتكسرت، وكل واحدة غيّرت التصميم.</li><li>الأولى: الـ dev check كان بيكدّب. خلّى الـ model المكسور شكله أحسن: <bdi class="n" dir="ltr">0.575</bdi> مقابل <bdi class="n" dir="ltr">0.479</bdi>. في الترتيب الحقيقي هو <bdi class="n" dir="ltr">0.280</bdi> والـ base <bdi class="n" dir="ltr">0.681</bdi>. فبنينا الـ check من جديد بنفس بروتوكول الـ test.</li><li>التانية: threshold واحد كان بيعمل شغلتين، يصنّف ويفلتر. إدّيناه threshold لوحده للـ chunk filter. الأسئلة اللي بتحتفظ بكل الـ supporting facts طلعت من <bdi class="n" dir="ltr">56%</bdi> لـ <bdi class="n" dir="ltr">89%</bdi>.</li><li>التالتة: الـ teacher filter كان بيرمي <bdi class="n" dir="ltr">57%</bdi> من بيانات التدريب. دلوقتي بيرمي من <bdi class="n" dir="ltr">1</bdi> لـ <bdi class="n" dir="ltr">4%</bdi>، بس لما الـ teacher يكون متأكد.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>الكارت الأول: الـ dev check.</li><li>الكارت التاني: threshold واحد وشغلتين.</li><li>الكارت التالت: الـ filter والبيانات.</li></ol>
+    </div>
+  </article>
+  <div class="handoff"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6"/></svg><p><b>تسليم لـمتحدث 5</b>الـ verifier بقى جاهز. زميلي هيشرح إزاي اختبرناه بشكل عادل.</p></div>
+</section>
+
+<section class="sec" id="sec-5" aria-labelledby="sec-5-h">
+  <header class="sec-head">
+    <span class="mark"><b>5</b></span>
+    <div>
+      <p class="who">متحدث <bdi class="n" dir="ltr">5</bdi> · شرايح <bdi class="n" dir="ltr">15</bdi> إلى <bdi class="n" dir="ltr">18</bdi></p>
+      <h2 id="sec-5-h"><span lang="en" dir="ltr">How we tested it fairly</span></h2>
+      <p class="ar">إزاي اختبرناه بشكل عادل</p>
+    </div>
+  </header>
+
+  <article class="slide" id="s-15">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">15</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">One question, three kinds of evidence</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 15"><img src="../slides/shots/15-conditions-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 15: One question, three kinds of evidence"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>تلات أعمدة: <bdi class="en" lang="en" dir="ltr">Supportive</bdi> (<bdi class="n" dir="ltr">300</bdi> سؤال) والفقرات الذهبية موجودة، و<bdi class="en" lang="en" dir="ltr">Missing</bdi> (<bdi class="n" dir="ltr">300</bdi>) والفقرتين الذهبية مشالة، و<bdi class="en" lang="en" dir="ltr">Misleading</bdi> (<bdi class="n" dir="ltr">239</bdi>) والإجابة جوه الفقرة اتبدّلت بـ <bdi class="en" lang="en" dir="ltr">Lake Tahoe</bdi>. تحت كل عمود السلوك الصح. وفي الآخر سطر: <bdi class="n" dir="ltr">300</bdi> + <bdi class="n" dir="ltr">300</bdi> + <bdi class="n" dir="ltr">239</bdi> = <bdi class="n" dir="ltr">839</bdi>.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>كل سؤال في الـ test بنجرّبه <bdi class="n" dir="ltr">3</bdi> مرات بدليل مختلف.</li><li><bdi class="en" lang="en" dir="ltr">Supportive</bdi>: الفقرات الذهبية، الـ gold، موجودة. المفروض يجاوب من الدليل.</li><li><bdi class="en" lang="en" dir="ltr">Missing</bdi>: شيلنا الفقرات الذهبية. هنا الصح إنه يقول “مش عارف”.</li><li><bdi class="en" lang="en" dir="ltr">Misleading</bdi>: بدّلنا الإجابة جوه الفقرة الذهبية بكيان تاني من نفس النوع، زي <bdi class="en" lang="en" dir="ltr">Lake Tahoe</bdi> بدل <bdi class="en" lang="en" dir="ltr">Sun Valley</bdi>. لو الـ model كرر البديل نسمّيها planted.</li><li><bdi class="n" dir="ltr">300</bdi> و<bdi class="n" dir="ltr">300</bdi> و<bdi class="n" dir="ltr">239</bdi> بيطلعوا <bdi class="n" dir="ltr">839</bdi> زوج سؤال وحالة. الـ misleading <bdi class="n" dir="ltr">239</bdi> بس لأن مش كل سؤال لقينا له بديل مناسب.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>عمود <bdi class="en" lang="en" dir="ltr">Supportive</bdi>.</li><li>عمود <bdi class="en" lang="en" dir="ltr">Missing</bdi>.</li><li>عمود <bdi class="en" lang="en" dir="ltr">Misleading</bdi>، ومعاه سطر الجمع: <bdi class="n" dir="ltr">300</bdi> + <bdi class="n" dir="ltr">300</bdi> + <bdi class="n" dir="ltr">239</bdi> = <bdi class="n" dir="ltr">839</bdi>.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">مين اللي بدّل الإجابة؟</p><p class="a">LLM اقترح بديل من نفس النوع. و<bdi class="n" dir="ltr">239</bdi> من <bdi class="n" dir="ltr">300</bdi> سؤال بس طلع لهم بديل صالح.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-16">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">16</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Dev to choose, test to judge, once</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 16"><img src="../slides/shots/16-discipline-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 16: Dev to choose, test to judge, once"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>على الشمال الـ pool: <bdi class="n" dir="ltr">4,969</bdi> فقرة، و<bdi class="en" lang="en" dir="ltr">seed 13</bdi>. بيتقسم لـ <bdi class="en" lang="en" dir="ltr">Dev</bdi> (<bdi class="n" dir="ltr">200</bdi> سؤال) فوق، و<bdi class="en" lang="en" dir="ltr">Test</bdi> (<bdi class="n" dir="ltr">300</bdi> سؤال) تحت. الـ dev طالع منه كل الاختيارات، وآخرها <bdi class="en" lang="en" dir="ltr">τ = 0.90</bdi>، وشريط بيوري إن المتوسط <bdi class="n" dir="ltr">−0.014</bdi> عند صفر و<bdi class="n" dir="ltr">+0.009</bdi> عند <bdi class="n" dir="ltr">0.90</bdi>. الـ test عليه قفل: بيتشغّل مرة واحدة، وبعده <bdi class="en" lang="en" dir="ltr">paired bootstrap</bdi>.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>دي أهم شريحة لو حد سأل عن الأمانة العلمية.</li><li>الأسئلة كلها من pool واحد فيه <bdi class="n" dir="ltr">4,969</bdi> فقرة. أخدنا منها <bdi class="n" dir="ltr">200</bdi> سؤال dev و<bdi class="n" dir="ltr">300</bdi> test، بـ seed <bdi class="n" dir="ltr">13</bdi>.</li><li>كل اختيار اتعمل على الـ dev بس: الـ thresholds، وقيمة alpha، والـ filters.</li><li>الـ abstain threshold اتحدد بقاعدة مكتوبة في <bdi class="en" lang="en" dir="ltr">PLAN.md</bdi> قبل ما إجابات الـ dev تتولّد: خد الـ τ اللي أعلى متوسط لـ correct ناقص hallucinate ناقص planted. طلع <bdi class="n" dir="ltr">0.90</bdi>.</li><li>الـ test اتشغّل مرة واحدة في الآخر، ومعاه paired bootstrap بـ <bdi class="n" dir="ltr">10,000</bdi> resample وفترات ثقة <bdi class="n" dir="ltr">95%</bdi>.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>بيظهر شريط الـ τ والعلامة بتتحرك لـ <bdi class="n" dir="ltr">0.90</bdi>، والقاعدة اللي اتكتبت في <bdi class="en" lang="en" dir="ltr">PLAN.md</bdi>.</li><li>بيظهر مسار الـ <bdi class="en" lang="en" dir="ltr">Test</bdi>: القفل، “مرة واحدة في الآخر”، والـ bootstrap.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">إزاي نعرف إنكم ما ضبطتوش على الـ test؟</p><p class="a">بنجاوب في أسئلة الدكتور تحت (سؤال <bdi class="n" dir="ltr">8</bdi>). المختصر: كل اختيار على الـ dev، والقاعدة مكتوبة قبل الإجابات، والـ test اتشغّل مرة.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-17">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">17</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Seven arms, one station added at a time</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 17"><img src="../slides/shots/17-arms-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 17: Seven arms, one station added at a time"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>سلم أعمدة من <bdi class="en" lang="en" dir="ltr">A</bdi> لـ <bdi class="en" lang="en" dir="ltr">G</bdi>، وكل واحد بيضيف حاجة: <bdi class="en" lang="en" dir="ltr">A</bdi> plain RAG، و<bdi class="en" lang="en" dir="ltr">B</bdi> reranker جاهز، و<bdi class="en" lang="en" dir="ltr">C</bdi> الـ verifier بيفلتر، و<bdi class="en" lang="en" dir="ltr">D</bdi> قص الجمل، و<bdi class="en" lang="en" dir="ltr">E</bdi> القرار والـ rewrite، و<bdi class="en" lang="en" dir="ltr">F</bdi> الـ sufficiency gate (النظام الكامل، بالأزرق)، و<bdi class="en" lang="en" dir="ltr">G</bdi> هو <bdi class="en" lang="en" dir="ltr">F</bdi> بـ threshold واحد.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>عملنا <bdi class="n" dir="ltr">7</bdi> arms، وكل واحد بيضيف حاجة على اللي قبله.</li><li><bdi class="en" lang="en" dir="ltr">A</bdi> هو plain RAG. <bdi class="en" lang="en" dir="ltr">B</bdi> بيستبدل بـ reranker جاهز. <bdi class="en" lang="en" dir="ltr">C</bdi> بيحط الـ verifier بتاعنا يفلتر الفقرات.</li><li><bdi class="en" lang="en" dir="ltr">D</bdi> بيضيف قص الجمل. <bdi class="en" lang="en" dir="ltr">E</bdi> بيضيف القرار والـ rewrite. <bdi class="en" lang="en" dir="ltr">F</bdi> بيضيف الـ sufficiency gate، وده النظام الكامل.</li><li><bdi class="en" lang="en" dir="ltr">G</bdi> هو <bdi class="en" lang="en" dir="ltr">F</bdi> بس بـ threshold واحد بدل اتنين.</li><li>كده نعرف كل محطة بتجيب إيه بالظبط. ولكل الـ arms نفس الـ generator ونفس الـ prompts.</li></ul>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">ليه فيه <bdi class="en" lang="en" dir="ltr">B</bdi>؟</p><p class="a">عشان نقارن بـ reranker جاهز ونشوف إن التدريب بتاعنا يستاهل. <bdi class="en" lang="en" dir="ltr">B</bdi> طلع أسوأ شوية من <bdi class="en" lang="en" dir="ltr">A</bdi> في الـ correct على supportive: <bdi class="n" dir="ltr">46.7%</bdi> مقابل <bdi class="n" dir="ltr">48.7%</bdi>.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-18">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">18</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">The free tier ran out, so generation moved</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 18"><img src="../slides/shots/18-pivot-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 18: The free tier ran out, so generation moved"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>شمال <bdi class="en" lang="en" dir="ltr">Groq free tier</bdi>: <bdi class="n" dir="ltr">200,000</bdi> token في اليوم، وتقويم، وتحته <bdi class="n" dir="ltr">5,419</bdi> prompt، حوالي <bdi class="n" dir="ltr">1,000</bdi> token لكل واحد، يعني قرب <bdi class="n" dir="ltr">4</bdi> أسابيع. يمين <bdi class="en" lang="en" dir="ltr">Kaggle</bdi>: <bdi class="n" dir="ltr">5,873</bdi> trace بقوا <bdi class="n" dir="ltr">3,267</bdi> prompt مختلف، ونفس الـ model لكل الـ arms.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>قابلتنا مشكلة تشغيل. الـ <bdi class="en" lang="en" dir="ltr">Groq free tier</bdi> فيه حد <bdi class="n" dir="ltr">200,000</bdi> token في اليوم لكل model.</li><li>عندنا <bdi class="n" dir="ltr">5,419</bdi> prompt مختلف بين dev وtest، كل واحد حوالي <bdi class="n" dir="ltr">1,000</bdi> token، وده تقدير بتاعنا. كان هيأخد قرب <bdi class="n" dir="ltr">4</bdi> أسابيع.</li><li>فنقلنا الـ generation على <bdi class="en" lang="en" dir="ltr">Kaggle</bdi>: <bdi class="n" dir="ltr">2</bdi> كارت <bdi class="en" lang="en" dir="ltr">T4</bdi> و<bdi class="en" lang="en" dir="ltr">vLLM</bdi> وmodel مفتوح لكل الـ arms: <bdi class="en" lang="en" dir="ltr">Qwen3-4B-Instruct-2507</bdi>.</li><li>الـ test فيه <bdi class="n" dir="ltr">5,873</bdi> trace، لكن الـ prompts المتكررة بتتولّد مرة واحدة. فعملياً <bdi class="n" dir="ltr">3,267</bdi> prompt بس.</li><li>وفضّلنا <bdi class="en" lang="en" dir="ltr">Groq</bdi> للـ live demo وللـ judge.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>بيظهر سطر: <bdi class="n" dir="ltr">5,419</bdi> prompt، “close to four weeks”.</li><li>بيظهر جانب <bdi class="en" lang="en" dir="ltr">Kaggle</bdi>: <bdi class="n" dir="ltr">5,873</bdi> مقابل <bdi class="n" dir="ltr">3,267</bdi>.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">ده أثّر على النتايج؟</p><p class="a">لأ، لأن نفس الـ model ونفس الـ prompts لكل الـ arms. بس الـ generator بقى <bdi class="en" lang="en" dir="ltr">Qwen3-4B</bdi> مش model أكبر.</p></div>
+    </div>
+  </article>
+  <div class="handoff"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6"/></svg><p><b>تسليم لـمتحدث 6</b>الاختبار اتظبط. زميلي هيعرض النتايج.</p></div>
+</section>
+
+<section class="sec" id="sec-6" aria-labelledby="sec-6-h">
+  <header class="sec-head">
+    <span class="mark"><b>6</b></span>
+    <div>
+      <p class="who">متحدث <bdi class="n" dir="ltr">6</bdi> · شرايح <bdi class="n" dir="ltr">19</bdi> إلى <bdi class="n" dir="ltr">23</bdi></p>
+      <h2 id="sec-6-h"><span lang="en" dir="ltr">Results</span></h2>
+      <p class="ar">النتايج، وتمنها</p>
+    </div>
+  </header>
+
+  <article class="slide" id="s-19">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">19</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Hallucination fell in all three conditions</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 19"><img src="../slides/shots/19-headline-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 19: Hallucination fell in all three conditions"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>أعمدة رمادي لـ plain RAG وأزرق للنظام الكامل: <bdi class="en" lang="en" dir="ltr">supportive</bdi> <bdi class="n" dir="ltr">24.7</bdi> لـ <bdi class="n" dir="ltr">18.3</bdi>، و<bdi class="en" lang="en" dir="ltr">missing</bdi> <bdi class="n" dir="ltr">8.0</bdi> لـ <bdi class="n" dir="ltr">0.7</bdi>، و<bdi class="en" lang="en" dir="ltr">misleading</bdi> <bdi class="n" dir="ltr">24.7</bdi> لـ <bdi class="n" dir="ltr">17.2</bdi>. على اليمين الفرق مع فترة ثقة: <bdi class="n" dir="ltr">−6.3</bdi> و<bdi class="n" dir="ltr">−7.3</bdi> و<bdi class="n" dir="ltr">−7.5</bdi> نقطة.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>دي النتيجة الرئيسية. الرمادي plain RAG والأزرق النظام الكامل. الرقم هو معدل الـ hallucination.</li><li><bdi class="en" lang="en" dir="ltr">Supportive</bdi> نزل من <bdi class="n" dir="ltr">24.7%</bdi> لـ <bdi class="n" dir="ltr">18.3%</bdi>. <bdi class="en" lang="en" dir="ltr">Missing</bdi> من <bdi class="n" dir="ltr">8.0%</bdi> لـ <bdi class="n" dir="ltr">0.7%</bdi>. <bdi class="en" lang="en" dir="ltr">Misleading</bdi> من <bdi class="n" dir="ltr">24.7%</bdi> لـ <bdi class="n" dir="ltr">17.2%</bdi>.</li><li>على اليمين الفرق مع فترة ثقة <bdi class="n" dir="ltr">95%</bdi>: <bdi class="n" dir="ltr">−6.3</bdi> و<bdi class="n" dir="ltr">−7.3</bdi> و<bdi class="n" dir="ltr">−7.5</bdi> نقطة.</li><li>الفترات التلاتة كلها على الناحية السالبة من الصفر، يعني الفرق مش صدفة على الأرجح.</li><li>ونفتكر إن الـ hallucination معناها جاوب وغلط. مش إنه رفض.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>بتظهر الفروق على اليمين: النقطة والفترة لكل حالة.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">يعني إيه pp؟</p><p class="a"><bdi class="en" lang="en" dir="ltr">percentage points</bdi>: الفرق بين نسبتين. من <bdi class="n" dir="ltr">24.7%</bdi> لـ <bdi class="n" dir="ltr">18.3%</bdi> يبقى <bdi class="n" dir="ltr">6.3</bdi> نقطة، مش <bdi class="n" dir="ltr">6.3%</bdi>.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-20">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">20</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">What each station adds and removes</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 20"><img src="../slides/shots/20-ladder-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 20: What each station adds and removes"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>تلات أزرار: <bdi class="en" lang="en" dir="ltr">Supportive</bdi> و<bdi class="en" lang="en" dir="ltr">Missing</bdi> و<bdi class="en" lang="en" dir="ltr">Misleading</bdi>. ورسمتين لكل الـ arms: الـ tokens اللي رايحة للـ model، ومعدل الـ hallucination. اللقطة اللي فوق على <bdi class="en" lang="en" dir="ltr">Misleading</bdi>، والـ <bdi class="en" lang="en" dir="ltr">F</bdi> أزرق.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>هنا كل arm لوحده. الشمال بيقول كام token رايحين للـ model. اليمين معدل الـ hallucination.</li><li>الـ context بينزل مرة واحدة كبيرة عند <bdi class="en" lang="en" dir="ltr">D</bdi>، قص الجمل: على supportive من حوالي <bdi class="n" dir="ltr">1,070</bdi> لـ <bdi class="n" dir="ltr">221</bdi>.</li><li>الـ hallucination بينزل عند <bdi class="en" lang="en" dir="ltr">D</bdi>، وبعدين تاني عند <bdi class="en" lang="en" dir="ltr">F</bdi>، الـ sufficiency gate. على supportive: <bdi class="n" dir="ltr">21.0</bdi> وبعدها <bdi class="n" dir="ltr">18.3</bdi>، مقابل <bdi class="n" dir="ltr">24.7</bdi> في plain RAG.</li><li>الـ rewrite، <bdi class="en" lang="en" dir="ltr">E</bdi>، مفيهوش أي تحسّن واضح. لاحظوا إن <bdi class="en" lang="en" dir="ltr">E</bdi> قريب جداً من <bdi class="en" lang="en" dir="ltr">D</bdi> في الاتنين.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>الشريحة بتبدأ على <bdi class="en" lang="en" dir="ltr">Supportive</bdi>. أول ضغطة بتنقلها لـ <bdi class="en" lang="en" dir="ltr">Missing</bdi>: الـ context من <bdi class="n" dir="ltr">1,145</bdi> لـ <bdi class="n" dir="ltr">138</bdi>، والـ hallucination من <bdi class="n" dir="ltr">8.0</bdi> لـ <bdi class="n" dir="ltr">0.7</bdi> (<bdi class="en" lang="en" dir="ltr">A</bdi> لـ <bdi class="en" lang="en" dir="ltr">F</bdi>).</li><li>التانية بتنقلها لـ <bdi class="en" lang="en" dir="ltr">Misleading</bdi>: الـ context من <bdi class="n" dir="ltr">1,086</bdi> لـ <bdi class="n" dir="ltr">224</bdi>، والـ hallucination من <bdi class="n" dir="ltr">24.7</bdi> لـ <bdi class="n" dir="ltr">17.2</bdi>.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">ليه <bdi class="en" lang="en" dir="ltr">C</bdi> ما حسّنش كتير؟</p><p class="a">الـ verifier كـ filter بس غيّر أرقام قليلة: الـ correct على supportive من <bdi class="n" dir="ltr">48.7%</bdi> لـ <bdi class="n" dir="ltr">52.3%</bdi>، والـ hallucination من <bdi class="n" dir="ltr">24.7%</bdi> لـ <bdi class="n" dir="ltr">24.3%</bdi>، والـ context من <bdi class="n" dir="ltr">1,070</bdi> لـ <bdi class="n" dir="ltr">752</bdi>.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-21">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">21</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Abstaining costs some correct answers</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 21"><img src="../slides/shots/21-tradeoff-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 21: Abstaining costs some correct answers"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>منحنى: الأفقي نسبة الأسئلة اللي اتجاوبت، والرأسي نسبة الإجابات الصح منها. نقطة زرقا للنظام: <bdi class="en" lang="en" dir="ltr">Verified: 62% answered, 70% right</bdi>، ونقطة رمادي لـ <bdi class="en" lang="en" dir="ltr">Plain RAG: 73% answered, 66% right</bdi>. على اليمين: <bdi class="en" lang="en" dir="ltr">Answered</bdi> <bdi class="n" dir="ltr">73% → 62%</bdi>، و<bdi class="en" lang="en" dir="ltr">Correct</bdi> <bdi class="n" dir="ltr">48.7% → 43.7%</bdi>، والفرق <bdi class="n" dir="ltr">−5.0</bdi> نقطة، و<bdi class="en" lang="en" dir="ltr">p = 0.06</bdi>.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>ده التمن. لما النظام يمتنع، بيجاوب أقل.</li><li>على supportive، plain RAG بيجاوب <bdi class="n" dir="ltr">73%</bdi> من الأسئلة، والنظام الكامل <bdi class="n" dir="ltr">62%</bdi>.</li><li>من اللي بيجاوب عليه، <bdi class="n" dir="ltr">70%</bdi> صح عندنا مقابل <bdi class="n" dir="ltr">66%</bdi> في plain RAG. يعني بيجاوب أقل لكن بدقة أعلى شوية.</li><li>لكن نسبة الإجابات الصح من كل الأسئلة نزلت من <bdi class="n" dir="ltr">48.7%</bdi> لـ <bdi class="n" dir="ltr">43.7%</bdi>. ده <bdi class="n" dir="ltr">5.0</bdi> نقط أقل، وفترة الثقة بتلمس الصفر، و<bdi class="en" lang="en" dir="ltr">p = 0.06</bdi>.</li><li>المنحنى بيوضح إيه اللي بيحصل لما نغيّر الـ abstain threshold. إحنا اخترنا <bdi class="n" dir="ltr">0.90</bdi>.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>بتظهر الأرقام على اليمين: <bdi class="n" dir="ltr">73% → 62%</bdi> و<bdi class="n" dir="ltr">48.7% → 43.7%</bdi> والفرق.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">يعني الـ <bdi class="en" lang="en" dir="ltr">−5.0</bdi> حقيقية ولا لأ؟</p><p class="a">مش مؤكدة إحصائياً: الفترة بتلمس الصفر و<bdi class="en" lang="en" dir="ltr">p = 0.06</bdi>. بس مش هنقول إنها صفر كمان. نعتبرها تمن محتمل ونقوله بصراحة.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-22">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">22</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">A case where the gate cost us the answer</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 22"><img src="../slides/shots/22-cost-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 22: A case where the gate cost us the answer"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>سؤال عن ممثلة (<bdi class="en" lang="en" dir="ltr">Geraldine Page</bdi>). شمال plain RAG بعت <bdi class="n" dir="ltr">913</bdi> كلمة وجاوب صح. يمين النظام بعد القص: جمل بدرجاتها، والجملة اللي فيها الإجابة درجتها <bdi class="n" dir="ltr">0.049</bdi>، أقل من <bdi class="n" dir="ltr">0.05</bdi> بشوية فاتشالت. فضل <bdi class="n" dir="ltr">109</bdi> كلمة، والـ sufficiency <bdi class="n" dir="ltr">0.002</bdi>، والنتيجة <bdi class="en" lang="en" dir="ltr">I don't know</bdi>.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>ده مثال حقيقي لخسارة.</li><li>plain RAG بعت <bdi class="n" dir="ltr">913</bdi> كلمة وجاوب صح: <bdi class="en" lang="en" dir="ltr">Geraldine Page</bdi>.</li><li>عندنا الجملة اللي فيها الإجابة درجتها <bdi class="n" dir="ltr">0.049</bdi>، أقل من حد الـ keep (<bdi class="n" dir="ltr">0.05</bdi>) بشوية.</li><li>فاتشالت. فضلت <bdi class="n" dir="ltr">109</bdi> كلمة بس، والـ sufficiency طلع <bdi class="n" dir="ltr">0.002</bdi>، فالنظام قال “مش عارف”.</li><li>ده نفس الأثر اللي بيخلّي القص يحتفظ بكل الـ supporting facts في حوالي <bdi class="n" dir="ltr">57%</bdi> بس من أسئلة supportive.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>بيظهر كارت <bdi class="en" lang="en" dir="ltr">Verified RAG</bdi> على اليمين بالجمل ودرجاتها.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">ليه ما نخفّض الحد لـ <bdi class="en" lang="en" dir="ltr">0.04</bdi>؟</p><p class="a">أي تغيير في الحد لازم يتعمل على الـ dev. لو غيّرناه عشان مثال شفناه في الـ test نبقى ضبطنا على الـ test. وكمان <bdi class="n" dir="ltr">0.05</bdi> أصلاً على حافة الـ grid اللي جرّبناها.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-23">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">23</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">A second model checked our metric</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 23"><img src="../slides/shots/23-judge-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 23: A second model checked our metric"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p><bdi class="n" dir="ltr">100</bdi> إجابة اتقيّمت مرتين. <bdi class="n" dir="ltr">43</bdi> نقطة خضرا: الاتنين قالوا صح. و<bdi class="n" dir="ltr">42</bdi> حمرا: الاتنين قالوا غلط. و<bdi class="n" dir="ltr">15</bdi> برتقالي: الـ judge قبل alias. يمين: <bdi class="n" dir="ltr">85%</bdi> اتفاق، و<bdi class="en" lang="en" dir="ltr">κ = 0.71</bdi>، ومثالين: <bdi class="en" lang="en" dir="ltr">Chris Pine</bdi> مقابل <bdi class="en" lang="en" dir="ltr">Christopher Whitelaw Pine</bdi>، و<bdi class="en" lang="en" dir="ltr">Jersey barriers</bdi> مقابل <bdi class="en" lang="en" dir="ltr">Jersey barrier</bdi>.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>الـ metric بتاعنا صارم. فجبنا model تاني من عيلة تانية يقيّم.</li><li>اتقيّمت <bdi class="n" dir="ltr">100</bdi> إجابة من الـ test. اتفقوا في <bdi class="n" dir="ltr">85</bdi>: <bdi class="n" dir="ltr">43</bdi> الاتنين قالوا صح، و<bdi class="n" dir="ltr">42</bdi> الاتنين قالوا غلط. الـ Cohen's kappa <bdi class="n" dir="ltr">0.71</bdi>.</li><li>الـ <bdi class="n" dir="ltr">15</bdi> اللي اختلفوا كلهم في اتجاه واحد: الـ judge قبل alias والـ metric رفضه. زي “Chris Pine” و“Christopher Whitelaw Pine”.</li><li>يعني معدلات الـ hallucination عندنا مبالغ فيها لكل الـ arms.</li><li>وأي arm بيجاوب أكتر بيتعاقب أكتر. فجزء من نزول الـ hallucination في <bdi class="en" lang="en" dir="ltr">F</bdi> ممكن يكون من إنه بيجاوب أقل، مش بس من إنه بيجاوب أحسن.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>بتظهر اللوحة اللي على اليمين: <bdi class="n" dir="ltr">85%</bdi>، والأمثلة، والجملة الأخيرة.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">الـ judge ده موثوق؟</p><p class="a">هو من عيلة model تانية، وده في صالحه. وكل الاختلافات كانت في اتجاه واحد (aliases)، فمش بيوري إننا غلطنا بشكل عشوائي. بس هو برضو model وعيّنة <bdi class="n" dir="ltr">100</bdi> بس.</p></div>
+    </div>
+  </article>
+  <div class="handoff"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6"/></svg><p><b>تسليم لـمتحدث 7</b>دي النتايج بتمنها. زميلي هيقول إيه اللي النظام ما بيعملوش وإيه الخطوة الجاية.</p></div>
+</section>
+
+<section class="sec" id="sec-7" aria-labelledby="sec-7-h">
+  <header class="sec-head">
+    <span class="mark"><b>7</b></span>
+    <div>
+      <p class="who">متحدث <bdi class="n" dir="ltr">7</bdi> · شرايح <bdi class="n" dir="ltr">24</bdi> إلى <bdi class="n" dir="ltr">27</bdi></p>
+      <h2 id="sec-7-h"><span lang="en" dir="ltr">Limits and next</span></h2>
+      <p class="ar">الحدود، والخطوة الجاية</p>
+    </div>
+  </header>
+
+  <article class="slide" id="s-24">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">24</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">What it does not do</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 24"><img src="../slides/shots/24-limits-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 24: What it does not do"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p><bdi class="n" dir="ltr">4</bdi> كروت: الإجابات المبدّلة (<bdi class="n" dir="ltr">30.5%</bdi> لـ <bdi class="n" dir="ltr">27.6%</bdi>)، والـ rewrite (فروق في حدود <bdi class="n" dir="ltr">1.3</bdi> نقطة)، والـ verifier برّه <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi> (تحت الـ base بين <bdi class="n" dir="ltr">1.6</bdi> و<bdi class="n" dir="ltr">3.1</bdi> نقطة)، والـ metric الصارم (<bdi class="n" dir="ltr">15</bdi> من <bdi class="n" dir="ltr">43</bdi> كانوا aliases).</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>دلوقتي هنقول اللي النظام ما بيعملوش.</li><li>أول حاجة: الإجابات المبدّلة بتعدّي في الأغلب. نزلت من <bdi class="n" dir="ltr">30.5%</bdi> لـ <bdi class="n" dir="ltr">27.6%</bdi> بس، والفترة فيها صفر. النص المعدّل لو سليم لغوياً، شكله سليم.</li><li>التانية: خطوة الـ rewrite ما عملتش أي فرق نقدر نقيسه. كل الفروق بين <bdi class="en" lang="en" dir="ltr">E</bdi> و<bdi class="en" lang="en" dir="ltr">D</bdi> في حدود <bdi class="n" dir="ltr">1.3</bdi> نقطة ومفيش واحد significant.</li><li>التالتة: كل حاجة اتدرّبت على <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi>. برّه الـ domain ده الـ verifier أقل من الـ base بتاعه بين <bdi class="n" dir="ltr">1.6</bdi> و<bdi class="n" dir="ltr">3.1</bdi> نقطة.</li><li>الرابعة: الـ metric صارم. <bdi class="n" dir="ltr">15</bdi> من <bdi class="n" dir="ltr">43</bdi> إجابة اتعلّمت hallucination كانت aliases الـ judge قبلها.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>الكارت الأول: الإجابات المبدّلة.</li><li>التاني: الـ rewrite.</li><li>التالت: <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi> والـ <bdi class="en" lang="en" dir="ltr">BEIR</bdi>.</li><li>الرابع: الـ metric الصارم.</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">ليه ما بيكتشفش الإجابة المبدّلة؟</p><p class="a">لأن الفقرة المبدّلة لسه بتجاوب السؤال بشكل سليم. الـ sufficiency model بيعتبرها كافية بحكم طريقة بنائه. محتاجين إشارة تانية، زي إن الفقرات تتعارض مع بعض.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-25">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">25</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">It ships with a UI that shows every decision</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 25"><img src="../slides/shots/25-ui-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 25: It ships with a UI that shows every decision"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>لقطتين شاشة بيتحركوا لتحت ببطء: <bdi class="en" lang="en" dir="ltr">Pipeline explorer</bdi> (<bdi class="n" dir="ltr">22</bdi> trace حقيقي، plain RAG جنب النظام الكامل، وخانة live)، و<bdi class="en" lang="en" dir="ltr">Results dashboard</bdi> (بيقرا ملفات الـ metrics). النص صغير في الصور، فالمتحدث هو اللي بيقول اللي فيها.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>المشروع ماوقفش عند الأرقام. عملنا UI بيوري كل قرار.</li><li>الـ <bdi class="en" lang="en" dir="ltr">Pipeline explorer</bdi> فيه <bdi class="n" dir="ltr">22</bdi> trace حقيقي. بتشوف plain RAG جنب النظام الكامل، وفيه خانة live تكتب فيها سؤال.</li><li>الـ <bdi class="en" lang="en" dir="ltr">Results dashboard</bdi> بيقرا ملفات الـ metrics وبيعرض الـ test split لو موجود.</li><li>كل طلب بيطلّع trace فيه الدرجات والقرار والجمل اللي فضلت واللي اتشالت والتوقيت.</li></ul>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">الخانة الـ live بتشتغل بإيه؟</p><p class="a"><bdi class="en" lang="en" dir="ltr">Groq</bdi> فضل للـ live demo (شريحة <bdi class="n" dir="ltr">18</bdi>). فعليه حدود استخدام يومية.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-26">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">26</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">What we would do next</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 26"><img src="../slides/shots/26-next-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 26: What we would do next"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p><bdi class="n" dir="ltr">4</bdi> صفوف. كل صف مشكلة حمرا وسهم ناحية الحل: إشارة تانية للإجابات المبدّلة، وشيل الـ rewrite أو تقويته، وتدريب واختبار برّه <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi> بـ <bdi class="n" dir="ltr">3</bdi> seeds، وmetric بيحسب الـ aliases مع فحص faithfulness.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>كل حاجة هنعملها بعد كده بترد على حد من الحدود اللي قلناها.</li><li>الإجابات المبدّلة: نجرّب إشارة تانية، زي إن الفقرات تتعارض، أو model مدرَّب على نص معدّل.</li><li>الـ rewrite: نشيله، أو نجرّبه بـ rewriter أقوى.</li><li><bdi class="en" lang="en" dir="ltr">HotpotQA</bdi> وseed واحد: ندرّب ونختبر برّه الـ dataset ده، ونكرر بـ <bdi class="n" dir="ltr">3</bdi> seeds.</li><li>والـ metric: نحسب الـ aliases صح، ونضيف فحص faithfulness على مستوى الـ claim.</li></ul>
+    </div>
+    <div class="blk steps">
+      <h4>لو دوست <bdi lang="en">Next</bdi> هيحصل إيه</h4>
+      <ol><li>كل ضغطة بتظهر صف: المشكلة وحلها (<bdi class="n" dir="ltr">4</bdi> صفوف).</li></ol>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">ليه seed واحد؟</p><p class="a">ده من اللي ما اتعملش من الخطة: الـ verifier اتدرّب بـ seed واحد بدل <bdi class="n" dir="ltr">3</bdi>. ولا فيه مقارنة مع teacher بشري للـ sufficiency labels.</p></div>
+    </div>
+  </article>
+
+  <article class="slide" id="s-27">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">27</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Check the evidence before you answer.</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 27"><img src="../slides/shots/27-close-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 27: Check the evidence before you answer."></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>عنوان: <bdi class="en" lang="en" dir="ltr">Check the evidence before you answer.</bdi> وتحته: <bdi class="en" lang="en" dir="ltr">Say “I don't know” when it isn't there.</bdi> وتلات أرقام: الـ hallucination من <bdi class="n" dir="ltr">−6.3</bdi> لـ <bdi class="n" dir="ltr">−7.5</bdi> نقطة، والـ context <bdi class="n" dir="ltr">1,070 → 217</bdi> token، والتمن <bdi class="n" dir="ltr">−5.0</bdi> نقطة إجابات صح. وفي الآخر: <bdi class="en" lang="en" dir="ltr">Questions?</bdi></p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>نلخّص في جملة: افحص الدليل قبل ما تجاوب، وقول “مش عارف” لما مش موجود.</li><li>الـ hallucination قلّت من <bdi class="n" dir="ltr">6.3</bdi> لـ <bdi class="n" dir="ltr">7.5</bdi> نقطة في الحالات التلاتة.</li><li>الـ context نزل من <bdi class="n" dir="ltr">1,070</bdi> لـ <bdi class="n" dir="ltr">217</bdi> token.</li><li>والتمن: حوالي <bdi class="n" dir="ltr">5.0</bdi> نقط إجابات صح أقل على supportive.</li><li>شكراً لكم. أي أسئلة؟</li></ul>
+    </div>
+    <div class="blk qa">
+      <h4>سؤال ممكن يتسأل</h4>
+      <div class="qa-i"><p class="q">لو اتسألت عن رقم تفصيلي؟</p><p class="a">افتح الملحق: الشريحة <bdi class="n" dir="ltr">28</bdi> (كل الـ arms)، <bdi class="n" dir="ltr">29</bdi> (الـ BEIR)، <bdi class="n" dir="ltr">30</bdi> (الـ thresholds). دوس <bdi class="en" lang="en" dir="ltr">G</bdi> وروح لها، أو ضيف <bdi class="en" lang="en" dir="ltr">#s-28</bdi> في الرابط.</p></div>
+    </div>
+  </article>
+  <div class="handoff"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6"/></svg><p><b>الخطوة اللي بعدها</b>بعد الشريحة الأخيرة افتح باب الأسئلة. الملحق (الشرايح <bdi class="n" dir="ltr">28</bdi> لـ <bdi class="n" dir="ltr">30</bdi>) جاهز لو حد سأل عن رقم بالتفصيل.</p></div>
+</section>
+
+<section class="sec" id="sec-a" aria-labelledby="sec-a-h">
+  <header class="sec-head">
+    <span class="mark"><b>A</b></span>
+    <div>
+      <p class="who">ملحق · شرايح <bdi class="n" dir="ltr">28</bdi> إلى <bdi class="n" dir="ltr">30</bdi></p>
+      <h2 id="sec-a-h"><span lang="en" dir="ltr">Appendix</span></h2>
+      <p class="ar">الملحق: جداول للرجوع لها وقت الأسئلة</p>
+    </div>
+  </header>
+
+  <article class="slide" id="s-28">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">28</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Appendix: every arm, every condition</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 28"><img src="../slides/shots/28-a-arms-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 28: Appendix: every arm, every condition"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>جدول فيه كل الـ arms من <bdi class="en" lang="en" dir="ltr">A</bdi> لـ <bdi class="en" lang="en" dir="ltr">G</bdi>: الـ hallucination والـ correct والـ planted والـ context. صف <bdi class="en" lang="en" dir="ltr">F</bdi> غامق، وأحسن رقم في كل عمود بالأزرق.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>ده الجدول الكامل لو حد سأل عن arm معيّن.</li><li>صف <bdi class="en" lang="en" dir="ltr">F</bdi>: <bdi class="n" dir="ltr">18.3</bdi> و<bdi class="n" dir="ltr">43.7</bdi> و<bdi class="n" dir="ltr">0.7</bdi> و<bdi class="n" dir="ltr">17.2</bdi> و<bdi class="n" dir="ltr">27.6</bdi> و<bdi class="n" dir="ltr">217</bdi> tokens.</li><li>لاحظ إن <bdi class="en" lang="en" dir="ltr">C</bdi> أعلى في الـ correct (<bdi class="n" dir="ltr">52.3</bdi>)، و<bdi class="en" lang="en" dir="ltr">G</bdi> قريب جداً من <bdi class="en" lang="en" dir="ltr">F</bdi> في كل حاجة.</li></ul>
+    </div>
+  </article>
+
+  <article class="slide" id="s-29">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">29</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Appendix: ranking outside HotpotQA</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 29"><img src="../slides/shots/29-a-beir-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 29: Appendix: ranking outside HotpotQA"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>جدول <bdi class="en" lang="en" dir="ltr">BEIR nDCG@10</bdi> على <bdi class="en" lang="en" dir="ltr">SciFact</bdi> و<bdi class="en" lang="en" dir="ltr">NFCorpus</bdi> و<bdi class="en" lang="en" dir="ltr">FiQA</bdi> لـ <bdi class="n" dir="ltr">8</bdi> طرق، من <bdi class="en" lang="en" dir="ltr">BM25</bdi> لحد الـ verifier النهائي بتاعنا (<bdi class="en" lang="en" dir="ltr">WiSE-FT 0.7</bdi>: <bdi class="n" dir="ltr">68.0</bdi> و<bdi class="n" dir="ltr">33.8</bdi> و<bdi class="n" dir="ltr">34.0</bdi>).</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>ده الجدول اللي وراه الشريحة <bdi class="n" dir="ltr">24</bdi>.</li><li>ولا reranker جرّبناه، حتى الجاهزين، غلب الـ hybrid retrieval على <bdi class="en" lang="en" dir="ltr">SciFact</bdi> أو <bdi class="en" lang="en" dir="ltr">NFCorpus</bdi>. يعني الـ reranking برّه الـ domain ضعيف من الأول.</li><li>الـ verifier النهائي بتاعنا <bdi class="en" lang="en" dir="ltr">WiSE-FT 0.7</bdi>: <bdi class="n" dir="ltr">68.0</bdi> و<bdi class="n" dir="ltr">33.8</bdi> و<bdi class="n" dir="ltr">34.0</bdi>. أقل من الـ base بتاعه بين <bdi class="n" dir="ltr">1.6</bdi> و<bdi class="n" dir="ltr">3.1</bdi> نقطة.</li></ul>
+    </div>
+  </article>
+
+  <article class="slide" id="s-30">
+    <div class="s-top">
+      <span class="s-num"><bdi class="n" dir="ltr">30</bdi></span>
+      <h3 class="s-title" lang="en" dir="ltr">Appendix: thresholds and how each was chosen</h3>
+    </div>
+    <div class="s-body">
+      <figure class="thumb"><button type="button" class="thumb-btn" aria-label="تكبير لقطة الشريحة 30"><img src="../slides/shots/30-a-thr-1920-light.png" width="1920" height="1080" loading="lazy" alt="لقطة من الشريحة 30: Appendix: thresholds and how each was chosen"></button></figure>
+      <div class="s-screen">
+        <h4>إيه اللي على السلايد</h4>
+        <p>جدول بالـ <bdi class="n" dir="ltr">5</bdi> thresholds: القيمة، وبتعمل إيه، وإزاي اتختارت على الـ dev. <bdi class="en" lang="en" dir="ltr">τ_hi</bdi> <bdi class="n" dir="ltr">0.65</bdi>، و<bdi class="en" lang="en" dir="ltr">τ_lo</bdi> <bdi class="n" dir="ltr">0.15</bdi>، و<bdi class="en" lang="en" dir="ltr">τ_chunk</bdi> <bdi class="n" dir="ltr">0.01</bdi>، و<bdi class="en" lang="en" dir="ltr">τ_keep</bdi> <bdi class="n" dir="ltr">0.05</bdi>، و<bdi class="en" lang="en" dir="ltr">τ_abstain</bdi> <bdi class="n" dir="ltr">0.90</bdi>.</p>
+      </div>
+    </div>
+    <div class="blk say">
+      <h4>تقول إيه</h4>
+      <ul><li>كل الـ thresholds اتحددت على الـ dev.</li><li><bdi class="en" lang="en" dir="ltr">τ_hi</bdi> و<bdi class="en" lang="en" dir="ltr">τ_lo</bdi> بقواعد واضحة على الـ grid.</li><li><bdi class="en" lang="en" dir="ltr">τ_chunk</bdi> و<bdi class="en" lang="en" dir="ltr">τ_keep</bdi> على حافة الـ grid بصراحة: ولا إعداد وصل هدف الـ recall <bdi class="n" dir="ltr">90%</bdi>، فاخدنا الأفضل المتاح.</li><li><bdi class="en" lang="en" dir="ltr">τ_abstain</bdi> بالقاعدة اللي اتكتبت في <bdi class="en" lang="en" dir="ltr">PLAN.md</bdi> قبل ما إجابات الـ dev تتولّد.</li></ul>
+    </div>
+  </article>
+</section>
+
+<section class="sec tough" id="tough" aria-labelledby="tough-h">
+  <header class="sec-head">
+    <span class="mark"><b>؟</b></span>
+    <div>
+      <h2 id="tough-h">أسئلة صعبة، وردود صريحة</h2>
+      <p class="ar">لو حد سألك واحد منهم وانت مش متأكد، قول اللي في الرد. الردود بتقول الحدود زي ما هي.</p>
+    </div>
+  </header>
+  <ol class="tq">
+    <li id="q-1"><p class="q"><bdi class="n qn" dir="ltr">1</bdi>ليه ما استخدمتوش model أكبر؟</p><p class="a">كل الـ arms بتستخدم نفس الـ generator (<bdi class="en" lang="en" dir="ltr">Qwen3-4B-Instruct-2507</bdi>) عشان الفرق يبقى من المفتش مش من الـ model. وبعد ما الـ Groq free tier خلص كان لازم model مفتوح على Kaggle. التقرير ما فيهوش تجربة بـ model أكبر، فمش هنقول النتيجة هتفضل زي ما هي. وملحوظة: الـ <bdi class="en" lang="en" dir="ltr">Qwen3-4B</bdi> بيرفض كتير لوحده (plain RAG بيرفض في <bdi class="n" dir="ltr">85%</bdi> من أسئلة missing)، فمجال الـ gate أضيق من model واثق أكتر.</p></li>
+    <li id="q-2"><p class="q"><bdi class="n qn" dir="ltr">2</bdi>ليه بيجاوب أقل؟</p><p class="a">لأن الـ sufficiency gate بيمتنع لما الدرجة أقل من <bdi class="n" dir="ltr">0.90</bdi>. على supportive الإجابات نزلت من <bdi class="n" dir="ltr">73%</bdi> لـ <bdi class="n" dir="ltr">62%</bdi>، والـ correct من <bdi class="n" dir="ltr">48.7%</bdi> لـ <bdi class="n" dir="ltr">43.7%</bdi>. جزء من ده إن القص أحياناً بيشيل جملة الإجابة (مثال <bdi class="en" lang="en" dir="ltr">Geraldine Page</bdi>، شريحة <bdi class="n" dir="ltr">22</bdi>). ده التمن، وبنقوله صراحة.</p></li>
+    <li id="q-3"><p class="q"><bdi class="n qn" dir="ltr">3</bdi>ليه خطوة الـ rewrite ما نفعتش؟</p><p class="a">كل الفروق بين <bdi class="en" lang="en" dir="ltr">E</bdi> و<bdi class="en" lang="en" dir="ltr">D</bdi> في حدود <bdi class="n" dir="ltr">1.3</bdi> نقطة ومفيش واحد significant. الـ rewriter اتنادى <bdi class="n" dir="ltr">0.45</bdi> مرة لكل سؤال supportive و<bdi class="n" dir="ltr">0.96</bdi> لكل سؤال missing، لكن نسبة الأسئلة اللي فيها كل الـ supporting facts في الـ context اتحركت من <bdi class="n" dir="ltr">57.3%</bdi> لـ <bdi class="n" dir="ltr">58.0%</bdi> بس. ممكن يكون السبب إن الـ rewriter <bdi class="en" lang="en" dir="ltr">4B</bdi> والـ corpus بسيط، بس ده تخمين ما اختبرناهوش. التقرير بيقول إنها ممكن تتشال.</p></li>
+    <li id="q-4"><p class="q"><bdi class="n qn" dir="ltr">4</bdi><bdi class="n" dir="ltr">300</bdi> سؤال كفاية؟</p><p class="a">كفاية نشوف الفروق الكبيرة: <bdi class="n" dir="ltr">−6.3</bdi> و<bdi class="n" dir="ltr">−7.3</bdi> و<bdi class="n" dir="ltr">−7.5</bdi> بفترات ثقة مش بتلمس الصفر. مش كفاية للحاجات الصغيرة: فرق الـ correct <bdi class="n" dir="ltr">−5.0</bdi> فترته <bdi class="n" dir="ltr">[−10.0, +0.0]</bdi> و<bdi class="en" lang="en" dir="ltr">p = 0.06</bdi>، فمش هنقول إنه ثابت. وكمان الـ misleading فيه <bdi class="n" dir="ltr">239</bdi> سؤال بس، والـ dataset واحد والـ seed واحد.</p></li>
+    <li id="q-5"><p class="q"><bdi class="n qn" dir="ltr">5</bdi>يعني إيه confidence interval؟</p><p class="a">مدى بيقول الفرق الحقيقي غالباً فين. بنعمل paired bootstrap: بنعيد اختيار الأسئلة <bdi class="n" dir="ltr">10,000</bdi> مرة ونحسب الفرق كل مرة، و<bdi class="n" dir="ltr">95%</bdi> من النتايج بتقع في المدى. لو المدى مفيهوش صفر، زي <bdi class="n" dir="ltr">[−10.7, −2.0]</bdi>، الفرق غالباً مش صدفة. لو فيه صفر، زي الـ correct، مش متأكدين.</p></li>
+    <li id="q-6"><p class="q"><bdi class="n qn" dir="ltr">6</bdi>ليه <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi>؟</p><p class="a">لأنه فيه supporting facts معلّمة. ده خلّانا نعمل الحالات التلاتة (نشيل الفقرات الذهبية أو نبدّل الإجابة)، ونبني labels للـ sufficiency model من غير LLM. السلبية إن كل حاجة proxy من نفس الـ dataset، فالنتايج مش بتقول كتير عن مجالات تانية.</p></li>
+    <li id="q-7"><p class="q"><bdi class="n qn" dir="ltr">7</bdi>يعني إيه <bdi class="en" lang="en" dir="ltr">WiSE-FT</bdi> في جملة؟</p><p class="a">بناخد أوزان الـ model بعد التدريب ونعمل متوسط بينها وبين أوزان الـ model الأصلي (<bdi class="n" dir="ltr">70%</bdi> مدرَّب و<bdi class="n" dir="ltr">30%</bdi> أصلي)، فنحتفظ بمعظم مكسب <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi> وما ننساش الباقي.</p></li>
+    <li id="q-8"><p class="q"><bdi class="n qn" dir="ltr">8</bdi>إزاي عارفين إنكم ما ضبطتوش على الـ test؟</p><p class="a">كل اختيار اتعمل على الـ dev (<bdi class="n" dir="ltr">200</bdi> سؤال). الـ abstain threshold اتحدد بقاعدة مكتوبة في <bdi class="en" lang="en" dir="ltr">PLAN.md</bdi> قبل ما إجابات الـ dev تتولّد. والـ test اتشغّل مرة واحدة في الآخر. تاريخ الـ commits بيوري الترتيب. ولو حد عايز يتأكد، كل الأوامر مكتوبة في <bdi class="en" lang="en" dir="ltr">PLAN.md</bdi> و<bdi class="en" lang="en" dir="ltr">notes/STATE.md</bdi>.</p></li>
+    <li id="q-9"><p class="q"><bdi class="n qn" dir="ltr">9</bdi>هل الـ hallucination نزلت لأنه بيجاوب أقل بس؟</p><p class="a">جزء منها ممكن آه، والتقرير بيقول كده بوضوح: الـ arms اللي بتجاوب أكتر بتتعاقب أكتر في الـ metric الصارم. بس دقة الإجابات المتجاوبة نفسها اتحسّنت شوية: <bdi class="n" dir="ltr">70%</bdi> مقابل <bdi class="n" dir="ltr">66%</bdi> على supportive.</p></li>
+    <li id="q-10"><p class="q"><bdi class="n qn" dir="ltr">10</bdi>ليه الإجابة المبدّلة عدّت؟</p><p class="a">الفقرة المبدّلة لسه بتجاوب السؤال بشكل سليم، فالـ sufficiency model بيشوفها كافية بحكم طريقة بنائه. الإجابات المبدّلة نزلت من <bdi class="n" dir="ltr">30.5%</bdi> لـ <bdi class="n" dir="ltr">27.6%</bdi> بس، ومش significant. تحتاج إشارة تانية، زي تعارض الفقرات مع بعض.</p></li>
+    <li id="q-11"><p class="q"><bdi class="n qn" dir="ltr">11</bdi>الـ metric صارم، فالأرقام تنفع؟</p><p class="a">الـ judge اتفق معانا في <bdi class="n" dir="ltr">85</bdi> من <bdi class="n" dir="ltr">100</bdi> (kappa <bdi class="n" dir="ltr">0.71</bdi>)، والـ <bdi class="n" dir="ltr">15</bdi> اللي اختلفوا كلهم aliases. يعني الأرقام المطلقة لـ hallucination مبالغ فيها. المقارنة بين الـ arms لسه مفيدة لأن الكل متأثر بنفس الـ metric.</p></li>
+    <li id="q-12"><p class="q"><bdi class="n qn" dir="ltr">12</bdi>ليه الـ verifier أضعف برّه <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi>؟</p><p class="a">التدريب علّمه إن تشابه الكلمات معناه إن الفقرة مش مهمة. <bdi class="en" lang="en" dir="ltr">WiSE-FT</bdi> رجّع معظم اللي ضاع، بس لسه أقل من الـ base بين <bdi class="n" dir="ltr">1.6</bdi> و<bdi class="n" dir="ltr">3.1</bdi> نقطة. ولا reranker جاهز غلب الـ hybrid في <bdi class="en" lang="en" dir="ltr">SciFact</bdi> أو <bdi class="en" lang="en" dir="ltr">NFCorpus</bdi>، فالضعف ده موجود من الأول. بالنسبة للمشروع ده فهو حد معروف.</p></li>
+    <li id="q-13"><p class="q"><bdi class="n qn" dir="ltr">13</bdi>ده بياخد وقت قد إيه؟</p><p class="a">على CPU بـ <bdi class="n" dir="ltr">4</bdi> threads: <bdi class="en" lang="en" dir="ltr">MiniLM-L6</bdi> بيقيّم <bdi class="n" dir="ltr">20</bdi> فقرة في <bdi class="n" dir="ltr">0.79</bdi> ثانية و<bdi class="n" dir="ltr">60</bdi> جملة في <bdi class="n" dir="ltr">0.36</bdi> ثانية (median). <bdi class="en" lang="en" dir="ltr">L12</bdi> تقريباً ضعف ده. <bdi class="en" lang="en" dir="ltr">bge-reranker-base</bdi> محتاج <bdi class="n" dir="ltr">4.4</bdi> ثانية للفقرات بس. التوقيتات في الـ batch evaluation مش ليها معنى لأننا بنعيد استخدام الدرجات بين الـ arms.</p></li>
+    <li id="q-14"><p class="q"><bdi class="n qn" dir="ltr">14</bdi>ليه model صغير يتحقق، مش LLM؟</p><p class="a">التقرير ما فيهوش مقارنة بـ LLM verifier. اللي نقدر نقوله إن الـ cross-encoder الصغير سريع على CPU، وبنعمله calibration (الـ ECE نزل لـ <bdi class="n" dir="ltr">0.005</bdi> على الفقرات).</p></li>
+  </ol>
+</section>
+
+<section class="sec gloss" id="glossary" aria-labelledby="glossary-h">
+  <header class="sec-head">
+    <span class="mark"><b>Aa</b></span>
+    <div>
+      <h2 id="glossary-h">قاموس صغير</h2>
+      <p class="ar">المصطلحات زي ما بتتقال في الشرايح.</p>
+    </div>
+  </header>
+  <dl class="gl">
+    <div><dt lang="en" dir="ltr">RAG</dt><dd>Retrieval-Augmented Generation. search بتجيب فقرات، وmodel بيجاوب منها.</dd></div>
+    <div><dt lang="en" dir="ltr">Retrieval / search</dt><dd>الخطوة اللي بتجيب الفقرات من الـ pool. عندنا keyword search (<bdi class="en" lang="en" dir="ltr">BM25</bdi>) مع meaning search (<bdi class="en" lang="en" dir="ltr">bge-small</bdi>).</dd></div>
+    <div><dt lang="en" dir="ltr">Language model / generator</dt><dd>الـ model اللي بيكتب الإجابة. عندنا <bdi class="en" lang="en" dir="ltr">Qwen3-4B-Instruct-2507</bdi>.</dd></div>
+    <div><dt lang="en" dir="ltr">Hallucination</dt><dd>جاوب وغلط. مش إنه رفض.</dd></div>
+    <div><dt lang="en" dir="ltr">Planted</dt><dd>إجابة بدّلناها إحنا جوه الدليل، والـ model كررها.</dd></div>
+    <div><dt lang="en" dir="ltr">Abstain</dt><dd>النظام يقول “مش عارف” بدل ما يجاوب.</dd></div>
+    <div><dt lang="en" dir="ltr">Verifier</dt><dd>الـ model الصغير (<bdi class="en" lang="en" dir="ltr">MiniLM-L6</bdi>) اللي بيدّي كل فقرة أو جملة درجة من <bdi class="n" dir="ltr">0</bdi> لـ <bdi class="n" dir="ltr">1</bdi>.</dd></div>
+    <div><dt lang="en" dir="ltr">Cross-encoder</dt><dd>model بيقرا السؤال والفقرة مع بعض في input واحد.</dd></div>
+    <div><dt lang="en" dir="ltr">Threshold</dt><dd>حد رقمي بنقارن بيه الدرجة. تحته حاجة وفوقه حاجة تانية. عندنا <bdi class="n" dir="ltr">0.65</bdi> و<bdi class="n" dir="ltr">0.15</bdi> و<bdi class="n" dir="ltr">0.05</bdi> و<bdi class="n" dir="ltr">0.90</bdi>.</dd></div>
+    <div><dt lang="en" dir="ltr">Sufficiency</dt><dd>هل الـ context اللي فضل كفاية للإجابة؟ model تاني (<bdi class="en" lang="en" dir="ltr">MiniLM-L12</bdi>) بيدّي احتمال.</dd></div>
+    <div><dt lang="en" dir="ltr">Calibration / ECE</dt><dd>معاير الدرجة عشان تعني احتمال حقيقي. الـ <bdi class="en" lang="en" dir="ltr">ECE</bdi> هو الخطأ المتوقع في المعايرة: <bdi class="n" dir="ltr">0.085</bdi> قبل و<bdi class="n" dir="ltr">0.005</bdi> بعد.</dd></div>
+    <div><dt lang="en" dir="ltr">Fine-tune</dt><dd>نكمّل تدريب model جاهز على بيانات بتاعتنا.</dd></div>
+    <div><dt lang="en" dir="ltr">WiSE-FT</dt><dd>متوسط بين أوزان الـ fine-tuned والـ base. عندنا alpha = <bdi class="n" dir="ltr">0.7</bdi>.</dd></div>
+    <div><dt lang="en" dir="ltr">Dataset / HotpotQA</dt><dd>أسئلة محتاجة معلومة من فقرتين. فيها الجمل الداعمة معلّمة.</dd></div>
+    <div><dt lang="en" dir="ltr">Multi-hop / second-hop</dt><dd>سؤال إجابته محتاجة أكتر من فقرة. الفقرة التانية هي الـ second hop.</dd></div>
+    <div><dt lang="en" dir="ltr">Gold paragraph</dt><dd>الفقرة اللي فيها الإجابة، حسب الـ dataset.</dd></div>
+    <div><dt lang="en" dir="ltr">Distractor</dt><dd>فقرة قريبة في الكلمات من السؤال بس مش فيها الإجابة.</dd></div>
+    <div><dt lang="en" dir="ltr">Context / tokens</dt><dd>الكلام اللي بيتبعت للـ model. بنقيسه بالـ tokens (قطع من الكلمات).</dd></div>
+    <div><dt lang="en" dir="ltr">Arm</dt><dd>نسخة من النظام في التجربة: <bdi class="en" lang="en" dir="ltr">A</bdi> لـ <bdi class="en" lang="en" dir="ltr">G</bdi>.</dd></div>
+    <div><dt lang="en" dir="ltr">Dev / test</dt><dd>الـ dev للضبط والاختيار (<bdi class="n" dir="ltr">200</bdi> سؤال)، والـ test للحكم النهائي مرة واحدة (<bdi class="n" dir="ltr">300</bdi> سؤال).</dd></div>
+    <div><dt lang="en" dir="ltr">pp (percentage points)</dt><dd>الفرق بين نسبتين. <bdi class="n" dir="ltr">24.7%</bdi> لـ <bdi class="n" dir="ltr">18.3%</bdi> يبقى <bdi class="n" dir="ltr">6.3</bdi> نقطة.</dd></div>
+    <div><dt lang="en" dir="ltr">Confidence interval (95%)</dt><dd>مدى بيقول الفرق الحقيقي غالباً فين. لو مفيهوش صفر، الفرق غالباً مش صدفة.</dd></div>
+    <div><dt lang="en" dir="ltr">Paired bootstrap</dt><dd>نعيد اختيار الأسئلة <bdi class="n" dir="ltr">10,000</bdi> مرة، ونحسب الفرق كل مرة، ونطلع المدى.</dd></div>
+    <div><dt lang="en" dir="ltr">p-value</dt><dd>احتمال نشوف فرق بالحجم ده بالصدفة. <bdi class="n" dir="ltr">0.06</bdi> يعني قريب من الحد التقليدي <bdi class="n" dir="ltr">0.05</bdi>.</dd></div>
+    <div><dt lang="en" dir="ltr">AUC</dt><dd>قدرة model على ترتيب الحالة الصح فوق الغلط. <bdi class="n" dir="ltr">0.5</bdi> صدفة، و<bdi class="n" dir="ltr">1</bdi> مثالي.</dd></div>
+    <div><dt lang="en" dir="ltr">nDCG@10</dt><dd>مقياس ترتيب لأول <bdi class="n" dir="ltr">10</bdi> نتايج. بنضربه في <bdi class="n" dir="ltr">100</bdi> في جدول <bdi class="en" lang="en" dir="ltr">BEIR</bdi>.</dd></div>
+    <div><dt lang="en" dir="ltr">BEIR</dt><dd>مجموعة datasets بنختبر بيها الترتيب برّه <bdi class="en" lang="en" dir="ltr">HotpotQA</bdi>: <bdi class="en" lang="en" dir="ltr">SciFact</bdi> و<bdi class="en" lang="en" dir="ltr">NFCorpus</bdi> و<bdi class="en" lang="en" dir="ltr">FiQA</bdi>.</dd></div>
+    <div><dt lang="en" dir="ltr">Cohen’s kappa</dt><dd>اتفاق بين مقيّمين بعد استبعاد الصدفة. عندنا <bdi class="n" dir="ltr">0.71</bdi>.</dd></div>
+    <div><dt lang="en" dir="ltr">Alias</dt><dd>اسم تاني لنفس الحاجة، زي “Chris Pine” و“Christopher Whitelaw Pine”.</dd></div>
+  </dl>
+</section>
+<footer class="foot"><p>الأرقام كلها من الشرايح ومن <bdi lang="en">results/report.md</bdi>. اللقطات من <bdi lang="en">docs/explain/slides/shots</bdi>.</p></footer>
+</main>
+
+<dialog id="lb" aria-label="لقطة مكبّرة"><button type="button" class="lb-x" aria-label="إغلاق">×</button><img alt=""></dialog>
+<script src="guide.js"></script>
+</body>
+</html>

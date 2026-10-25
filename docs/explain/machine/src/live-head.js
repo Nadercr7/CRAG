@@ -49,6 +49,7 @@ function wrapText(text, perLine, maxLines) {
   if (lines.length > maxLines) { const cut = lines.slice(0, maxLines); cut[maxLines - 1] = cut[maxLines - 1].slice(0, Math.max(1, perLine - 1)).replace(/\s+$/, "") + "…"; return cut; }
   return lines;
 }
+const cleanText = (s) => decode(s).replace(/\{[^}]*\}/g, "").replace(/\s+/g, " ").replace(/\s+([,.;:])/g, "$1").trim();
 const cut = (text, n) => { const t = decode(text); return t.length > n ? t.slice(0, n - 1).replace(/\s+$/, "") + "…" : t; };
 
 /* ------------------------------------------------------------------ words, English and Egyptian Arabic */
@@ -61,6 +62,7 @@ const I18N = {
     scenarioLabel: "Example",
     reset: "Start over",
     next: "Next step",
+    lens: { idle: "The lens shows the station that is working.", askNote: "The question goes into the machine.", found: "paragraphs pulled", topShown: (n) => `top ${n} shown`, gold: "needed", best: "best score", again: "New questions", words: "Words sent", wordsA: "plain RAG", wordsF: "this line", kept: "kept", dropped: "dropped", enough: "enough", notEnough: "not enough", line: "line", cited: "Cited context", checked: "Context checked", rightAnswer: "Right answer", plain: "Plain RAG said", thisLine: "This line said", sufficiency: "sufficiency", gate: "Gate", sentences: "Sentences" },
     idea: "The big idea: check the evidence before you answer, and say 'I don't know' when it isn't there.",
     scn: { support: "Good evidence", missing: "Evidence missing", fooled: "Planted answer, caught", fail: "Planted answer, missed", cost: "Too careful" },
     plates: { feed: "Ask · Search", gauge: "Inspect", gate: "Decide", press: "Trim", scale: "Weigh", output: "Answer" },
@@ -95,6 +97,7 @@ const I18N = {
     scenarioLabel: "المثال",
     reset: "ابدأ من الأول",
     next: "الخطوة الجاية",
+    lens: { idle: "العدسة بتوريك المحطة اللي شغالة.", askNote: "السؤال بيدخل الماكينة.", found: "فقرة اتسحبت", topShown: (n) => `أعلى ${n} معروضين`, gold: "مطلوبة", best: "أعلى درجة", again: "أسئلة جديدة", words: "الكلمات المبعوتة", wordsA: "RAG العادي", wordsF: "الخط ده", kept: "اتحفظت", dropped: "اتشالت", enough: "كفاية", notEnough: "مش كفاية", line: "الحد", cited: "السياق المستشهد بيه", checked: "السياق اللي اتفحص", rightAnswer: "الإجابة الصح", plain: "RAG العادي قال", thisLine: "الخط ده قال", sufficiency: "الكفاية", gate: "البوابة", sentences: "الجمل" },
     idea: "الفكرة الكبيرة: اتأكد من الدليل قبل ما تجاوب، وقول “مش عارف” لما الدليل مايكونش موجود.",
     scn: { support: "الدليل موجود", missing: "الدليل ناقص", fooled: "إجابة مزروعة واتمسكت", fail: "إجابة مزروعة وعدّت", cost: "حذر زيادة" },
     plates: { feed: "اسأل · دوّر", gauge: "افحص", gate: "قرّر", press: "قصّ", scale: "زُن", output: "جاوب" },
@@ -122,6 +125,22 @@ const I18N = {
     },
   },
 };
+
+const ARC = (cx, cy, r, v0, v1, sweep, start) => {
+  const pts = [];
+  const n = Math.max(2, Math.ceil(Math.abs(v1 - v0) * 48));
+  for (let i = 0; i <= n; i++) { const a = ((start + sweep * (v0 + ((v1 - v0) * i) / n)) * Math.PI) / 180; pts.push(`${(cx + r * Math.sin(a)).toFixed(1)} ${(cy - r * Math.cos(a)).toFixed(1)}`); }
+  return "M" + pts.join("L");
+};
+const TICKS = (cx, cy, r, count, every, lens, sweep, start) => {
+  let minor = "", major = "";
+  for (let i = 0; i <= count; i++) {
+    const a = ((start + (sweep * i) / count) * Math.PI) / 180, l = i % every === 0 ? lens[1] : lens[0];
+    const d = `M${(cx + (r - l) * Math.sin(a)).toFixed(1)} ${(cy - (r - l) * Math.cos(a)).toFixed(1)}L${(cx + r * Math.sin(a)).toFixed(1)} ${(cy - r * Math.cos(a)).toFixed(1)}`;
+    if (i % every === 0) major += d; else minor += d;
+  }
+  return { minor, major };
+};
 const ICON = {
   pass: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>',
   hold: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.8-3.8M3.2 2.6l1.8 1.8-2 .9"/></svg>',
@@ -137,7 +156,7 @@ function derive(D, key) {
   const decision = F.decision;
   const queries = F.queries.map(decode);
   const abstain = !!F.abstain || F.outcome === "abstain";
-  const sentences = F.sentences.map((x) => ({ text: decode(x.text), prob: x.prob, kept: !!x.kept }));
+  const sentences = F.sentences.map((x) => ({ text: cleanText(x.text), prob: x.prob, kept: !!x.kept }));
   return {
     key, question: decode(s.question), gold: decode(s.gold), planted: s.planted && decode(s.planted), A, F,
     first, later, selFirst: first.filter((t) => t.selected), decision, finalDecision: F.final_decision || decision,

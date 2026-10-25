@@ -620,6 +620,7 @@ function wrapText(text, perLine, maxLines) {
   if (lines.length > maxLines) { const cut = lines.slice(0, maxLines); cut[maxLines - 1] = cut[maxLines - 1].slice(0, Math.max(1, perLine - 1)).replace(/\s+$/, "") + "…"; return cut; }
   return lines;
 }
+const cleanText = (s) => decode(s).replace(/\{[^}]*\}/g, "").replace(/\s+/g, " ").replace(/\s+([,.;:])/g, "$1").trim();
 const cut = (text, n) => { const t = decode(text); return t.length > n ? t.slice(0, n - 1).replace(/\s+$/, "") + "…" : t; };
 
 /* ------------------------------------------------------------------ words, English and Egyptian Arabic */
@@ -632,6 +633,7 @@ const I18N = {
     scenarioLabel: "Example",
     reset: "Start over",
     next: "Next step",
+    lens: { idle: "The lens shows the station that is working.", askNote: "The question goes into the machine.", found: "paragraphs pulled", topShown: (n) => `top ${n} shown`, gold: "needed", best: "best score", again: "New questions", words: "Words sent", wordsA: "plain RAG", wordsF: "this line", kept: "kept", dropped: "dropped", enough: "enough", notEnough: "not enough", line: "line", cited: "Cited context", checked: "Context checked", rightAnswer: "Right answer", plain: "Plain RAG said", thisLine: "This line said", sufficiency: "sufficiency", gate: "Gate", sentences: "Sentences" },
     idea: "The big idea: check the evidence before you answer, and say 'I don't know' when it isn't there.",
     scn: { support: "Good evidence", missing: "Evidence missing", fooled: "Planted answer, caught", fail: "Planted answer, missed", cost: "Too careful" },
     plates: { feed: "Ask · Search", gauge: "Inspect", gate: "Decide", press: "Trim", scale: "Weigh", output: "Answer" },
@@ -666,6 +668,7 @@ const I18N = {
     scenarioLabel: "المثال",
     reset: "ابدأ من الأول",
     next: "الخطوة الجاية",
+    lens: { idle: "العدسة بتوريك المحطة اللي شغالة.", askNote: "السؤال بيدخل الماكينة.", found: "فقرة اتسحبت", topShown: (n) => `أعلى ${n} معروضين`, gold: "مطلوبة", best: "أعلى درجة", again: "أسئلة جديدة", words: "الكلمات المبعوتة", wordsA: "RAG العادي", wordsF: "الخط ده", kept: "اتحفظت", dropped: "اتشالت", enough: "كفاية", notEnough: "مش كفاية", line: "الحد", cited: "السياق المستشهد بيه", checked: "السياق اللي اتفحص", rightAnswer: "الإجابة الصح", plain: "RAG العادي قال", thisLine: "الخط ده قال", sufficiency: "الكفاية", gate: "البوابة", sentences: "الجمل" },
     idea: "الفكرة الكبيرة: اتأكد من الدليل قبل ما تجاوب، وقول “مش عارف” لما الدليل مايكونش موجود.",
     scn: { support: "الدليل موجود", missing: "الدليل ناقص", fooled: "إجابة مزروعة واتمسكت", fail: "إجابة مزروعة وعدّت", cost: "حذر زيادة" },
     plates: { feed: "اسأل · دوّر", gauge: "افحص", gate: "قرّر", press: "قصّ", scale: "زُن", output: "جاوب" },
@@ -693,6 +696,22 @@ const I18N = {
     },
   },
 };
+
+const ARC = (cx, cy, r, v0, v1, sweep, start) => {
+  const pts = [];
+  const n = Math.max(2, Math.ceil(Math.abs(v1 - v0) * 48));
+  for (let i = 0; i <= n; i++) { const a = ((start + sweep * (v0 + ((v1 - v0) * i) / n)) * Math.PI) / 180; pts.push(`${(cx + r * Math.sin(a)).toFixed(1)} ${(cy - r * Math.cos(a)).toFixed(1)}`); }
+  return "M" + pts.join("L");
+};
+const TICKS = (cx, cy, r, count, every, lens, sweep, start) => {
+  let minor = "", major = "";
+  for (let i = 0; i <= count; i++) {
+    const a = ((start + (sweep * i) / count) * Math.PI) / 180, l = i % every === 0 ? lens[1] : lens[0];
+    const d = `M${(cx + (r - l) * Math.sin(a)).toFixed(1)} ${(cy - (r - l) * Math.cos(a)).toFixed(1)}L${(cx + r * Math.sin(a)).toFixed(1)} ${(cy - r * Math.cos(a)).toFixed(1)}`;
+    if (i % every === 0) major += d; else minor += d;
+  }
+  return { minor, major };
+};
 const ICON = {
   pass: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>',
   hold: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.8-3.8M3.2 2.6l1.8 1.8-2 .9"/></svg>',
@@ -708,7 +727,7 @@ function derive(D, key) {
   const decision = F.decision;
   const queries = F.queries.map(decode);
   const abstain = !!F.abstain || F.outcome === "abstain";
-  const sentences = F.sentences.map((x) => ({ text: decode(x.text), prob: x.prob, kept: !!x.kept }));
+  const sentences = F.sentences.map((x) => ({ text: cleanText(x.text), prob: x.prob, kept: !!x.kept }));
   return {
     key, question: decode(s.question), gold: decode(s.gold), planted: s.planted && decode(s.planted), A, F,
     first, later, selFirst: first.filter((t) => t.selected), decision, finalDecision: F.final_decision || decision,
@@ -742,7 +761,7 @@ I18N.ar.stepDone = "الخط خلّص. اختار مثال تاني، أو اب�
 /* ------------------------------------------------------------------ the component */
 let UID = 0;
 function mount(el, opts) {
-  opts = Object.assign({ scenario: "support", lang: "en", mode: "manual", controls: false, data: (typeof window !== "undefined" && window.VRAG_DATA) || null, hint: true, idea: true, chips: true }, opts || {});
+  opts = Object.assign({ scenario: "support", lang: "en", mode: "manual", controls: false, data: (typeof window !== "undefined" && window.VRAG_DATA) || null, hint: true, idea: true, chips: true, lens: true }, opts || {});
   const D = opts.data;
   if (!D || !D.scenarios) throw new Error("VRAGMachine.mount: opts.data (window.VRAG_DATA) is missing");
   const uid = "vrm" + ++UID + "-";
@@ -765,10 +784,11 @@ function mount(el, opts) {
   root.tabIndex = 0;
   root.setAttribute("role", "group");
   if (opts.controls) root.setAttribute("data-controls", "");
+  if (opts.lens) root.setAttribute("data-lens", "");
   el.appendChild(root);
   root.innerHTML =
     (opts.hint ? `<p class="vrm-hint" aria-live="polite"><span class="vrm-hint-n" hidden></span><span class="vrm-hint-t"></span></p>` : "") +
-    `<div class="vrm-main">${opts.controls ? `<div class="vrm-controls"></div>` : ""}<div class="vrm-fig"><div class="vrm-stage"><svg class="iso-svg vrm-svg" viewBox="0 0 ${L.W} ${L.H}" xmlns="${NS}" role="img"><defs>${ART.defs.replace(/__ID__/g, uid)}</defs><g class="vrm-cam"><g class="vrm-scene"></g><g class="vrm-hud"></g></g></svg></div>${opts.chips ? `<ul class="vrm-chips"></ul>` : ""}</div></div>` +
+    `<div class="vrm-main">${opts.controls ? `<div class="vrm-controls"></div>` : ""}<div class="vrm-fig"><div class="vrm-stage"><svg class="iso-svg vrm-svg" viewBox="0 0 ${L.W} ${L.H}" xmlns="${NS}" role="img"><defs>${ART.defs.replace(/__ID__/g, uid)}</defs><g class="vrm-cam"><g class="vrm-scene"></g><g class="vrm-hud"></g></g></svg></div>${opts.chips ? `<ul class="vrm-chips"></ul>` : ""}</div>${opts.lens ? `<aside class="vrm-lens"><header class="vrm-lens-h"><span class="vrm-lens-n" hidden></span><span class="vrm-lens-t"></span></header><div class="vrm-lens-b"></div></aside>` : ""}</div>` +
     (opts.idea ? `<p class="vrm-idea"></p>` : "");
   const q = (sel) => root.querySelector(sel);
   const svg = q(".vrm-svg"), camG = q(".vrm-cam"), sceneG = q(".vrm-scene"), hudG = q(".vrm-hud"), stage = q(".vrm-stage");
@@ -834,6 +854,108 @@ function mount(el, opts) {
     }
   };
 
+  /* ---------------------------------------------------------------- the lens: the working station, large */
+  const lensEl = q(".vrm-lens");
+  const lensB = lensEl && lensEl.querySelector(".vrm-lens-b");
+  const lensN = lensEl && lensEl.querySelector(".vrm-lens-n");
+  const lensT = lensEl && lensEl.querySelector(".vrm-lens-t");
+  const nullLens = new Proxy({}, { get: () => () => {} });
+  let LN = nullLens;
+  const stationOfStep = ["feeder", "feeder", "gauge", "gate", "press", "scale", "output"];
+  const badgeOfStep = [1, 2, 3, 4, 5, 6, 7];
+  function buildLens() {
+    if (!lensB) { LN = nullLens; return; }
+    const tt = TT(), lt = tt.lens, ar = ST0.lang === "ar";
+    const E = esc;
+    const ck = '<svg class="lp-ck" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+    const clean = (s) => decode(s).replace(/\{[^}]*\}/g, "").replace(/\s+/g, " ").replace(/\s+([,.;:])/g, "$1").trim();
+    /* dial for the gauge (pane 2) and the half dial for the scale (pane 5) */
+    const th = TH;
+    const dial = (() => {
+      const cx = 100, cy = 84, r = 58, sw = 270, st = -135;
+      const t = TICKS(cx, cy, r, 50, 5, [4, 9], sw, st);
+      const lab = (v, txt) => { const a = ((st + sw * v) * Math.PI) / 180; return `<text class="lp-dl" x="${(cx + (r - 18) * Math.sin(a)).toFixed(1)}" y="${(cy - (r - 18) * Math.cos(a) + 4).toFixed(1)}" text-anchor="middle">${txt}</text>`; };
+      return `<svg class="lp-dial" viewBox="0 0 200 164" role="img" aria-hidden="true"><path class="lp-z lp-zr" d="${ARC(cx, cy, r + 9, 0, th.tau_lo, sw, st)}"/><path class="lp-z lp-zh" d="${ARC(cx, cy, r + 9, th.tau_lo, th.tau_hi, sw, st)}"/><path class="lp-z lp-zp" d="${ARC(cx, cy, r + 9, th.tau_hi, 1, sw, st)}"/><circle class="lp-face" cx="${cx}" cy="${cy}" r="${r + 3}"/><path class="lp-tk" d="${ARC(cx, cy, r, 0, 1, sw, st)}"/><path class="lp-tk" d="${t.minor}"/><path class="lp-tk lp-tkm" d="${t.major}"/>${lab(0, "0")}${lab(0.5, "0.5")}${lab(1, "1")}<g data-r="needle" transform="translate(${cx} ${cy}) rotate(${st})"><path class="lp-needle" d="M0 12L0 -${r - 6}"/></g><circle class="lp-hub" cx="${cx}" cy="${cy}" r="5"/><text class="lp-big" data-r="gread" x="${cx}" y="${cy + 70}" text-anchor="middle">0.000</text></svg>`;
+    })();
+    const half = (() => {
+      const cx = 135, cy = 112, r = 86, sw = 180, st = -90;
+      const t = TICKS(cx, cy, r, 40, 4, [5, 11], sw, st);
+      const a = ((st + sw * th.tau_abstain) * Math.PI) / 180;
+      return `<svg class="lp-half" viewBox="0 0 270 156" role="img" aria-hidden="true"><path class="lp-z lp-za" d="${ARC(cx, cy, r + 10, 0, th.tau_abstain, sw, st)}"/><path class="lp-z lp-zp" d="${ARC(cx, cy, r + 10, th.tau_abstain, 1, sw, st)}"/><path class="lp-face" d="${ARC(cx, cy, r + 3, 0, 1, sw, st)}Z"/><path class="lp-tk" d="${ARC(cx, cy, r, 0, 1, sw, st)}"/><path class="lp-tk" d="${t.minor}"/><path class="lp-tk lp-tkm" d="${t.major}"/><path class="lp-red" d="M${(cx + 12 * Math.sin(a)).toFixed(1)} ${(cy - 12 * Math.cos(a)).toFixed(1)}L${(cx + (r + 18) * Math.sin(a)).toFixed(1)} ${(cy - (r + 18) * Math.cos(a)).toFixed(1)}"/><text class="lp-redl" x="${(cx + (r + 30) * Math.sin(a)).toFixed(1)}" y="${(cy - (r + 24) * Math.cos(a) + 4).toFixed(1)}" text-anchor="middle">${fmt2(th.tau_abstain)}</text><g data-r="needle" transform="translate(${cx} ${cy}) rotate(${st})"><path class="lp-needle" d="M0 12L0 -${r - 6}"/></g><circle class="lp-hub" cx="${cx}" cy="${cy}" r="6"/><text class="lp-big" data-r="sread" x="${cx}" y="${cy + 38}" text-anchor="middle">0.000</text></svg>`;
+    })();
+    const band = (() => {
+      const u0 = 12, u1 = 288, bw = u1 - u0, ux = (v) => (u0 + bw * v).toFixed(1);
+      return `<svg class="lp-band" viewBox="0 0 300 100" role="img" aria-hidden="true"><rect class="lp-zb lp-zr" x="${u0}" y="34" width="${(bw * th.tau_lo).toFixed(1)}" height="16"/><rect class="lp-zb lp-zh" x="${ux(th.tau_lo)}" y="34" width="${(bw * (th.tau_hi - th.tau_lo)).toFixed(1)}" height="16"/><rect class="lp-zb lp-zp" x="${ux(th.tau_hi)}" y="34" width="${(bw * (1 - th.tau_hi)).toFixed(1)}" height="16"/><path class="lp-tk lp-tkm" d="M${u0} 34H${u1}V50H${u0}Z"/>${[th.tau_lo, th.tau_hi].map((v) => `<path class="lp-th" d="M${ux(v)} 28V56"/><text class="lp-dl lp-thl" x="${ux(v)}" y="86" text-anchor="middle">${fmt2(v)}</text>`).join("")}<text class="lp-dl" x="${u0}" y="86" text-anchor="middle">0</text><text class="lp-dl" x="${u1}" y="86" text-anchor="middle">1</text><g data-r="marker" transform="translate(${u0} 0)"><path class="lp-mk" d="M0 51L-7 64H7Z"/><text class="lp-big lp-mkv" data-r="mval" x="0" y="22" text-anchor="middle">--</text></g></svg>`;
+    })();
+    const lampDefs = [["pass", "correct", "M-4 0.4L-1.2 3.4L4.6 -3.6"], ["hold", "ambiguous", "M-4 2A4.8 4.8 0 1 0 -2 -3.2M-5 -3.8L-1.6 -4L-2.2 -0.6"], ["reject", "incorrect", "M-3.8 -3.8L3.8 3.8M3.8 -3.8L-3.8 3.8"]];
+    const lamps = lampDefs.map(([id, key, g]) => `<li class="lp-lamp lp-lamp-${id}" data-r="lamp-${id}"><svg viewBox="-16 -16 32 32" aria-hidden="true"><circle class="lp-lens" r="13"/><path class="lp-glyph" d="${g}"/></svg><b>${tt.lamp[id]}</b></li>`).join("");
+    const sel = M.first;
+    const maxRows = M.sentences.length;
+    const cites = M.citations.map((c) => ({ c, t: M.F.context[c - 1] })).filter((x) => x.t);
+    const ctxLines = (M.abstain ? M.F.context.map((t2, i) => ({ c: i + 1, t: t2 })).slice(0, 3) : cites.length ? cites : M.F.context.map((t2, i) => ({ c: i + 1, t: t2 })).slice(0, 2));
+    const ctxHtml = ctxLines.map((x) => `<li><b>[${x.c}]</b><span>${E(cut(clean(String(x.t).replace(/^\[\d+\]\s*/, "")), 190))}</span></li>`).join("");
+    const panes = [
+      `<section class="vrm-lp" data-p="-1"><p class="lp-idle">${lt.idle}</p></section>`,
+      `<section class="vrm-lp" data-p="0"><div class="lp-qcard" data-r="q"><i class="lp-tab"></i><span class="lp-qm">?</span><p>${E(M.question)}</p></div><p class="lp-note">${lt.askNote}</p></section>`,
+      `<section class="vrm-lp" data-p="1"><div class="lp-count"><b data-r="cnt" class="lp-big">--</b><span>${lt.found}<br><small>${lt.topShown(M.first.length)}</small></span></div><ol class="lp-slips">${sel.map((t2, i) => `<li data-r="slip"><span class="lp-rank">${i + 1}</span><span class="lp-title">${E(decode(t2.title))}</span></li>`).join("")}</ol></section>`,
+      `<section class="vrm-lp" data-p="2">${dial}<ol class="lp-rows">${sel.map((t2) => `<li data-r="row"><span class="lp-title">${E(decode(t2.title))}</span>${t2.gold ? `<em class="lp-gold">${lt.gold}</em>` : ""}<span class="lp-bar"><i data-r="bar"></i></span><b class="lp-score" data-r="sc">0.000</b><span class="lp-ok">${ck}</span></li>`).join("")}</ol></section>`,
+      `<section class="vrm-lp" data-p="3">${band}<ul class="lp-lamps">${lamps}</ul><ol class="lp-tickets">${M.rewrote ? M.newQ.map((nq) => `<li data-r="tk"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.8-3.8M3.2 2.6l1.8 1.8-2 .9"/></svg><span><small>${lt.again}</small><i>${E(nq)}</i></span></li>`).join("") : ""}</ol></section>`,
+      `<section class="vrm-lp" data-p="4"><div class="lp-words"><span class="lp-wa"><small>${lt.wordsA}</small><s data-r="wa">${M.wordsA}</s></span><svg viewBox="0 0 28 12" aria-hidden="true"><path d="M2 6H24M19 1.5L24.5 6L19 10.5"/></svg><span class="lp-wf"><small>${lt.wordsF}</small><b class="lp-big" data-r="wf">${M.wordsA}</b></span></div><ol class="lp-sents" data-n="${maxRows}">${M.sentences.map((s2) => `<li data-r="sent" data-s="${s2.kept ? "kept" : "dropped"}"><svg class="lp-st" viewBox="0 0 16 16" aria-hidden="true"><path d="${s2.kept ? "M3 8.5l3.2 3L13 4.5" : "M4 4l8 8M12 4l-8 8"}"/></svg><b class="lp-score">${fmt3(s2.prob)}</b><span class="lp-stext">${E(s2.text)}</span></li>`).join("")}</ol></section>`,
+      `<section class="vrm-lp" data-p="5">${half}<p class="lp-verdict" data-r="verdict"></p></section>`,
+      `<section class="vrm-lp" data-p="6"><div class="lp-acard" data-r="acard" data-s="${M.abstain ? "abstain" : "pass"}"><p class="lp-ans">${M.abstain ? `<span class="lp-q0">?</span>${E(cut(TT().noEvidence, 40))}` : E(M.answer)}</p>${M.abstain ? "" : `<p class="lp-cites">${M.citations.map((c) => `[${c}]`).join(" ")}</p>`}<div class="lp-stamp" data-r="stamp" data-s="${M.abstain ? "abstain" : "pass"}">${M.abstain ? `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.6"/><path d="M6.2 6.4a1.9 1.9 0 1 1 2.6 1.8c-.5.3-.8.7-.8 1.3M8 11.6v.1"/></svg>` : ck}<span>${M.abstain ? tt.stamp.abstain : tt.stamp.pass}</span></div></div><div data-r="rest"><h4 class="lp-h">${M.abstain ? lt.checked : lt.cited}</h4><ul class="lp-ctx${M.abstain ? " lp-dimmed" : ""}">${ctxHtml}</ul><dl class="lp-cmp"><div data-s="pass"><dt>${lt.rightAnswer}</dt><dd>${E(M.gold)}</dd></div><div data-s="${outState(M.aOutcome)}"><dt>${lt.plain}</dt><dd>${E(M.A.outcome === "abstain" ? tt.chips.idk : M.aAnswer)} <em>${ICON[outState(M.aOutcome)] || ""}${tt.chips.out[M.aOutcome]}</em></dd></div></dl></div></section>`,
+    ];
+    lensB.innerHTML = panes.join("");
+    lensB.setAttribute("dir", ar ? "rtl" : "ltr");
+    const P_ = (i) => lensB.querySelector(`[data-p="${i}"]`);
+    const all = (i, s2) => [...P_(i).querySelectorAll(`[data-r="${s2}"]`)];
+    const one = (i, s2) => P_(i).querySelector(`[data-r="${s2}"]`);
+    const rot = (g, v, sw, st) => g.setAttribute("transform", g.getAttribute("transform").replace(/rotate\([^)]*\)/, `rotate(${(st + sw * clamp(v, -0.02, 1.02)).toFixed(2)})`));
+    const R2 = { q: one(0, "q"), cnt: one(1, "cnt"), slips: all(1, "slip"), n2: one(2, "needle"), g2: one(2, "gread"), rows: all(2, "row"), marker: one(3, "marker"), mval: one(3, "mval"), lamp: { pass: one(3, "lamp-pass"), hold: one(3, "lamp-hold"), reject: one(3, "lamp-reject") }, tks: all(3, "tk"), wf: one(4, "wf"), sents: all(4, "sent"), n5: one(5, "needle"), s5: one(5, "sread"), verdict: one(5, "verdict"), acard: one(6, "acard"), stamp: one(6, "stamp"), rest: one(6, "rest") };
+    const U0 = 12, UW = 276;
+    LN = {
+      show(i) {
+        lensB.querySelectorAll(".vrm-lp").forEach((p) => p.toggleAttribute("data-on", +p.getAttribute("data-p") === i));
+        lensT.textContent = i < 0 ? "" : tt.steps[i];
+        lensN.hidden = i < 0;
+        lensN.textContent = String(i + 1);
+        lensEl.setAttribute("data-step", String(i));
+      },
+      reset() {
+        R2.q.style.opacity = 0; R2.cnt.textContent = "--";
+        R2.slips.forEach((e) => { e.style.opacity = 0; e.style.transform = ""; });
+        rot(R2.n2, 0, 270, -135); R2.g2.textContent = "0.000";
+        R2.rows.forEach((e) => { e.style.opacity = 0; e.removeAttribute("data-sel"); e.querySelector('[data-r="bar"]').style.transform = "scaleX(0)"; e.querySelector('[data-r="sc"]').textContent = "0.000"; });
+        R2.marker.setAttribute("transform", `translate(${U0} 0)`); R2.mval.textContent = "--";
+        Object.values(R2.lamp).forEach((e) => e.removeAttribute("data-on"));
+        R2.tks.forEach((e) => { e.style.opacity = 0; e.style.transform = ""; });
+        R2.wf.textContent = String(M.wordsA);
+        R2.sents.forEach((e) => { e.style.opacity = 0; e.style.transform = ""; e.setAttribute("data-s", e.getAttribute("data-s")); e.removeAttribute("data-fell"); });
+        rot(R2.n5, 0, 180, -90); R2.s5.textContent = "0.000"; R2.verdict.textContent = ""; R2.verdict.removeAttribute("data-s");
+        R2.acard.style.opacity = 0; R2.stamp.style.opacity = 0; R2.rest.style.opacity = 0;
+      },
+      askIn(p) { R2.q.style.opacity = p; R2.q.style.transform = `translateY(${(-26 * (1 - p)).toFixed(1)}px)`; },
+      askDrop(p) { R2.q.style.transform = `translateY(${(16 * p).toFixed(1)}px) scale(${(1 - 0.04 * p).toFixed(3)})`; R2.q.style.opacity = 1 - 0.45 * p; },
+      count(n) { R2.cnt.textContent = String(n); },
+      slip(i, a) { const e = R2.slips[i]; if (e) { e.style.opacity = clamp(a * 3); e.style.transform = `translateY(${(8 * (1 - clamp(a * 3))).toFixed(1)}px)`; } },
+      gauge(v) { rot(R2.n2, v, 270, -135); R2.g2.textContent = fmt3(v); },
+      row(i, p, prob) { const e = R2.rows[i]; if (!e) return; e.style.opacity = clamp(p * 5); e.querySelector('[data-r="bar"]').style.transform = `scaleX(${(prob * p).toFixed(4)})`; e.querySelector('[data-r="sc"]').textContent = fmt3(prob * p); },
+      rowSel(i, on) { const e = R2.rows[i]; if (e) { if (on) e.setAttribute("data-sel", ""); else e.removeAttribute("data-sel"); } },
+      marker(v) { R2.marker.setAttribute("transform", `translate(${(U0 + UW * v).toFixed(2)} 0)`); R2.mval.textContent = fmt3(v); },
+      lamp(d) { const map = { correct: "pass", ambiguous: "hold", incorrect: "reject" }; for (const id of ["pass", "hold", "reject"]) { if (d != null && map[d] === id) R2.lamp[id].setAttribute("data-on", ""); else R2.lamp[id].removeAttribute("data-on"); } },
+      ticket(j, p) { const e = R2.tks[j]; if (e) { e.style.opacity = clamp(p * 2); e.style.transform = `translateY(${(-14 * (1 - clamp(p))).toFixed(1)}px)`; } },
+      words(v) { R2.wf.textContent = String(Math.round(v)); },
+      sent(i, p) { const e = R2.sents[i]; if (e) { e.style.opacity = clamp(p * 2); e.style.transform = `translateY(${(-8 * (1 - clamp(p))).toFixed(1)}px)`; } },
+      sentDrop(i, p) { const e = R2.sents[i]; if (e) { if (p > 0) e.setAttribute("data-fell", ""); else e.removeAttribute("data-fell"); e.style.transform = `translateY(${(9 * p).toFixed(1)}px)`; e.style.opacity = 1 - 0.5 * p; } },
+      weigh(v) { rot(R2.n5, v, 180, -90); R2.s5.textContent = fmt3(v); },
+      verdict(on) { if (!on) { R2.verdict.textContent = ""; R2.verdict.removeAttribute("data-s"); return; } const ok = M.suff >= TH.tau_abstain; R2.verdict.setAttribute("data-s", ok ? "pass" : "abstain"); R2.verdict.innerHTML = `${ok ? ICON.pass : ICON.abstain}<span>${fmt3(M.suff)} ${ok ? "≥" : "<"} ${fmt2(TH.tau_abstain)}: ${ok ? lt.enough : lt.notEnough}</span>`; },
+      acard(p) { R2.acard.style.opacity = p; },
+      stamp(p) { R2.stamp.style.opacity = clamp(p * 1.6); R2.stamp.style.transform = `rotate(-7deg) scale(${(1 + 1.2 * (1 - easeOut(clamp(p)))).toFixed(3)})`; },
+      rest(p) { R2.rest.style.opacity = p; R2.rest.style.transform = `translateY(${(6 * (1 - p)).toFixed(1)}px)`; },
+    };
+    LN.reset();
+    LN.show(-1);
+  }
+
   /* ---------------------------------------------------------------- the scenario's cast */
   let qcard, ticket, acard, drawer, drawerMove, drawerHolder, slips = [], qslips = [], strips = [], rows = [];
   const dropPos = (k) => [L.DROP.x - 15 + (k % 2) * 31, L.DROP.y + 10 + Math.floor(k / 2) * 13];
@@ -855,6 +977,7 @@ function mount(el, opts) {
     M.queue = M.first.map((t2, i) => (t2.selected ? i : -1)).filter((i) => i >= 0); // paragraph slips that wait at the gate
     M.later.slice(0, M.newQ.length).forEach((t2, j) => { if (t2.selected) M.queue.push(100 + j); });
     M.pips = (n) => `${TT().caps.pips} ${n}/${M.first.length}`;
+    buildLens();
     const ZQ = L.FUNNEL;
     qcard = mkNode(
       slabSvg(26, 17, 1.6) + `<path class="vrm-qcard-tab" d="${topPoly([[-13, -8.5], [-13, 8.5], [-9, 8.5], [-9, -8.5]], 1.65)}"/>` + lineSvg(lineOnTop([-5, -3.5], [9, -3.5], 1.7, P) + lineOnTop([-5, 0], [9, 0], 1.7, P) + lineOnTop([-5, 3.5], [3, 3.5], 1.7, P), { tone: "lo", free: true }),
@@ -935,7 +1058,7 @@ function mount(el, opts) {
   };
   const onStack = (e, i) => { homeOf(e, "scene"); show(e, true); place(e, XDEAL, BY, STACK_TOP + (M.first.length - 1 - i) * L.SLIP.t + 0.15, 0); };
 
-  function readOne(e, t0, prevV, w, lane) {
+  function readOne(e, t0, prevV, w, lane, ri) {
     // a slip travels to the probe, is read, and goes on to the lane (queue slot) or off the belt (pile slot)
     const tArr = t0 + 0.85, tRd = tArr + 0.35;
     seg(t0, t0 + 0.3, smooth, (p) => { homeOf(e, "scene"); show(e, true); place(e, lerp(XDEAL, XBELT0, p), BY, lerp(e.z0, ZB + 1.5, p)); });
@@ -944,14 +1067,15 @@ function mount(el, opts) {
     if (w != null) {
       seg(tArr + 0.05, tArr + 0.62, lin, (p) => {
         const cur = lerp(prevV, w, spring(p));
-        setNeedle("g", cur); setText("g-read", fmt3(cur));
+        setNeedle("g", cur); setText("g-read", fmt3(cur)); LN.gauge(cur);
+        if (ri != null) LN.row(ri, easeOut(prog(p, 0, 0.6)), w);
         e.bar.setAttribute("d", barPath(Math.max(0.8, 21 * w) * easeOut(prog(p, 0, 0.6)))); e.bar.style.display = "";
       });
     }
     sound(tArr + 0.05, "tick", XG + 24, BY + 8, 34, "");
     if (lane.q != null) {
       seg(tRd, tRd + 0.95, smooth, (p) => place(e, lerp(XG, queueX(lane.q), p), BY, ZB));
-      when(tRd + 0.05, () => { e.mark.style.display = ""; e.el.setAttribute("data-s", "sel"); });
+      when(tRd + 0.05, () => { e.mark.style.display = ""; e.el.setAttribute("data-s", "sel"); if (ri != null) LN.rowSel(ri, true); });
     } else {
       const [dx, dy] = dropPos(lane.drop);
       seg(tRd, tRd + 0.45, smooth, (p) => place(e, lerp(XG, L.DROP.x, p), BY, ZB));
@@ -969,40 +1093,46 @@ function mount(el, opts) {
     /* 0 ask */
     newClip("ask").dur = 2.3;
     curClip.chipAt = 1.6;
-    seg(0.15, 0.9, easeOut, (p) => { show(qcard, p > 0); qcard.root.style.opacity = p; });
+    seg(0.15, 0.9, easeOut, (p) => { show(qcard, p > 0); qcard.root.style.opacity = p; LN.askIn(p); });
     seg(0.15, 1.15, smooth, (p) => place(qcard, L.FUNNEL.cx, L.FUNNEL.cy, lerp(198, 170, p), 40));
     seg(1.15, 1.75, easeIn, (p) => place(qcard, L.FUNNEL.cx, L.FUNNEL.cy, lerp(170, 120, p), 40));
+    seg(1.15, 1.75, easeIn, (p) => LN.askDrop(p));
     when(1.78, () => show(qcard, false));
-    when(1.5, () => setOn("badge-1", true));
     sound(0.25, "ask", L.FUNNEL.cx - 8, L.FUNNEL.cy, 208, "accent");
 
     /* 1 search */
     newClip("search").dur = 3.1;
     curClip.chipAt = 2.0;
     seg(0.1, 1.2, easeOut, (p) => drawerMove.setAttribute("transform", tr(L.DRAWER.open * p, 0, 0)));
-    seg(0.1, 1.2, lin, (p) => setText("feed-count", String(Math.round(RETRIEVE_TOP * p))));
-    seg(1.0, 2.3, lin, (p) => slips.forEach((e, i) => { const a = prog(p, i / (slips.length + 2), (i + 2) / (slips.length + 2)); if (p < 1) inDrawer(e, i, 3.4 * Math.sin(a * Math.PI) * (1 - i / 14)); }));
+    seg(0.1, 1.2, lin, (p) => { const n = Math.round(RETRIEVE_TOP * p); setText("feed-count", String(n)); LN.count(n); });
+    seg(1.0, 2.3, lin, (p) => slips.forEach((e, i) => { const a = prog(p, i / (slips.length + 2), (i + 2) / (slips.length + 2)); if (p < 1) inDrawer(e, i, 3.4 * Math.sin(a * Math.PI) * (1 - i / 14)); LN.slip(i, a); }));
     when(2.31, () => slips.forEach((e, i) => onStack(e, i)));
-    when(2.4, () => setOn("badge-2", true));
     sound(0.2, "search", L.DRAWER.y1 + 4, XDEAL + 6, 30, "accent");
 
     /* 2 inspect */
     const GAP = 0.56, nS = slips.length;
-    newClip("inspect").dur = nS * GAP + 2.9;
-    curClip.chipAt = nS * GAP + 1.8;
+    newClip("inspect");
+    const tFin = (nS - 1) * GAP + 0.1 + 0.85 + 0.62 + 0.3;
+    curClip.dur = tFin + 1.9;
+    curClip.chipAt = tFin + 0.7;
     slips.forEach((e, i) => {
       e.z0 = STACK_TOP + (nS - 1 - i) * L.SLIP.t + 0.15;
       const lane = e.t.selected ? { q: M.queue.indexOf(i) } : { drop: M.dropSlips.indexOf(i) };
-      readOne(e, i * GAP + 0.1, i === 0 ? 0 : M.first[i - 1].prob, e.t.prob, lane);
+      readOne(e, i * GAP + 0.1, i === 0 ? 0 : M.first[i - 1].prob, e.t.prob, lane, i);
       const tPip = i * GAP + 0.1 + 0.85 + 0.4;
       when(tPip, () => { const pip = svg.querySelector(`[data-ref="g-pips"] [data-i="${i}"]`); if (pip) { pip.setAttribute("data-on", ""); if (e.t.selected) pip.setAttribute("data-sel", ""); } setText("g-pips-cap", M.pips(i + 1)); });
     });
 
+    {
+      // when the last slip is through, the gauge settles on the best score (what the gate will use)
+      const lastP = M.first[nS - 1].prob;
+      seg(tFin, tFin + 0.8, smooth, (p) => { const v = lerp(lastP, M.best, p); setNeedle("g", v); setText("g-read", fmt3(v)); LN.gauge(v); });
+    }
     /* 3 decide */
     newClip("decide");
     const mk = R("t-marker");
-    seg(0.25, 1.35, smooth, (p) => { const v = M.best * p; mk.setAttribute("transform", `translate(${(7 + 62 * v).toFixed(2)} 0)`); setText("t-read", fmt3(v)); });
-    when(1.4, () => lamps(M.decision));
+    seg(0.25, 1.35, smooth, (p) => { const v = M.best * p; mk.setAttribute("transform", `translate(${(7 + 62 * v).toFixed(2)} 0)`); setText("t-read", fmt3(v)); LN.marker(v); });
+    when(1.4, () => { lamps(M.decision); LN.lamp(M.decision); });
     const sig = M.decision === "correct" ? "pass" : M.decision === "incorrect" ? "reject" : "hold";
     sound(1.4, "ding", ST.gate.x0 + 58, L.CAB_FRONT, 120, sig);
     let tOpen = 2.0;
@@ -1021,6 +1151,7 @@ function mount(el, opts) {
       });
       seg(T2, T2 + 0.45, easeIn, (p) => { clipOn(ticket, p > 0.08); place(ticket, L.FUNNEL.cx, R0.front, lerp(zt, 122, p), 60); });
       when(T2 + 0.5, () => show(ticket, false));
+      M.newQ.forEach((_, j) => seg(T2 + 0.5 + j * 0.35, T2 + 0.95 + j * 0.35, easeOut, (p) => LN.ticket(j, p)));
       sound(T1 + 0.05, "whirr", R0.fromX - 14, R0.back, R0.z + 12, "hold");
       sound(T2 + 0.1, "plop", L.FUNNEL.cx - 8, L.FUNNEL.cy, 176, "hold");
       const tq = T2 + 0.8;
@@ -1029,11 +1160,13 @@ function mount(el, opts) {
         e.z0 = STACK_TOP + 1.5;
         const later = M.later[j];
         const lane = M.queue.includes(100 + j) ? { q: M.queue.indexOf(100 + j) } : { drop: M.dropSlips.length + j };
-        const prev = j === 0 ? M.first[M.first.length - 1].prob : M.later[j - 1] ? M.later[j - 1].prob : M.first[M.first.length - 1].prob;
+        const prev = j === 0 ? M.best : M.later[j - 1] ? M.later[j - 1].prob : M.best;
         const end = readOne(e, tq + j * 0.62, prev, later ? later.prob : null, lane);
         tOpen = Math.max(tOpen, end);
       });
-      when(tOpen, () => lamps(M.finalDecision));
+      const lastQ = M.later.slice(0, M.newQ.length).filter(Boolean).pop();
+      if (lastQ) seg(tOpen - 0.8, tOpen - 0.2, smooth, (p) => { const v = lerp(lastQ.prob, M.best, p); setNeedle("g", v); setText("g-read", fmt3(v)); LN.gauge(v); });
+      when(tOpen, () => { lamps(M.finalDecision); LN.lamp(M.finalDecision); });
     }
     seg(tOpen, tOpen + 0.5, smooth, (p) => setTool("gate", 0, 0, 34 * p));
     curClip.dur = tOpen + 1.2;
@@ -1066,8 +1199,8 @@ function mount(el, opts) {
       seg(te, te + 0.3, easeOut, (p) => { show(e, true); place(e, lerp(XP, XP + 22, p), BY, lerp(ZB + 5, ZB, p)); });
       seg(te + 0.3, te + 0.7, smooth, (p) => place(e, lerp(XP + 22, SW, p), BY, ZB));
       const r = rows[i];
-      seg(te, te + 0.4, easeOut, (p) => { r.g.setAttribute("data-s", p > 0 ? (s2.kept ? "kept" : "dropped") : "idle"); r.bar.setAttribute("transform", `translate(11 0) scale(${(r.w * p + 0.001).toFixed(3)} 1)`); r.mark.style.opacity = p > 0.6 ? 1 : 0; });
-      seg(te, te + per, lin, (p) => setText("c-f", String(Math.round(lerp(M.wordsA, M.wordsF, clamp((i + p) / nSent))))));
+      seg(te, te + 0.4, easeOut, (p) => { r.g.setAttribute("data-s", p > 0 ? (s2.kept ? "kept" : "dropped") : "idle"); r.bar.setAttribute("transform", `translate(11 0) scale(${(r.w * p + 0.001).toFixed(3)} 1)`); r.mark.style.opacity = p > 0.6 ? 1 : 0; LN.sent(i, p); });
+      seg(te, te + per, lin, (p) => { const v = Math.round(lerp(M.wordsA, M.wordsF, clamp((i + p) / nSent))); setText("c-f", String(v)); LN.words(v); });
       if (s2.kept) {
         const k2 = kk++;
         const px = XPAN + ((k2 % 2) - 0.5) * 8, py = BY - 9 + (Math.floor(k2 / 2) % 4) * 6, pz = ZB + 4 + Math.floor(k2 / 8) * 1.5;
@@ -1078,6 +1211,7 @@ function mount(el, opts) {
         const bx = L.BIN.x + 10 + (d2 % 3) * 19, by = L.BIN.y + 6 + Math.floor(d2 / 3) * 6;
         const tp = te + 0.7;
         pushes.push(tp);
+        seg(tp + 0.08, tp + 0.55, smooth, (p) => LN.sentDrop(i, p));
         seg(tp + 0.08, tp + 0.38, smooth, (p) => { place(e, SW, BY + 0.6 + 30 * p, ZB); setKey(e, BY + 0.6 + 30 * p > BELT_FRONT + 2 ? BIN_MID + 0.4 : e.key); });
         seg(tp + 0.38, tp + 0.7, easeIn, (p) => { place(e, lerp(SW, bx, p), lerp(BY + 30.6, by, p), lerp(ZB, 3.1, p)); setKey(e, BIN_MID + 0.4); });
         sound(tp + 0.62, "plink", bx, by + 4, 44, "reject");
@@ -1097,8 +1231,8 @@ function mount(el, opts) {
     newClip("weigh").dur = 3.6;
     curClip.chipAt = 2.4;
     seg(0.2, 0.8, smooth, (p) => setTool("pan", 0, 0, -1.8 * p * M.suff));
-    seg(0.4, 2.4, lin, (p) => { const v = lerp(0, M.suff, spring(p)); setNeedle("s", v); setText("s-read", fmt3(v)); });
-    when(2.45, () => setOn(M.suff >= TH.tau_abstain ? "s-hi" : "s-lo", true));
+    seg(0.4, 2.4, lin, (p) => { const v = lerp(0, M.suff, spring(p)); setNeedle("s", v); setText("s-read", fmt3(v)); LN.weigh(v); });
+    when(2.45, () => { setOn(M.suff >= TH.tau_abstain ? "s-hi" : "s-lo", true); LN.verdict(true); });
     sound(0.45, "bong", ST.scale.x0 + 60, L.CAB_FRONT, 112, M.suff >= TH.tau_abstain ? "pass" : "");
 
     /* 6 answer */
@@ -1106,10 +1240,11 @@ function mount(el, opts) {
     curClip.chipAt = 2.0;
     const kept = strips.filter((e) => e.s.kept);
     seg(0, 0.5, smooth, (p) => kept.forEach((e) => { e.root.style.opacity = 1 - p; if (p >= 1) show(e, false); }));
-    seg(0.2, 1.3, smooth, (p) => { show(acard, true); place(acard, lerp(XPAN + 40, XO, p), BY, ZB + 1.7, 5); });
+    seg(0.2, 1.3, smooth, (p) => { show(acard, true); place(acard, lerp(XPAN + 40, XO, p), BY, ZB + 1.7, 5); LN.acard(p); });
     seg(1.4, 1.76, lin, (p) => setTool("output", 0, 0, -29 * (p < 0.42 ? easeIn(p / 0.42) : 1 - smooth((p - 0.42) / 0.58))));
     when(1.55, () => { const ink = acard.el.querySelector('[data-ref="ink"]'); ink.style.display = ""; ink.setAttribute("data-s", M.abstain ? "abstain" : "pass"); setText("o-cite", M.abstain ? "-" : M.citations.map((c) => `[${c}]`).join(" ") || "-"); });
-    seg(1.55, 2.3, easeOut, (p) => showCard(p));
+    seg(1.55, 2.3, easeOut, (p) => { showCard(p); LN.stamp(p); });
+    seg(2.0, 2.7, easeOut, (p) => LN.rest(p));
     sound(1.52, "stamp", XO + 6, BY + 18, 64, M.abstain ? "" : "pass");
   }
 
@@ -1180,6 +1315,9 @@ function mount(el, opts) {
     dirty = true;
     resort();
     snds.forEach((s2) => (s2.el.style.opacity = 0));
+    LN.reset(); LN.show(-1);
+    for (let i = 1; i <= 7; i++) setOn("badge-" + i, false);
+    svg.removeAttribute("data-st");
     chipUpTo = -1;
   }
 
@@ -1236,6 +1374,7 @@ function mount(el, opts) {
   }
   function applyLang(initial) {
     const tt = TT();
+    if (!initial) buildLens();
     svg.setAttribute("data-lang", ST0.lang);
     svg.setAttribute("aria-label", tt.label);
     root.setAttribute("aria-label", tt.label);
@@ -1303,12 +1442,13 @@ function mount(el, opts) {
   let narrow = false, bw = L.W, bh = L.H;
   function metrics() {
     const sw = stage.clientWidth || 800;
-    const nw = sw < 560;
+    const beside = !!lensEl && root.clientWidth >= 900; // lens in its own column: the bench gets a taller, pushed-in view
+    const nw = sw < 560 || (beside && sw < 1000);
     if (nw !== narrow || svg.getAttribute("preserveAspectRatio") == null) {
       narrow = nw;
       svg.setAttribute("preserveAspectRatio", nw ? "xMidYMid slice" : "xMidYMid meet");
-      svg.style.aspectRatio = nw ? "1 / 0.8" : "";
     }
+    svg.style.aspectRatio = nw ? (sw < 560 ? "1 / 0.8" : "1 / 0.78") : "";
     const sh = svg.clientHeight || sw * (L.H / L.W);
     const sc = Math.max(sw / L.W, sh / L.H);
     bw = narrow ? sw / sc : L.W;
@@ -1318,8 +1458,10 @@ function mount(el, opts) {
   function camTarget(i) {
     const sw = metrics();
     let want = L.W; // visible width in drawing units
-    if (narrow) want = i === 3 ? 560 : 430;
-    else if (sw < 760) want = i < 0 ? L.W : 640;
+    if (narrow) {
+      const base = sw < 560 ? 430 : clamp(sw / 1.2, 400, 600);
+      want = i === 3 ? Math.min(L.W, base * 1.3) : base;
+    } else if (i >= 0) { want = Math.min(L.W, sw / 1.05); if (i === 3) want = Math.min(L.W, want * 1.35); }
     const z = Math.max(0.2, bw / want);
     const a = anchors()[Math.max(0, i)];
     cam.ts = z;
@@ -1333,6 +1475,10 @@ function mount(el, opts) {
     camG.setAttribute("transform", cam.s === 1 && Math.abs(cam.x - L.W / 2) < 0.01 && Math.abs(cam.y - L.H / 2) < 0.01 ? "" : `translate(${L.W / 2} ${L.H / 2}) scale(${cam.s.toFixed(4)}) translate(${(-cam.x).toFixed(2)} ${(-cam.y).toFixed(2)})`);
   }
   function evalClip(c, tt, final) {
+    const ci = clips.indexOf(c);
+    LN.show(ci);
+    svg.setAttribute("data-st", stationOfStep[ci]);
+    for (let i = 1; i <= 7; i++) setOn("badge-" + i, i === badgeOfStep[ci]);
     for (const s2 of c.segs) {
       if (tt < s2.t0 - 1e-9) continue;
       if (s2.ease === null) { s2.fn(); continue; }

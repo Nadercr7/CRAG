@@ -14,22 +14,25 @@ mkdirSync(join(HERE, "shots"), { recursive: true });
 const b = await chromium.launch();
 for (const scenario of sc.split(","))
   for (const theme of th.split(","))
-    for (const width of wd.split(",").map(Number)) {
-      const ctx = await b.newContext({ viewport: { width, height: width < 600 ? 900 : 1000 }, deviceScaleFactor: width < 600 ? 2 : 1, colorScheme: theme });
+    for (const wtoken of wd.split(",")) {
+      const slide = wtoken === "slide";
+      const width = slide ? 1280 : Number(wtoken);
+      const tag = slide ? "slide" : String(width);
+      const ctx = await b.newContext({ viewport: { width, height: slide ? 720 : width < 600 ? 900 : 1000 }, deviceScaleFactor: width < 600 ? 2 : 1, colorScheme: theme });
       const page = await ctx.newPage();
       page.on("pageerror", (e) => console.log("pageerror:", e.message));
-      await page.goto(`file://${join(HERE, "demo.html")}?scenario=${scenario}&theme=${theme}&controls=1`);
+      await page.goto(`file://${join(HERE, "demo.html")}?scenario=${scenario}&theme=${theme}&controls=1${slide ? "&slide" : ""}`);
       await page.waitForTimeout(400);
       const files = [];
       for (let i = 0; i < 7; i++) {
         await page.evaluate(([i2, f]) => window.m.seek(i2, window.m.duration(i2) * f), [i, FRAC[i]]);
         await page.waitForTimeout(80);
-        const f = join(HERE, "shots", `${scenario}-${theme}-${width}-${i + 1}-${IDS[i]}.png`);
-        await (await page.$(".vrm")).screenshot({ path: f });
+        const f = join(HERE, "shots", `${scenario}-${theme}-${tag}-${i + 1}-${IDS[i]}.png`);
+        await (await page.$(slide ? ".page" : ".vrm")).screenshot({ path: f });
         files.push(f);
       }
       await ctx.close();
-      const sheet = join(HERE, "shots", `sheet-${scenario}-${theme}-${width}.png`);
+      const sheet = join(HERE, "shots", `sheet-${scenario}-${theme}-${tag}.png`);
       execFileSync("python3", ["-c", `
 import sys
 from PIL import Image
