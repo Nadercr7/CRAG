@@ -136,7 +136,7 @@ function cabinetShell(st) {
   const plan = { x: x0, y: Z.CAB_Y, w: Z.CAB_W, d: Z.CAB_FRONT - Z.CAB_Y, r: 3 };
   const out = [`<path class="iso-halo" d="${k.haloOf(plan, 0, 8, P)}"/>`];
   out.push(box(k.insetPlan(plan, 3), 0, 8, { tone: "lo", bevel: 0 }));
-  out.push(S(k.slabOf(plan, 8, Z.CAB_TOP - 12 - 8, P, 3, 1), { tone: "mid", inner: Ln(k.sideSeam(plan, 52, P, 3), { tone: "faint" }) }));
+  out.push(S(k.slabOf(plan, 8, Z.CAB_TOP - 12 - 8, P, 3, 1), { tone: "mid", inner: Ln(k.sideSeam(plan, 52, P, 3) + k.sideSeam(plan, 33, P, 3), { tone: "faint" }) }));
   const cap = { x: x0 - 1.5, y: Z.CAB_Y - 1.5, w: Z.CAB_W + 3, d: Z.CAB_FRONT - Z.CAB_Y + 3, r: 3.4 };
   out.push(S(k.slabOf(cap, Z.CAB_TOP - 12, 12, P, 3, 1), { tone: "mid" }));
   out.push(Ln(k.planOutline(k.insetPlan(cap, 3), Z.CAB_TOP, P, 3), { tone: "faint" }));
@@ -202,6 +202,7 @@ const dialTicks = (cx, cy, r, count, every, lens, sweep, start) => {
   return { minor, major };
 };
 const L2 = (d, tone = "lo", extra = "") => `<path class="iso-line" data-tone="${tone}" d="${d}"${extra}/>`;
+const FREE = ' data-free=""';
 
 function contentFeeder(rect) {
   const h = rect.z1 - rect.z0;
@@ -210,7 +211,7 @@ function contentFeeder(rect) {
   // question card icon (left) and paragraph counter (right)
   s += `<g data-ref="feed-card" transform="translate(9 ${h / 2 - 11})"><rect class="vrm-card" x="0" y="0" width="26" height="22" rx="1.6"/><rect class="vrm-card-tab" x="0" y="0" width="26" height="4" rx="1.6"/>`;
   s += `<text class="vrm-glyph" x="13" y="17.2" text-anchor="middle" font-size="14">?</text></g>`;
-  s += L2(`M40 ${h / 2}H52`, "mid") + L2(`M49 ${h / 2 - 3}L52.4 ${h / 2}L49 ${h / 2 + 3}`, "mid");
+  s += L2(`M40 ${h / 2}H52`, "mid", FREE) + L2(`M49 ${h / 2 - 3}L52.4 ${h / 2}L49 ${h / 2 + 3}`, "mid", FREE);
   s += `<text class="vrm-digits" data-ref="feed-count" x="${w - 7}" y="${h / 2 + 3.8}" text-anchor="end" font-size="15">--</text>`;
   s += `<text class="vrm-cap" data-ref="feed-cap" x="${w - 7}" y="${h - 3}" text-anchor="end" font-size="5.6"></text>`;
   return wrap(rect, s);
@@ -230,6 +231,7 @@ function contentGauge(rect) {
   s += `<path class="vrm-zone vrm-z-pass" d="${arcPath(cx, cy, r + 3.4, th.tau_hi, 1, sweep, start)}"/>`;
   s += `<circle class="vrm-face" cx="${cx}" cy="${cy}" r="${r + 1.4}"/>`;
   const t = dialTicks(cx, cy, r, 50, 5, [1.6, 3.6], sweep, start);
+  s += L2(arcPath(cx, cy, r, 0, 1, sweep, start), "lo");
   s += L2(t.minor, "lo") + L2(t.major, "mid");
   const lab = (v, text) => {
     const a = ((start + sweep * v) * Math.PI) / 180;
@@ -254,10 +256,10 @@ function contentGate(rect) {
   s += `<rect class="vrm-zone vrm-z-pass" x="${ux(th.tau_hi)}" y="9" width="${fix(bw * (1 - th.tau_hi))}" height="6"/>`;
   s += L2(`M${u0} 9H${u1}V15H${u0}Z`, "mid");
   for (const [v, txt] of [[th.tau_lo, th.tau_lo.toFixed(2)], [th.tau_hi, th.tau_hi.toFixed(2)]]) {
-    s += L2(`M${ux(v)} 6.5V17.5`, "hi");
+    s += L2(`M${ux(v)} 6.5V17.5`, "hi", FREE);
     s += `<text class="vrm-cap" x="${ux(v)}" y="25.4" text-anchor="middle" font-size="5.8">${txt}</text>`;
   }
-  s += L2(`M${u0} 15V19`, "lo") + L2(`M${u1} 15V19`, "lo");
+  s += L2(`M${u0} 15V19`, "lo", FREE) + L2(`M${u1} 15V19`, "lo", FREE);
   s += `<text class="vrm-cap" x="${u0}" y="23" text-anchor="middle" font-size="5">0</text><text class="vrm-cap" x="${u1}" y="23" text-anchor="middle" font-size="5">1</text>`;
   s += `<g data-ref="t-marker" transform="translate(${u0} 0)"><path class="vrm-marker" d="M0 15.6L-3.2 21.6H3.2Z"/></g>`;
   // three lamps
@@ -289,7 +291,7 @@ function contentCounter(rect) {
   s += `<text class="vrm-cap" data-ref="c-cap" x="5" y="5.2" font-size="4.8"></text>`;
   s += `<text class="vrm-digits vrm-dim" data-ref="c-a" x="22" y="${h - 3}" text-anchor="end" font-size="10">0</text>`;
   s += `<path class="vrm-strike" d="M5 ${h - 6.2}H23"/>`;
-  s += L2(`M27 ${h - 6}H36M33.4 ${h - 8.6}L36.4 ${h - 6}L33.4 ${h - 3.4}`, "hi");
+  s += L2(`M27 ${h - 6}H36M33.4 ${h - 8.6}L36.4 ${h - 6}L33.4 ${h - 3.4}`, "hi", FREE);
   s += `<text class="vrm-digits" data-ref="c-f" x="${rect.x1 - rect.x0 - 12}" y="${h - 3}" text-anchor="end" font-size="10.5">0</text>`;
   return wrap(rect, s);
 }
@@ -306,10 +308,11 @@ function contentScale(rect) {
   s += `<path class="vrm-zone vrm-z-pass" d="${arcPath(cx, cy, r + 3, th.tau_abstain, 1, sweep, start)}"/>`;
   s += `<path class="vrm-face" d="${arcPath(cx, cy, r + 1.2, 0, 1, sweep, start)}Z"/>`;
   const t = dialTicks(cx, cy, r, 40, 4, [1.8, 3.8], sweep, start);
+  s += L2(arcPath(cx, cy, r, 0, 1, sweep, start), "lo");
   s += L2(t.minor, "lo") + L2(t.major, "mid");
   const a = ((start + sweep * th.tau_abstain) * Math.PI) / 180;
   s += `<path class="vrm-redline" d="M${fix(cx + 6 * Math.sin(a))} ${fix(cy - 6 * Math.cos(a))}L${fix(cx + (r + 4.6) * Math.sin(a))} ${fix(cy - (r + 4.6) * Math.cos(a))}"/>`;
-  s += `<text class="vrm-cap vrm-line-lab" x="${fix(cx + (r + 5.2) * Math.sin(a)) - 0.5}" y="${fix(cy - (r + 5.2) * Math.cos(a)) - 0.2}" text-anchor="end" font-size="5">${th.tau_abstain.toFixed(2)}</text>`;
+  s += `<text class="vrm-cap vrm-line-lab" x="${fix(cx + (r + 8) * Math.sin(a)) + 0.5}" y="${fix(cy - (r + 8) * Math.cos(a)) - 1.4}" text-anchor="middle" font-size="5">${th.tau_abstain.toFixed(2)}</text>`;
   s += `<g data-ref="s-needle" transform="translate(${cx} ${cy}) rotate(${start})"><path class="vrm-needle" d="M0 3.4L0 -${r - 2}"/></g>`;
   s += `<circle class="vrm-hub" cx="${cx}" cy="${cy}" r="2.4"/>`;
   s += `<text class="vrm-digits" data-ref="s-read" x="${cx}" y="9.6" text-anchor="middle" font-size="8">0.000</text>`;
@@ -367,8 +370,6 @@ function station(st, index) {
   out.push(Ln(k.pathOf([at([x0 + 98 - 3.6, Z.CAB_FRONT + 3.4, 21]), at([x0 + 98 + 3.6, Z.CAB_FRONT + 3.4, 21])]), { tone: "mid", free: true }));
   const frontScrews = [[x0 + 4, 100], [x0 + Z.CAB_W - 4, 100], [x0 + 4, 12], [x0 + Z.CAB_W - 4, 12], [x0 + 4, 60], [x0 + Z.CAB_W - 4, 60]];
   out.push(screwsFront(frontScrews, Z.CAB_FRONT));
-  out.push(Ln(k.pathOf([at([x0 + 3, Z.CAB_FRONT, 33]), at([x0 + Z.CAB_W - 3, Z.CAB_FRONT, 33])]), { tone: "faint" }));
-  out.push(Ln(k.pathOf([at([x0 + 3, Z.CAB_FRONT, 95.4]), at([x0 + Z.CAB_W - 3, Z.CAB_FRONT, 95.4])]), { tone: "faint" }));
   put(`cab-${st.id}`, 100 + index, out.join(""));
 }
 
@@ -508,7 +509,6 @@ function feeder() {
   out.push(`<text class="vrm-plate" data-ref="plate-feed" x="${F.x + 38}" y="-18.4" font-size="7.4"></text>`);
   out.push(`</g>`);
   out.push(screwsFront([[F.x + 4, 6], [F.x + F.w - 4, 6], [F.x + 4, 74], [F.x + F.w - 4, 74], [F.x + 4, 38], [F.x + F.w - 4, 38]], Z.FEEDER_FRONT));
-  out.push(Ln(k.pathOf([at([F.x + 3, Z.FEEDER_FRONT, 36.6]), at([F.x + F.w - 3, Z.FEEDER_FRONT, 36.6])]), { tone: "faint" }));
   // vents on the left face are hidden; add a pair of grab handles on the front plate
   const hd = G.frameAlong([F.x + 8, Z.FEEDER_FRONT, 9], [0, 1, 0]);
   out.push(S(G.disc(0, 1.6, 2, hd, P, {}), { tone: "mid", crease: "none" }));
@@ -536,7 +536,6 @@ function funnel() {
   back.push(`<path class="vrm-hole" d="${mouth}"/>`);
   back.push(Ln(k.ring(f.cx, f.cy, f.rTop - 0.2, f.rim + 8, P, 56), { tone: "mid" }));
   // seams on the bowl and a band at the neck
-  back.push(Ln(G.arcOf(G.frameAlong([f.cx, f.cy, f.neckTo + 14], [0, 0, 1]), 0, 22, P, {}), { tone: "faint" }));
   const neckBand = G.ringBand(0, 3, f.neck, f.neck + 2.2, G.frameAlong([f.cx, f.cy, f.neckTo - 6], [0, 0, 1]), P, {});
   back.push(S(neckBand, { tone: "mid", crease: "faint" }));
   // four legs from the feeder roof to the bowl
@@ -601,7 +600,7 @@ function rail() {
   const back = { x: R.left - 2.5, y: R.back - 2.5, w: R.fromX - R.left + 5, d: 5, r: 1 };
   const left = { x: R.left - 2.5, y: R.back - 2.5, w: 5, d: R.front - R.back + 5, r: 1 };
   const front = { x: R.left - 2.5, y: R.front - 2.5, w: Z.FUNNEL.cx - R.left + 2.5 + 8, d: 5, r: 1 };
-  put("rail-back", 1000 + depth((R.left + R.fromX) / 2, R.back, z) - 100, bar(back) + Ln(k.lineOnTop([R.left + 2.5, R.back], [R.fromX - 2.5, R.back], z + 5, P), { tone: "faint" }));
+  put("rail-back", 1000 + depth((R.left + R.fromX) / 2, R.back, z) - 100, bar(back) + Ln(k.lineOnTop([R.left - 2.5, R.back], [R.fromX + 2.5, R.back], z + 5, P), { tone: "faint" }));
   const posts = [
     [R.left, R.back, 0, 20],
     [R.fromX, R.back, Z.CAB_TOP, 20],
@@ -614,7 +613,7 @@ function rail() {
   put("rail-left", 1000 + depth(R.left, (R.back + R.front) / 2, z) - 70, bar(left));
   const frontPost = box({ x: R.left - 4, y: R.front - 4, w: 8, d: 8, r: 1.2 }, 0, z, { tone: "mid", bevel: 0.4 });
   put("rail-front-post", 1000 + depth(R.left, R.front, 40), frontPost + Ln(k.sideSeam({ x: R.left - 4, y: R.front - 4, w: 8, d: 8, r: 1.2 }, 90, P, 2), { tone: "faint" }));
-  put("rail-front", 1000 + depth(R.left + 30, R.front, z) + 80, bar(front) + Ln(k.lineOnTop([R.left + 2.5, R.front], [Z.FUNNEL.cx + 5, R.front], z + 5, P), { tone: "faint" }));
+  put("rail-front", 1000 + depth(R.left + 30, R.front, z) + 80, bar(front) + Ln(k.lineOnTop([R.left - 2.5, R.front], [front.x + front.w, R.front], z + 5, P), { tone: "faint" }));
   // end plate over the funnel
   void out;
 }

@@ -10,7 +10,7 @@ import { buildArt } from "./src/art.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const read = (p) => readFileSync(join(HERE, p), "utf8");
-const strip = (file) => readFileSync(join(HERE, "vendor", file), "utf8").replace(/^export /gm, "");
+const strip = (file) => readFileSync(join(HERE, "vendor", file), "utf8").replace(/^export /gm, "").replace(/const ISO_CSS = `[\s\S]*$/, "");
 
 // ---- data: only for the fixed thresholds drawn on the dials (the live code re-reads everything from VRAG_DATA)
 const sandbox = { window: {} };

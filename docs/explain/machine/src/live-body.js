@@ -251,7 +251,7 @@ function mount(el, opts) {
     sound(0.2, "search", L.DRAWER.y1 + 4, XDEAL + 6, 30, "accent");
 
     /* 2 inspect */
-    const GAP = 0.64, nS = slips.length;
+    const GAP = 0.56, nS = slips.length;
     newClip("inspect").dur = nS * GAP + 2.9;
     curClip.chipAt = nS * GAP + 1.8;
     slips.forEach((e, i) => {
@@ -275,7 +275,7 @@ function mount(el, opts) {
       const path = [[R0.fromX, R0.back], [R0.left, R0.back], [R0.left, R0.front], [L.FUNNEL.cx, R0.front]];
       const lens = []; let tot = 0;
       for (let i = 1; i < path.length; i++) { lens.push(Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1])); tot += lens[i - 1]; }
-      const T1 = 1.9, T2 = T1 + 0.3 + 2.4;
+      const T1 = 1.9, T2 = T1 + 0.3 + 1.9;
       seg(T1, T1 + 0.3, easeOut, (p) => { clipOn(ticket, false); show(ticket, true); ticket.root.style.opacity = p; place(ticket, R0.fromX, R0.back, zt - 8 * (1 - p), 30); });
       seg(T1 + 0.3, T2, smooth, (p) => {
         let d = p * tot, i = 0;
@@ -294,7 +294,7 @@ function mount(el, opts) {
         const later = M.later[j];
         const lane = M.queue.includes(100 + j) ? { q: M.queue.indexOf(100 + j) } : { drop: M.dropSlips.length + j };
         const prev = j === 0 ? M.first[M.first.length - 1].prob : M.later[j - 1] ? M.later[j - 1].prob : M.first[M.first.length - 1].prob;
-        const end = readOne(e, tq + j * 0.8, prev, later ? later.prob : null, lane);
+        const end = readOne(e, tq + j * 0.62, prev, later ? later.prob : null, lane);
         tOpen = Math.max(tOpen, end);
       });
       when(tOpen, () => lamps(M.finalDecision));
@@ -306,13 +306,13 @@ function mount(el, opts) {
     /* 4 trim */
     newClip("trim");
     const nSent = M.sentences.length;
-    const per = nSent > 12 ? 0.26 : 0.34;
+    const per = nSent > 12 ? 0.2 : nSent > 8 ? 0.26 : 0.32;
     const qEnt = M.queue.map((id) => (id >= 100 ? qslips[id - 100] : slips[id]));
     const shares = M.queue.map((_, j) => Math.floor(nSent / nQ) + (j < nSent % nQ ? 1 : 0));
     const stripT = [];
     let tc = 0.5, cum = 0;
     qEnt.forEach((e, j) => {
-      const tP = tc + 0.55;
+      const tP = tc + 0.45;
       const xFrom = queueX(j);
       seg(Math.max(0.02, tc - 0.1), tP, smooth, (p) => place(e, lerp(xFrom, XP, p), BY, ZB));
       seg(tP, tP + 0.36, lin, (p) => setTool("press", 0, 0, -23 * (p < 0.42 ? easeIn(p / 0.42) : 1 - smooth((p - 0.42) / 0.58))));
@@ -344,7 +344,7 @@ function mount(el, opts) {
         pushes.push(tp);
         seg(tp + 0.08, tp + 0.38, smooth, (p) => { place(e, SW, BY + 0.6 + 30 * p, ZB); setKey(e, BY + 0.6 + 30 * p > BELT_FRONT + 2 ? BIN_MID + 0.4 : e.key); });
         seg(tp + 0.38, tp + 0.7, easeIn, (p) => { place(e, lerp(SW, bx, p), lerp(BY + 30.6, by, p), lerp(ZB, 3.1, p)); setKey(e, BIN_MID + 0.4); });
-        sound(tp + 0.62, "plink", bx, by + 4, 14, "reject");
+        sound(tp + 0.62, "plink", bx, by + 4, 44, "reject");
         tLast = Math.max(tLast, tp + 0.75);
       }
     });
@@ -571,7 +571,7 @@ function mount(el, opts) {
     if (nw !== narrow || svg.getAttribute("preserveAspectRatio") == null) {
       narrow = nw;
       svg.setAttribute("preserveAspectRatio", nw ? "xMidYMid slice" : "xMidYMid meet");
-      svg.style.aspectRatio = nw ? "1 / 0.9" : "";
+      svg.style.aspectRatio = nw ? "1 / 0.8" : "";
     }
     const sh = svg.clientHeight || sw * (L.H / L.W);
     const sc = Math.max(sw / L.W, sh / L.H);
@@ -623,7 +623,7 @@ function mount(el, opts) {
       const c = clips[idx];
       if (t >= c.dur) { evalClip(c, c.dur, false); finish(); }
       else { evalClip(c, t, false); busy = true; }
-    } else if (running) busy = true;
+    }
     // camera follows with a critically damped ease
     const k2 = 1 - Math.exp(-dt / 0.35);
     cam.x += (cam.tx - cam.x) * k2; cam.y += (cam.ty - cam.y) * k2; cam.s += (cam.ts - cam.s) * k2;
