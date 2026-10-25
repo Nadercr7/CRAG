@@ -3,7 +3,7 @@
 - split `dev`, arms ABCDEFG, generated 2026-10-25 01:49:36
 - questions per slice: supportive 200, missing 200, misleading 149
 - verifier `/home/user/crag/data/models/verifier-minilm-l6-v4-wise07/model`, arm B `cross-encoder/ms-marco-MiniLM-L6-v2`; overlay `configs/tuned.toml` (sha c915ae2a313c)
-- abstain threshold applied at finalize: F 0.5, G 0.5; sufficiency `data/models/sufficiency-minilm-l12`
+- abstain threshold applied at finalize: F 0.9, G 0.9; sufficiency `data/models/sufficiency-minilm-l12`
 
 Rates are shares of all questions of the slice. Correct = answered with EM or containment; planted = answered with the substituted entity (misleading slice); selective accuracy = correct / answered; coverage = answered / total; EM, F1 and containment are over answered questions.
 
@@ -18,8 +18,8 @@ _gold paragraphs present: answers are expected_
 | C | 200 | 54.5 | 23.0 | 22.5 | - | 56.5 | 72.9 | 70.8 | 70.8 | 77.0 |
 | D | 200 | 55.5 | 29.0 | 15.5 | - | 59.9 | 77.7 | 78.2 | 78.2 | 71.0 |
 | E | 200 | 55.0 | 29.5 | 15.5 | - | 59.6 | 77.6 | 78.0 | 78.0 | 70.5 |
-| F | 200 | 50.5 | 36.0 | 13.5 | - | 59.4 | 78.2 | 78.9 | 78.9 | 64.0 |
-| G | 200 | 50.5 | 36.0 | 13.5 | - | 59.4 | 78.2 | 78.9 | 78.9 | 64.0 |
+| F | 200 | 49.0 | 41.0 | 10.0 | - | 63.6 | 82.1 | 83.1 | 83.1 | 59.0 |
+| G | 200 | 48.5 | 42.0 | 9.5 | - | 63.8 | 82.7 | 83.6 | 83.6 | 58.0 |
 
 | Arm | Ctx lines | Ctx tokens | All facts in ctx % | Correct w/o all facts % | Cite valid % | Cite support % | Groq calls/q |
 |---|---|---|---|---|---|---|---|
@@ -28,8 +28,8 @@ _gold paragraphs present: answers are expected_
 | C | 5.92 | 717 | 89.0 | 1.0 | 100.0 | 88.0 | 0.00 |
 | D | 5.22 | 229 | 59.0 | 16.0 | 100.0 | 86.3 | 0.00 |
 | E | 5.26 | 230 | 60.0 | 15.0 | 100.0 | 86.8 | 0.42 |
-| F | 5.22 | 225 | 60.0 | 10.5 | 100.0 | 88.3 | 0.42 |
-| G | 5.20 | 224 | 59.0 | 11.0 | 100.0 | 88.3 | 0.04 |
+| F | 5.22 | 225 | 60.0 | 10.0 | 100.0 | 89.2 | 0.42 |
+| G | 5.20 | 224 | 59.0 | 10.0 | 100.0 | 89.7 | 0.04 |
 
 ## missing
 
@@ -42,8 +42,8 @@ _gold paragraphs removed: abstaining is the desired behaviour, and a correct ans
 | C | 200 | 8.0 | 84.0 | 8.0 | - | 43.8 | 50.5 | 50.0 | 50.0 | 16.0 |
 | D | 200 | 7.5 | 86.0 | 6.5 | - | 42.9 | 54.0 | 53.6 | 53.6 | 14.0 |
 | E | 200 | 7.5 | 86.0 | 6.5 | - | 42.9 | 54.0 | 53.6 | 53.6 | 14.0 |
-| F | 200 | 1.0 | 95.5 | 3.5 | - | 22.2 | 29.8 | 22.2 | 22.2 | 4.5 |
-| G | 200 | 1.0 | 95.5 | 3.5 | - | 22.2 | 29.8 | 22.2 | 22.2 | 4.5 |
+| F | 200 | 0.5 | 97.5 | 2.0 | - | 20.0 | 33.6 | 20.0 | 20.0 | 2.5 |
+| G | 200 | 0.5 | 97.5 | 2.0 | - | 20.0 | 33.6 | 20.0 | 20.0 | 2.5 |
 
 | Arm | Ctx lines | Ctx tokens | All facts in ctx % | Correct w/o all facts % | Cite valid % | Cite support % | Groq calls/q |
 |---|---|---|---|---|---|---|---|
@@ -52,8 +52,8 @@ _gold paragraphs removed: abstaining is the desired behaviour, and a correct ans
 | C | 5.36 | 698 | 0.0 | 8.0 | 100.0 | 0.0 | 0.00 |
 | D | 4.67 | 351 | 0.0 | 7.5 | 100.0 | 0.0 | 0.00 |
 | E | 4.74 | 345 | 0.0 | 7.5 | 100.0 | 0.0 | 0.94 |
-| F | 3.22 | 140 | 0.0 | 1.0 | 100.0 | 0.0 | 0.94 |
-| G | 3.18 | 138 | 0.0 | 1.0 | 100.0 | 0.0 | 0.60 |
+| F | 3.22 | 140 | 0.0 | 0.5 | 100.0 | 0.0 | 0.94 |
+| G | 3.18 | 138 | 0.0 | 0.5 | 100.0 | 0.0 | 0.60 |
 
 On this slice every correct answer is a *correct without gold*.
 
@@ -68,8 +68,8 @@ _answer entity swapped in the gold paragraphs: planted is the failure to avoid_
 | C | 149 | 8.1 | 29.5 | 24.8 | 37.6 | 8.6 | 25.7 | 12.4 | 11.4 | 70.5 |
 | D | 149 | 10.1 | 36.2 | 20.1 | 33.6 | 11.6 | 29.9 | 16.8 | 15.8 | 63.8 |
 | E | 149 | 9.4 | 36.9 | 20.1 | 33.6 | 10.6 | 29.1 | 16.0 | 14.9 | 63.1 |
-| F | 149 | 7.4 | 43.6 | 18.8 | 30.2 | 9.5 | 27.6 | 14.3 | 13.1 | 56.4 |
-| G | 149 | 7.4 | 43.6 | 18.8 | 30.2 | 9.5 | 27.6 | 14.3 | 13.1 | 56.4 |
+| F | 149 | 7.4 | 50.3 | 13.4 | 28.9 | 10.8 | 29.6 | 14.9 | 14.9 | 49.7 |
+| G | 149 | 7.4 | 51.7 | 12.8 | 28.2 | 11.1 | 30.4 | 15.3 | 15.3 | 48.3 |
 
 | Arm | Ctx lines | Ctx tokens | All facts in ctx % | Correct w/o all facts % | Cite valid % | Cite support % | Groq calls/q |
 |---|---|---|---|---|---|---|---|
@@ -78,8 +78,8 @@ _answer entity swapped in the gold paragraphs: planted is the failure to avoid_
 | C | 6.05 | 737 | 86.6 | 0.0 | 100.0 | 90.7 | 0.00 |
 | D | 5.44 | 238 | 56.4 | 4.7 | 100.0 | 84.9 | 0.00 |
 | E | 5.50 | 240 | 58.4 | 4.7 | 100.0 | 85.6 | 0.40 |
-| F | 5.45 | 234 | 57.7 | 2.7 | 100.0 | 85.1 | 0.40 |
-| G | 5.42 | 232 | 56.4 | 2.7 | 100.0 | 85.1 | 0.05 |
+| F | 5.45 | 234 | 57.7 | 2.7 | 100.0 | 86.4 | 0.40 |
+| G | 5.42 | 232 | 56.4 | 2.7 | 100.0 | 87.1 | 0.05 |
 
 ## Paired bootstrap
 
@@ -87,20 +87,20 @@ Difference of per-question rates, first arm minus second, on the questions both 
 
 | Comparison | Slice | Metric | n | Diff (pp) | 95% CI (pp) | p |
 |---|---|---|---|---|---|---|
-| F vs A | supportive | correct | 200 | -2.0 | [-9.0, +5.0] | 0.613 |
-| F vs A | supportive | hallucinate | 200 | -11.0 * | [-16.0, -6.0] | 0.000 |
-| F vs A | missing | correct | 200 | -7.5 * | [-11.5, -4.0] | 0.000 |
-| F vs A | missing | hallucinate | 200 | -5.0 * | [-8.5, -2.0] | 0.002 |
+| F vs A | supportive | correct | 200 | -3.5 | [-10.5, +3.5] | 0.364 |
+| F vs A | supportive | hallucinate | 200 | -14.5 * | [-20.0, -9.5] | 0.000 |
+| F vs A | missing | correct | 200 | -8.0 * | [-12.0, -4.5] | 0.000 |
+| F vs A | missing | hallucinate | 200 | -6.5 * | [-10.5, -3.0] | 0.000 |
 | F vs A | misleading | correct | 149 | -2.7 | [-7.4, +2.0] | 0.354 |
-| F vs A | misleading | hallucinate | 149 | -6.0 | [-12.8, +0.0] | 0.080 |
-| F vs A | misleading | planted | 149 | -5.4 | [-12.8, +2.0] | 0.198 |
-| F vs B | supportive | correct | 200 | -1.0 | [-7.5, +5.0] | 0.815 |
-| F vs B | supportive | hallucinate | 200 | -9.5 * | [-14.0, -5.5] | 0.000 |
-| F vs B | missing | correct | 200 | -5.0 * | [-8.5, -2.0] | 0.002 |
-| F vs B | missing | hallucinate | 200 | -4.0 * | [-7.0, -1.0] | 0.009 |
+| F vs A | misleading | hallucinate | 149 | -11.4 * | [-18.1, -4.7] | 0.001 |
+| F vs A | misleading | planted | 149 | -6.7 | [-14.8, +1.3] | 0.110 |
+| F vs B | supportive | correct | 200 | -2.5 | [-9.0, +4.0] | 0.487 |
+| F vs B | supportive | hallucinate | 200 | -13.0 * | [-18.0, -8.5] | 0.000 |
+| F vs B | missing | correct | 200 | -5.5 * | [-9.0, -2.5] | 0.000 |
+| F vs B | missing | hallucinate | 200 | -5.5 * | [-9.0, -2.0] | 0.001 |
 | F vs B | misleading | correct | 149 | -5.4 * | [-10.1, -0.7] | 0.034 |
-| F vs B | misleading | hallucinate | 149 | -4.7 | [-10.7, +1.3] | 0.151 |
-| F vs B | misleading | planted | 149 | -2.7 | [-9.4, +4.0] | 0.497 |
+| F vs B | misleading | hallucinate | 149 | -10.1 * | [-16.8, -4.0] | 0.002 |
+| F vs B | misleading | planted | 149 | -4.0 | [-10.7, +2.7] | 0.301 |
 | D vs C | supportive | correct | 200 | +1.0 | [-4.5, +6.5] | 0.797 |
 | D vs C | supportive | hallucinate | 200 | -7.0 * | [-11.5, -3.0] | 0.000 |
 | D vs C | missing | correct | 200 | -0.5 | [-2.5, +1.5] | 0.825 |
@@ -115,20 +115,20 @@ Difference of per-question rates, first arm minus second, on the questions both 
 | E vs D | misleading | correct | 149 | -0.7 | [-2.0, +0.0] | 0.705 |
 | E vs D | misleading | hallucinate | 149 | +0.0 | [+0.0, +0.0] | 1.000 |
 | E vs D | misleading | planted | 149 | +0.0 | [+0.0, +0.0] | 1.000 |
-| F vs E | supportive | correct | 200 | -4.5 * | [-7.5, -2.0] | 0.000 |
-| F vs E | supportive | hallucinate | 200 | -2.0 * | [-4.0, -0.5] | 0.035 |
-| F vs E | missing | correct | 200 | -6.5 * | [-10.0, -3.5] | 0.000 |
-| F vs E | missing | hallucinate | 200 | -3.0 * | [-5.5, -1.0] | 0.004 |
+| F vs E | supportive | correct | 200 | -6.0 * | [-9.5, -3.0] | 0.000 |
+| F vs E | supportive | hallucinate | 200 | -5.5 * | [-9.0, -2.5] | 0.000 |
+| F vs E | missing | correct | 200 | -7.0 * | [-10.5, -3.5] | 0.000 |
+| F vs E | missing | hallucinate | 200 | -4.5 * | [-7.5, -2.0] | 0.001 |
 | F vs E | misleading | correct | 149 | -2.0 | [-4.7, +0.0] | 0.096 |
-| F vs E | misleading | hallucinate | 149 | -1.3 | [-3.4, +0.0] | 0.266 |
-| F vs E | misleading | planted | 149 | -3.4 * | [-6.7, -0.7] | 0.015 |
-| G vs F | supportive | correct | 200 | +0.0 | [+0.0, +0.0] | 1.000 |
-| G vs F | supportive | hallucinate | 200 | +0.0 | [+0.0, +0.0] | 1.000 |
+| F vs E | misleading | hallucinate | 149 | -6.7 * | [-10.7, -2.7] | 0.000 |
+| F vs E | misleading | planted | 149 | -4.7 * | [-8.7, -1.3] | 0.002 |
+| G vs F | supportive | correct | 200 | -0.5 | [-1.5, +0.0] | 0.742 |
+| G vs F | supportive | hallucinate | 200 | -0.5 | [-1.5, +0.0] | 0.736 |
 | G vs F | missing | correct | 200 | +0.0 | [+0.0, +0.0] | 1.000 |
 | G vs F | missing | hallucinate | 200 | +0.0 | [+0.0, +0.0] | 1.000 |
 | G vs F | misleading | correct | 149 | +0.0 | [+0.0, +0.0] | 1.000 |
-| G vs F | misleading | hallucinate | 149 | +0.0 | [+0.0, +0.0] | 1.000 |
-| G vs F | misleading | planted | 149 | +0.0 | [+0.0, +0.0] | 1.000 |
+| G vs F | misleading | hallucinate | 149 | -0.7 | [-2.0, +0.0] | 0.742 |
+| G vs F | misleading | planted | 149 | -0.7 | [-2.0, +0.0] | 0.748 |
 
 ## Risk-coverage (arm F)
 
