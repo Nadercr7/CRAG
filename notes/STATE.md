@@ -19,9 +19,12 @@ Commit trailer: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>` + `Cla
 - Pipeline `src/vrag/pipeline/*` (prepare/finalize, arms A-G), eval `src/vrag/eval/qa_eval.py`, `stats.py`, `scripts/run_qa_eval.py` (`prepare`, `finalize`, `judge`, `import-rewrites`; `--offline-rewrites --rewrite-model local/Qwen3-4B-Instruct-2507` defers traces whose rewrite isn't cached and writes `rewrite_prompts.jsonl`). Containment metric has length/coverage guards.
 - Slices: supportive/missing/misleading; LLM substitutes in `data/processed/hotpot_substitutes.json` (old string format handled). Smoke generation on Kaggle worked (8 min).
 
-## In flight when this note was written
-1. DONE: rewrite prompts collected: `data/eval/rewrites_dev/rewrite_prompts.jsonl` (305) and `data/eval/rewrites_test/rewrite_prompts.jsonl` (494), via `prepare --split dev|test --arms E G --out data/eval/rewrites_<split>/ --sufficiency none --rewrite-model local/Qwen3-4B-Instruct-2507 --offline-rewrites`. Note: `data/` is gitignored and lives only in this container.
-2. Kaggle: `vrag-train-sufficiency-l12` (MiniLM-L12, 270k, 2 epochs). Compare with L6 on dev (per-kind AUC script idea: score sufficiency_dev.jsonl, AUC sufficient vs missing-hop / no-evidence); pick the better.
+## In flight (2026-10-25 ~01:35 UTC)
+1. DONE rewrites r1: 799 prompts (dev+test merged in `data/eval/upload/rewrites_r1.jsonl`), Kaggle `vrag-gen-vrag-gen-rewrites-r1`, 798 valid JSON, imported into cache (dev 305, test 494).
+2. DONE dev prepare (L6 sufficiency): `data/eval/dev_main/` 3843 traces, 2152 prompts, 0 uncached rewrites. Answers generating on Kaggle `vrag-gen-answers-dev` (outputs -> `data/kaggle/vrag-gen-answers-dev/output/outputs.jsonl`).
+3. Test prepare (L6) running -> `data/eval/test_main/` (log `data/eval/test_main.log`).
+4. Kaggle `vrag-train-sufficiency-l12` still running. Compare: `python scripts/eval_sufficiency.py data/kaggle/vrag-train-sufficiency-l6/output/model data/kaggle/vrag-train-sufficiency-l12/output/model --out results/tuning/sufficiency.md` (base 0.866/0.974/0.920, L6 0.886/0.989/0.937 missing-hop/no-evidence/pooled). If L12 wins: re-run both prepares into new dirs with L12 (8 min each, cache hits) — the answer prompts are identical, so the generated outputs can be reused (prompt ids are trace keys).
+5. tau_abstain rule pre-registered in PLAN.md; `run_qa_eval.py choose-tau --run data/eval/dev_main` after finalize.
 
 ## Next steps (in order)
 1. Upload both rewrite_prompts files (`kaggle_job.py prompts data/eval/rewrites_dev/rewrite_prompts.jsonl data/eval/rewrites_test/rewrite_prompts.jsonl` — note: same file name in both dirs; copy/rename to `rewrites_dev.jsonl` / `rewrites_test.jsonl` first), `generate` each (max_tokens 256), `wait`, then `run_qa_eval.py import-rewrites --run data/eval/rewrites_<split> --outputs data/kaggle/vrag-gen-<name>/output/outputs.jsonl`.
